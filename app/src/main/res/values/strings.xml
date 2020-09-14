@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">RoPELandia</string>
+    <string name="edit_message">Enter a message</string>
+    <string name="button_send">Send</string>
+    <string name="message_hint">Type something</string>
+    <string name="button_test_topcodes">Test topcodes</string>
+    <string name="button_count_topcodes">Count</string>
+    <string name="button_take_photo">Take photo</string>
+    <string name="permission_not_granted">Permission not granted</string>
+</resources>
