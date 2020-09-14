@@ -138,7 +138,7 @@ class TopCode() {
      * unit    - width of a single ring (codes are 8 units wide)
      * arca    - Arc adjustment.  Rotation correction delta value.
      */
-    fun readCode(scanner: TopCodesScanner, unit: Float, arca: Float): Int {
+    private fun readCode(scanner: TopCodesScanner, unit: Float, arca: Float): Int {
         var dx: Float
         var dy: Float // direction vector
         var dist: Float

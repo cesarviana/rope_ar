@@ -14,22 +14,22 @@ import kotlin.math.ceil
  * @version $Revision: 1.4 $, $Date: 2008/02/04 15:02:13 $
  */
 open class TopCodesScanner {
+
+    private var imageData: IntArray? = null
+
     var imageWidth = 0
 
     var imageHeight = 0
 
-    private var imageData: IntArray? = null
-
-    private var previewImage: Bitmap? = null
-
-    private var candidateCount = 0
-
-    private var testedCount = 0
-
     private var maxWidthOfTopCodeInPixels = 80
 
-    fun searchTopCodes(bitmap: Bitmap): List<TopCode> {
-        previewImage = null
+    fun searchTopCodes(inputBitmap: Bitmap): List<TopCode> {
+
+        val scale = .5
+        val width = (inputBitmap.width * scale).toInt()
+        val height = (inputBitmap.height * scale).toInt()
+        val bitmap = Bitmap.createScaledBitmap(inputBitmap, width, height, false)
+
         imageWidth = bitmap.width
         imageHeight = bitmap.height
 
@@ -112,7 +112,7 @@ open class TopCodesScanner {
         var b2: Int
         var level: Int
         var dk: Int
-        candidateCount = 0
+        var candidateCount = 0
         for (y in 0 until imageHeight) {
             w1 = 0
             b2 = w1
@@ -219,7 +219,7 @@ open class TopCodesScanner {
     }
 
     private fun findCodes(): List<TopCode> {
-        testedCount = 0
+        var testedCount = 0
         val spots = mutableListOf<TopCode>()
         var spot = TopCode()
         var k = imageWidth * 2
