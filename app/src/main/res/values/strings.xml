@@ -7,4 +7,5 @@
     <string name="button_count_topcodes">Count</string>
     <string name="button_take_photo">Take photo</string>
     <string name="permission_not_granted">Permission not granted</string>
+    <string name="top_codes_detected">TopCodes detected will be here</string>
 </resources>

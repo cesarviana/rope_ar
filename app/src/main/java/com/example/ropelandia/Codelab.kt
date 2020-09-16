@@ -1,6 +1,7 @@
 package com.example.ropelandia
 
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
@@ -17,31 +18,74 @@ import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_codelab.*
 import topcodes.TopCodesScanner
 import java.io.File
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.concurrent.scheduleAtFixedRate
 
 class Codelab : AppCompatActivity() {
 
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var imageCapture: ImageCapture
 
+    private lateinit var photoFile: File
+    private lateinit var photoFileOutputOptions: ImageCapture.OutputFileOptions
+
+    private val imageSavedCallback = object : ImageCapture.OnImageSavedCallback {
+        private val topCodesScanner = TopCodesScanner()
+
+        override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+            getBitmap().also {
+                searchTopCodes(it)
+            }
+        }
+
+        private fun getBitmap() = BitmapFactory.decodeFile(photoFile.path)
+
+        private fun searchTopCodes(bitmap: Bitmap) {
+            topCodesScanner.searchTopCodes(bitmap).let { topCodes ->
+                mat.blocks = topCodes.map {
+                    BlockFactory.createBlock(it.code, it.centerX, it.centerY, it.diameter, it.orientationInRadians)
+                }
+                mat.invalidate()
+            }
+        }
+
+        override fun onError(exception: ImageCaptureException) {
+            val message = exception.message ?: "Image save callback error"
+            Toast.makeText(baseContext, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_codelab)
+        photoFile = File(filesDir, "topCodes.jpg")
+        photoFileOutputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
         if (allPermissionsGranted()) {
             startCamera()
         } else {
-            ActivityCompat.requestPermissions(
-                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
-            )
+            requestPermissions()
         }
-        cameraExecutor = Executors.newSingleThreadExecutor()
+
+        Timer().apply {
+            scheduleAtFixedRate(1000, 2000) {
+                takePhoto(mat)
+            }
+        }
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(
             baseContext, it
         ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestPermissions() {
+        ActivityCompat.requestPermissions(
+            this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
+        )
     }
 
     override fun onRequestPermissionsResult(
@@ -93,26 +137,6 @@ class Codelab : AppCompatActivity() {
             cameraProviderFutureListener,
             ContextCompat.getMainExecutor(this)
         )
-    }
-
-    private val photoFile = File(filesDir, "topCodes.jpg")
-    private val photoFileOutputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-    private val imageSavedCallback = object : ImageCapture.OnImageSavedCallback {
-
-        private val topCodesScanner = TopCodesScanner()
-
-        override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-            val bitmap = BitmapFactory.decodeFile(photoFile.path)
-            topCodesScanner.searchTopCodes(bitmap).let { topCodes ->
-                textView.text = topCodes.size.toString()
-            }
-        }
-
-        override fun onError(exception: ImageCaptureException) {
-            val message = exception.message ?: "Image save callback error"
-            Toast.makeText(baseContext, message, Toast.LENGTH_SHORT).show()
-        }
     }
 
     fun takePhoto(view: View) {

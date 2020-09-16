@@ -7,33 +7,24 @@
     android:textAlignment="center"
     tools:context=".Codelab">
 
-    <Button
-        android:id="@+id/button4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:onClick="takePhoto"
-        android:text="@string/button_take_photo"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.753"
-        app:layout_constraintStart_toEndOf="@+id/textView"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
-        android:layout_width="428dp"
-        android:layout_height="328dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="223dp"
-        android:layout_height="59dp"
-        android:layout_marginTop="16dp"
-        android:textAlignment="center"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.085"
+        app:layout_constraintHorizontal_bias="0.492"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_bias="0.869">
+    </androidx.camera.view.PreviewView>
+
+    <com.example.ropelandia.Mat
+        android:layout_marginTop="70dp"
+        android:id="@+id/mat"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:onClick="takePhoto"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
