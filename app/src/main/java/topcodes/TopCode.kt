@@ -1,6 +1,7 @@
 package topcodes
 
 import kotlin.math.cos
+import kotlin.math.roundToInt
 import kotlin.math.sin
 
 /**
@@ -33,13 +34,6 @@ class TopCode() {
     /** Buffer used to decode sectors  */
     private var core: IntArray
 
-    /**
-     * Create a TopCode with the given id number.
-     */
-    constructor(code: Int) : this() {
-        this.code = code
-    }
-
     init {
         code = -1
         unit = 72.0f / WIDTH
@@ -58,11 +52,6 @@ class TopCode() {
         set(diameter) {
             unit = diameter / WIDTH
         }
-
-    fun setLocation(x: Float, y: Float) {
-        centerX = x
-        centerY = y
-    }
 
     /**
      * Returns true if this code was sucessfully decoded.
@@ -94,7 +83,7 @@ class TopCode() {
         unit = readUnit(scanner)
         code = -1
         if (unit < 0) return -1
-        var c = 0
+        var c: Int
         var maxc = 0
         var arca: Float
         var maxa = 0f
@@ -155,8 +144,8 @@ class TopCode() {
             // Take 8 samples across the diameter of the symbol
             for (i in 0 until WIDTH) {
                 dist = (i - 3.5f) * unit
-                sx = Math.round(centerX + dx * dist)
-                sy = Math.round(centerY + dy * dist)
+                sx = (centerX + dx * dist).roundToInt()
+                sy = (centerY + dy * dist).roundToInt()
                 core[i] = scanner.getSample3x3(sx, sy)
             }
 
@@ -223,7 +212,7 @@ class TopCode() {
     /**
      * Only codes with a checksum of 5 are valid
      */
-    protected fun checksum(bits: Int): Boolean {
+    fun checksum(bits: Int): Boolean {
         var bits = bits
         var sum = 0
         for (i in 0 until SECTORS) {
@@ -246,9 +235,9 @@ class TopCode() {
      * North, south, east, and west readings are taken and the average
      * is returned.
      */
-    fun readUnit(scanner: TopCodesScanner): Float {
-        val sx = Math.round(centerX)
-        val sy = Math.round(centerY)
+    private fun readUnit(scanner: TopCodesScanner): Float {
+        val sx = centerX.roundToInt()
+        val sy = centerY.roundToInt()
         val iwidth = scanner.imageWidth
         val iheight = scanner.imageHeight
         var whiteL = true
@@ -317,90 +306,6 @@ class TopCode() {
             i++
         }
     }
-
-//    fun annotate(g: Graphics2D, scanner: Scanner) {
-//        var dx: Float
-//        var dy: Float
-//        var dist: Float
-//        var sx: Int
-//        var sy: Int
-//        val bits = 0
-//        for (sector in SECTORS - 1 downTo 0) {
-//            dx =
-//                Math.cos(ARC * sector + orientationInRadians.toDouble()).toFloat()
-//            dy =
-//                Math.sin(ARC * sector + orientationInRadians.toDouble()).toFloat()
-//
-//            // Take 8 samples across the diameter of the symbol
-//            var sample = 0
-//            for (i in 3 until WIDTH) {
-//                dist = (i - 3.5f) * unit
-//                sx = Math.round(centerX + dx * dist)
-//                sy = Math.round(centerY + dy * dist)
-//                sample = scanner.getBW3x3(sx, sy)
-//                g.setColor(if (sample == 0) java.awt.Color.BLACK else java.awt.Color.WHITE)
-//                val rect: Rectangle2D = java.awt.geom.Rectangle2D.Float(
-//                    sx - 0.6f, sy - 0.6f, 1.2f, 1.2f
-//                )
-//                g.fill(rect)
-//                g.setColor(java.awt.Color.RED)
-//                g.setStroke(BasicStroke(0.25f))
-//                g.draw(rect)
-//            }
-//        }
-//    }
-
-//    /**
-//     * Draws this spotcode with its current location and orientation
-//     */
-//    fun draw(g: Graphics2D) {
-//        var bits = code
-//        val arc: Arc2D = java.awt.geom.Arc2D.Float(Arc2D.PIE)
-//        val sweep = 360.0f / SECTORS
-//        val sweepa = -orientationInRadians * 180 / PI
-//        var r = WIDTH * 0.5f * unit
-//        val circ: Ellipse2D = java.awt.geom.Ellipse2D.Float(
-//            centerX - r, centerY - r, r * 2, r * 2
-//        )
-//        g.setColor(java.awt.Color.white)
-//        g.fill(circ)
-//        for (i in SECTORS - 1 downTo 0) {
-//            arc.setArc(
-//                centerX - r.toDouble(), centerY - r.toDouble(), r * 2.toDouble(), r * 2.toDouble(),
-//                i * sweep + sweepa.toDouble(), sweep.toDouble(), Arc2D.PIE
-//            )
-//            g.setColor(if (bits and 0x1 > 0) java.awt.Color.white else java.awt.Color.black)
-//            g.fill(arc)
-//            bits = bits shr 1
-//        }
-//        r -= unit
-//        g.setColor(java.awt.Color.white)
-//        circ.setFrame(
-//            centerX - r.toDouble(),
-//            centerY - r.toDouble(),
-//            r * 2.toDouble(),
-//            r * 2.toDouble()
-//        )
-//        g.fill(circ)
-//        r -= unit
-//        g.setColor(java.awt.Color.black)
-//        circ.setFrame(
-//            centerX - r.toDouble(),
-//            centerY - r.toDouble(),
-//            r * 2.toDouble(),
-//            r * 2.toDouble()
-//        )
-//        g.fill(circ)
-//        r -= unit
-//        g.setColor(java.awt.Color.white)
-//        circ.setFrame(
-//            centerX - r.toDouble(),
-//            centerY - r.toDouble(),
-//            r * 2.toDouble(),
-//            r * 2.toDouble()
-//        )
-//        g.fill(circ)
-//    }
 
     companion object {
         var SECTORS = 13

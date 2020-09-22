@@ -5,12 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:textAlignment="center"
+    android:orientation="horizontal"
     tools:context=".Codelab">
 
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:scaleType="fitStart"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.492"
@@ -19,11 +21,10 @@
     </androidx.camera.view.PreviewView>
 
     <com.example.ropelandia.Mat
-        android:layout_marginTop="70dp"
         android:id="@+id/mat"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:onClick="takePhoto"
+        android:onClick="togglePreview"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

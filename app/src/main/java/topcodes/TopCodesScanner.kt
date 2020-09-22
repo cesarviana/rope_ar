@@ -23,12 +23,7 @@ open class TopCodesScanner {
 
     private var maxWidthOfTopCodeInPixels = 80
 
-    fun searchTopCodes(inputBitmap: Bitmap): List<TopCode> {
-
-        val scale = .5
-        val width = (inputBitmap.width * scale).toInt()
-        val height = (inputBitmap.height * scale).toInt()
-        val bitmap = Bitmap.createScaledBitmap(inputBitmap, width, height, false)
+    fun searchTopCodes(bitmap: Bitmap): List<TopCode> {
 
         imageWidth = bitmap.width
         imageHeight = bitmap.height
@@ -233,7 +228,7 @@ open class TopCodesScanner {
                     {
                         if (!overlaps(spots, i, j)) {
                             testedCount++
-                            spot.decode(this, i, j)
+                            spot.decode(this, cx = i, cy = j)
                             if (spot.successfullyDecoded) {
                                 spots.add(spot)
                                 spot = TopCode()

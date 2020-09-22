@@ -20,7 +20,6 @@ import topcodes.TopCodesScanner
 import java.io.File
 import java.util.*
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import kotlin.concurrent.scheduleAtFixedRate
 
 class Codelab : AppCompatActivity() {
@@ -43,12 +42,26 @@ class Codelab : AppCompatActivity() {
         private fun getBitmap() = BitmapFactory.decodeFile(photoFile.path)
 
         private fun searchTopCodes(bitmap: Bitmap) {
-            topCodesScanner.searchTopCodes(bitmap).let { topCodes ->
-                mat.blocks = topCodes.map {
-                    BlockFactory.createBlock(it.code, it.centerX, it.centerY, it.diameter, it.orientationInRadians)
-                }
+
+            val scaledBitmap = scale(bitmap)
+
+//            val scaleProportion = mat.height.toFloat() / scaledBitmap.height
+//            val blocksConverter = ScreenSizeBlocksConverter(scaleProportion)
+            val targetScreenHeight = mat.height
+            val targetScreenWidth = mat.width
+            val blocksConverter = ProjectorBlocksConverter(targetScreenHeight, targetScreenWidth)
+
+            topCodesScanner.searchTopCodes(scaledBitmap).let { topCodes ->
+                mat.blocks = blocksConverter.convert(topCodes)
                 mat.invalidate()
             }
+        }
+
+        private fun scale(bitmap: Bitmap): Bitmap {
+            val scale = .5
+            val width = (bitmap.width * scale).toInt()
+            val height = (bitmap.height * scale).toInt()
+            return Bitmap.createScaledBitmap(bitmap, width, height, true)
         }
 
         override fun onError(exception: ImageCaptureException) {
@@ -145,6 +158,14 @@ class Codelab : AppCompatActivity() {
             ContextCompat.getMainExecutor(this),
             imageSavedCallback
         )
+    }
+
+    fun togglePreview(view: View){
+        if(viewFinder.visibility == View.VISIBLE){
+            viewFinder.visibility = View.INVISIBLE
+        } else {
+            viewFinder.visibility = View.VISIBLE
+        }
     }
 
     override fun onDestroy() {
