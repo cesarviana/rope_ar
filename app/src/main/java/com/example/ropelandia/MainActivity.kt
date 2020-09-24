@@ -1,8 +1,7 @@
 package com.example.ropelandia
 
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -10,71 +9,31 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import kotlinx.android.synthetic.main.activity_codelab.*
-import topcodes.TopCodesScanner
+import kotlinx.android.synthetic.main.main_activity.*
 import java.io.File
 import java.util.*
 import java.util.concurrent.ExecutorService
 import kotlin.concurrent.scheduleAtFixedRate
 
-class Codelab : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var imageCapture: ImageCapture
 
     private lateinit var photoFile: File
     private lateinit var photoFileOutputOptions: ImageCapture.OutputFileOptions
-
-    private val imageSavedCallback = object : ImageCapture.OnImageSavedCallback {
-        private val topCodesScanner = TopCodesScanner()
-
-        override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-            getBitmap().also {
-                searchTopCodes(it)
-            }
-        }
-
-        private fun getBitmap() = BitmapFactory.decodeFile(photoFile.path)
-
-        private fun searchTopCodes(bitmap: Bitmap) {
-
-            val scaledBitmap = scale(bitmap)
-
-//            val scaleProportion = mat.height.toFloat() / scaledBitmap.height
-//            val blocksConverter = ScreenSizeBlocksConverter(scaleProportion)
-            val targetScreenHeight = mat.height
-            val targetScreenWidth = mat.width
-            val blocksConverter = ProjectorBlocksConverter(targetScreenHeight, targetScreenWidth)
-
-            topCodesScanner.searchTopCodes(scaledBitmap).let { topCodes ->
-                mat.blocks = blocksConverter.convert(topCodes)
-                mat.invalidate()
-            }
-        }
-
-        private fun scale(bitmap: Bitmap): Bitmap {
-            val scale = .5
-            val width = (bitmap.width * scale).toInt()
-            val height = (bitmap.height * scale).toInt()
-            return Bitmap.createScaledBitmap(bitmap, width, height, true)
-        }
-
-        override fun onError(exception: ImageCaptureException) {
-            val message = exception.message ?: "Image save callback error"
-            Toast.makeText(baseContext, message, Toast.LENGTH_SHORT).show()
-        }
-    }
+    private lateinit var imageSavedCallback: ImageSavedCallback
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_codelab)
+        setContentView(R.layout.main_activity)
         photoFile = File(filesDir, "topCodes.jpg")
         photoFileOutputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+        imageSavedCallback = ImageSavedCallback(photoFile, mat)
 
         if (allPermissionsGranted()) {
             startCamera()
@@ -152,7 +111,7 @@ class Codelab : AppCompatActivity() {
         )
     }
 
-    fun takePhoto(view: View) {
+    private fun takePhoto(view: View) {
         imageCapture.takePicture(
             photoFileOutputOptions,
             ContextCompat.getMainExecutor(this),
@@ -160,11 +119,13 @@ class Codelab : AppCompatActivity() {
         )
     }
 
-    fun togglePreview(view: View){
-        if(viewFinder.visibility == View.VISIBLE){
+    fun togglePreview(view: View) {
+        if (viewFinder.visibility == View.VISIBLE) {
             viewFinder.visibility = View.INVISIBLE
+            mat.setBackgroundColor(Color.BLACK)
         } else {
             viewFinder.visibility = View.VISIBLE
+            mat.setBackgroundColor(Color.TRANSPARENT)
         }
     }
 
@@ -180,5 +141,4 @@ class Codelab : AppCompatActivity() {
             android.Manifest.permission.CAMERA
         )
     }
-
 }

@@ -25,7 +25,7 @@ class TopCode() {
     /** The width of a single ring.  */
     var unit: Float
 
-    var orientationInRadians: Float
+    var angleInRadians: Float
 
     var centerX: Float
 
@@ -37,7 +37,7 @@ class TopCode() {
     init {
         code = -1
         unit = 72.0f / WIDTH
-        orientationInRadians = 0f
+        angleInRadians = 0f
         centerX = 0f
         centerY = 0f
         core = IntArray(WIDTH)
@@ -196,16 +196,16 @@ class TopCode() {
         // but there seems to be a positive bias
         // that falls out of the algorithm.
         arca -= ARC * 0.65f
-        orientationInRadians = 0f
+        angleInRadians = 0f
         for (i in 1..SECTORS) {
             bits = bits shl 1 and mask or
                     (bits shr SECTORS - 1)
             if (bits < min) {
                 min = bits
-                orientationInRadians = i * -ARC
+                angleInRadians = i * -ARC
             }
         }
-        orientationInRadians += arca
+        angleInRadians += arca
         return min
     }
 
@@ -326,7 +326,7 @@ class TopCode() {
                 // Found a valid code
                 if (bits == base && code.checksum(bits)) {
                     code.code = bits
-                    code.orientationInRadians = 0f
+                    code.angleInRadians = 0f
                     list[count++] = code
                     code = TopCode()
                 }
