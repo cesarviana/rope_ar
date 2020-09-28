@@ -4,7 +4,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 
-data class Point(var x: Float = 0f, var y: Float = 0f)
+
 
 class Board : Paintable {
 

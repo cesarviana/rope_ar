@@ -24,22 +24,6 @@ class ProjectorBlocksPositioner(
 ) : BlocksPositioner {
 
     override fun reposition(blocks: List<Block>): List<Block> {
-
-        val positionBlocks = blocks.filterIsInstance<PositionBlock>()
-        val delimitedArea = Board().apply { updatePosition(positionBlocks) }
-
-        val programBlocks = blocks.filterNot { it is PositionBlock }
-
-        val proportion = targetScreenHeight / delimitedArea.height()
-
-        return programBlocks.map {
-            BlockFactory.createBlock(
-                it.javaClass,
-                (it.x - delimitedArea.left) * proportion,
-                (it.y - delimitedArea.top) * proportion,
-                it.diameter * proportion,
-                it.angleRadians
-            )
-        }
+        return blocks
     }
 }

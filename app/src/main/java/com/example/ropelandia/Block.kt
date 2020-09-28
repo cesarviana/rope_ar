@@ -3,6 +3,7 @@ package com.example.ropelandia
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import kotlin.math.ceil
 
 open class Block(
     val x: Float,
@@ -12,13 +13,21 @@ open class Block(
 ) : Paintable {
 
     private val paint = Paint().apply {
-        color = Color.RED
-        style = Paint.Style.STROKE
+        color = Color.WHITE
         strokeWidth = 6f
+        textSize = 20f
+    }
+
+    private val textPaint = Paint().apply {
+        color = Color.RED
+        textSize = 40f
     }
 
     override fun paint(canvas: Canvas) {
         canvas.drawCircle(x, y, diameter, paint)
+        val xShow = x.toInt()
+        val yShow = y.toInt()
+        canvas.drawText("$xShow, $yShow",x+40, y, textPaint)
     }
 }
 
@@ -41,41 +50,13 @@ object BlockFactory {
 }
 
 class StartBlock(centerX: Float, centerY: Float, diameter: Float, angleRadians: Float) :
-    Block(centerX, centerY, diameter, angleRadians) {
-
-    private val paint = Paint().apply {
-        color = Color.RED
-    }
-
-    override fun paint(canvas: Canvas) {
-        canvas.drawCircle(x, y, diameter, paint)
-    }
-}
+    Block(centerX, centerY, diameter, angleRadians)
 
 class PositionBlock(centerX: Float, centerY: Float, diameter: Float, angleRadians: Float) :
-    Block(centerX, centerY, diameter, angleRadians) {
-    private val paint = Paint().apply {
-        color = Color.GREEN
-    }
-
-    override fun paint(canvas: Canvas) {
-        canvas.drawCircle(x, y, 30f, paint)
-    }
-}
-
-
+    Block(centerX, centerY, diameter, angleRadians)
 
 open class DirectionBlock(centerX: Float, centerY: Float, diameter: Float, angleRadians: Float) :
-    Block(centerX, centerY, diameter, angleRadians) {
-
-    private val paint = Paint().apply {
-        color = Color.WHITE
-    }
-
-    override fun paint(canvas: Canvas) {
-        canvas.drawCircle(x, y, diameter * 1.5f, paint)
-    }
-}
+    Block(centerX, centerY, diameter, angleRadians)
 
 class ForwardBlock(centerX: Float, centerY: Float, diameter: Float, angleRadians: Float) :
     DirectionBlock(centerX, centerY, diameter, angleRadians)

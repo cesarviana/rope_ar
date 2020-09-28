@@ -6,10 +6,10 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import java.io.File
 
-class ImageSavedCallback(private val imageFile: File, private val mat: Mat) :
+class ImageSavedCallback(private val imageFile: File, private val mat: Mat, screenHeight: Int, screenWidth: Int) :
     ImageCapture.OnImageSavedCallback {
 
-    private val bitmapToBlocksConverter = BitmapToBlocksConverter(mat.height, mat.width)
+    private val bitmapToBlocksConverter = BitmapToBlocksConverter(screenHeight, screenWidth)
 
     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) =
         getBitmap().let {

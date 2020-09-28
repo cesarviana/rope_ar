@@ -26,18 +26,20 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
         super.onDraw(canvas)
 
         canvas?.apply {
+            drawTicTacToe(canvas)
+            drawWhiteRectangles()
             blocks.forEach {
                 it.paint(canvas)
             }
-
-            drawTicTacToe(canvas)
-
-            val rectHeight = 50f
-            val rectWidth = 130f
-            drawRect(0f, 0f, rectWidth, rectHeight, borderMarkers)
-            drawRect(0f, height - rectHeight, rectWidth, height.toFloat(), borderMarkers)
-
         }
+    }
+
+    private fun Canvas.drawWhiteRectangles() {
+        val rectHeight = 50f
+        val rectWidth = 130f
+        val firstSquareTop = (height / 2).toFloat()
+        drawRect(0f, firstSquareTop, rectWidth, firstSquareTop + rectHeight, borderMarkers)
+        drawRect(0f, height - rectHeight, rectWidth, height.toFloat(), borderMarkers)
     }
 
     private fun Canvas.drawTicTacToe(canvas: Canvas) {
