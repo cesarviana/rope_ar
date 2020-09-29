@@ -49,6 +49,7 @@ dependencies {
     implementation "androidx.camera:camera-view:1.0.0-alpha15"
 
     implementation "org.ejml:ejml-all:0.39"
+    testImplementation "org.assertj:assertj-core:3.6.1"
 
 }
 

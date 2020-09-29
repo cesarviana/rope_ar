@@ -1,7 +1,7 @@
 package com.example.ropelandia
 
 class RectangleFinder {
-    fun calcRectangle(points: List<Point>): Rectangle {
+    fun adjustRectangle(points: List<Point>): Rectangle {
 
         require(points.size == 4) {
             "4 points must be informed"
@@ -18,14 +18,14 @@ class RectangleFinder {
         return Rectangle(topLeft, topRight, bottomRight, bottomLeft)
     }
 
-    fun calcRectangle(rectangle: Rectangle): Rectangle {
+    fun adjustRectangle(rectangle: Rectangle): Rectangle {
         val points = listOf(
             rectangle.topLeft,
             rectangle.topRight,
             rectangle.bottomRight,
             rectangle.bottomLeft
         )
-        return calcRectangle(
+        return adjustRectangle(
             points
         )
     }
@@ -37,4 +37,18 @@ data class Rectangle(
     val topRight: Point,
     val bottomRight: Point,
     val bottomLeft: Point
-)
+) {
+    fun height(): Double {
+        return kotlin.math.max(leftHeight(), rightHeight())
+    }
+
+    private fun leftHeight() = bottomLeft.y - topLeft.y
+    private fun rightHeight() = bottomRight.y - topRight.y
+
+    fun width(): Double {
+        return kotlin.math.max(topWidth(), bottomWidth())
+    }
+
+    private fun topWidth() = topRight.x - topLeft.x
+    private fun bottomWidth() = bottomRight.x - bottomLeft.x
+}

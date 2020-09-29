@@ -17,7 +17,7 @@ class RectangleFinderTest {
 
         val rectangleFinder = RectangleFinder()
 
-        val rectangle = rectangleFinder.calcRectangle(points)
+        val rectangle = rectangleFinder.adjustRectangle(points)
 
         assertEquals(Point(646.0, 721.0), rectangle.topLeft)
         assertEquals(Point(1681.0, 721.0), rectangle.topRight)
