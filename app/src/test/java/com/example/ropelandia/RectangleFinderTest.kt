@@ -4,11 +4,6 @@ import org.junit.Test
 
 import org.junit.Assert.*
 
-/**
- * Example local unit test, which will execute on the development machine (host).
- *
- * See [testing documentation](http://d.android.com/tools/testing).
- */
 class RectangleFinderTest {
     @Test
     fun findTargetSquare() {
@@ -22,12 +17,12 @@ class RectangleFinderTest {
 
         val rectangleFinder = RectangleFinder()
 
-        val square = rectangleFinder.calcRectangle(points)
+        val rectangle = rectangleFinder.calcRectangle(points)
 
-        assertEquals(Point(646.0, 721.0), square.topLeft)
-        assertEquals(Point(1681.0, 721.0), square.topRight)
-        assertEquals(Point(1681.0, 1016.0), square.bottomRight)
-        assertEquals(Point(646.0, 1016.0), square.bottomLeft)
+        assertEquals(Point(646.0, 721.0), rectangle.topLeft)
+        assertEquals(Point(1681.0, 721.0), rectangle.topRight)
+        assertEquals(Point(1681.0, 1016.0), rectangle.bottomRight)
+        assertEquals(Point(646.0, 1016.0), rectangle.bottomLeft)
 
     }
 }

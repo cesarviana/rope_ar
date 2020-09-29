@@ -17,6 +17,18 @@ class RectangleFinder {
 
         return Rectangle(topLeft, topRight, bottomRight, bottomLeft)
     }
+
+    fun calcRectangle(rectangle: Rectangle): Rectangle {
+        val points = listOf(
+            rectangle.topLeft,
+            rectangle.topRight,
+            rectangle.bottomRight,
+            rectangle.bottomLeft
+        )
+        return calcRectangle(
+            points
+        )
+    }
 }
 
 data class Point(val x: Double, val y: Double)
