@@ -9,7 +9,7 @@ class BitmapToBlocksConverter(targetHeight: Int, targetWidth: Int) {
     private val topCodesScanner = TopCodesScanner()
     private val positioner = ProjectorBlocksPositioner(targetHeight, targetWidth)
 
-    fun convertBitmapToBlocks(bitmap: Bitmap) : List<Block> {
+    fun convertBitmapToBlocks(bitmap: Bitmap): List<Block> {
         return bitmap.let {
             scale(it)
         }.let {
@@ -32,8 +32,19 @@ class BitmapToBlocksConverter(targetHeight: Int, targetWidth: Int) {
 
     private fun convertToBlocks(topCodes: List<TopCode>) = topCodes.map {
         val blockClass = TopCodeToClassMapper.map(it.code)
+        val radians = it.angleInRadians.toDouble()
+
+        val pastedTopCodeAngleError = 90
+
+        val degrees = (Math.toDegrees(radians) - pastedTopCodeAngleError).let { degrees ->
+            if (degrees < 0)
+                degrees + 360
+            else
+                degrees
+        }
+
         BlockFactory.createBlock(
-            blockClass, it.centerX, it.centerY, it.diameter, it.angleInRadians
+            blockClass, it.centerX, it.centerY, it.diameter, degrees.toFloat()
         )
     }
 
