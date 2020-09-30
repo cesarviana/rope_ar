@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
@@ -34,7 +33,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.main_activity)
         photoFile = File(filesDir, "topCodes.jpg")
         photoFileOutputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-        // TODO get current screen size
         imageSavedCallback = ImageSavedCallback(photoFile, mat, 720, 1280)
 
         if (allPermissionsGranted()) {
@@ -49,7 +47,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-//        togglePreview(mat)
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -91,7 +88,7 @@ class MainActivity : AppCompatActivity() {
             val preview = Preview.Builder()
                 .build()
                 .also {
-                    it.setSurfaceProvider(viewFinder.createSurfaceProvider())
+                    it.setSurfaceProvider(previewView.createSurfaceProvider())
                 }
 
             imageCapture = ImageCapture.Builder().build()
@@ -124,11 +121,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun togglePreview(view: View) {
-        if (viewFinder.visibility == View.VISIBLE) {
-            viewFinder.visibility = View.INVISIBLE
+        if (previewView.visibility == View.VISIBLE) {
+            previewView.visibility = View.INVISIBLE
             mat.setBackgroundColor(Color.DKGRAY)
         } else {
-            viewFinder.visibility = View.VISIBLE
+            previewView.visibility = View.VISIBLE
             mat.setBackgroundColor(Color.TRANSPARENT)
         }
     }

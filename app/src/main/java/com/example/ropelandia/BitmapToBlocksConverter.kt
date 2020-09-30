@@ -22,7 +22,7 @@ class BitmapToBlocksConverter(targetHeight: Int, targetWidth: Int) {
     }
 
     private fun scale(bitmap: Bitmap): Bitmap {
-        val scale = .6
+        val scale = .8
         val width = (bitmap.width * scale).toInt()
         val height = (bitmap.height * scale).toInt()
         return Bitmap.createScaledBitmap(bitmap, width, height, true)
@@ -32,19 +32,13 @@ class BitmapToBlocksConverter(targetHeight: Int, targetWidth: Int) {
 
     private fun convertToBlocks(topCodes: List<TopCode>) = topCodes.map {
         val blockClass = TopCodeToClassMapper.map(it.code)
-        val radians = it.angleInRadians.toDouble()
 
-        val pastedTopCodeAngleError = 90
+        val pastedPaperErrorInRadians = 1.5708f
 
-        val degrees = (Math.toDegrees(radians) - pastedTopCodeAngleError).let { degrees ->
-            if (degrees < 0)
-                degrees + 360
-            else
-                degrees
-        }
+        val angle = it.angleInRadians - pastedPaperErrorInRadians
 
         BlockFactory.createBlock(
-            blockClass, it.centerX, it.centerY, it.diameter, degrees.toFloat()
+            blockClass, it.centerX, it.centerY, it.diameter, angle
         )
     }
 

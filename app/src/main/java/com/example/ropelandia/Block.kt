@@ -1,34 +1,32 @@
 package com.example.ropelandia
 
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import kotlin.math.ceil
-
 open class Block(
     val x: Float,
     val y: Float,
     val diameter: Float,
-    val angleRadians: Float
-) : Paintable {
+    val angle: Float
+) {
 
-    private val paint = Paint().apply {
-        color = Color.WHITE
-        strokeWidth = 6f
-        textSize = 20f
+    init {
+        require(x >= 0)
+        require(y >= 0)
     }
 
-    private val textPaint = Paint().apply {
-        color = Color.RED
-        textSize = 40f
-    }
-
-    override fun paint(canvas: Canvas) {
-        canvas.drawCircle(x, y, diameter, paint)
-        val xShow = x.toInt()
-        val yShow = y.toInt()
-        canvas.drawText("$xShow, $yShow",x+40, y, textPaint)
-    }
+//    private val paint = Paint().apply {
+//        color = Color.RED
+//        strokeWidth = 6f
+//        textSize = 20f
+//    }
+//
+//    private val textPaint = Paint().apply {
+//        color = Color.WHITE
+//        textSize = 45f
+//    }
+//
+//    override fun paint(canvas: Canvas) {
+////        canvas.drawCircle(x, y, diameter, paint)
+////        canvas.drawText("$angle", x + 40, y, textPaint)
+//    }
 }
 
 object BlockFactory {
@@ -37,7 +35,7 @@ object BlockFactory {
         x: Float,
         y: Float,
         diameter: Float,
-        angleRadians: Float
+        angle: Float
     ): Block {
         return clazz.getDeclaredConstructor(
             Float::class.java,
@@ -45,27 +43,32 @@ object BlockFactory {
             Float::class.java,
             Float::class.java
         )
-            .newInstance(x, y, diameter, angleRadians)
+            .newInstance(
+                x.coerceAtLeast(0f),
+                y.coerceAtLeast(0f),
+                diameter,
+                angle
+            )
     }
 }
 
-class StartBlock(centerX: Float, centerY: Float, diameter: Float, angleRadians: Float) :
-    Block(centerX, centerY, diameter, angleRadians)
+class StartBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :
+    Block(centerX, centerY, diameter, angle)
 
-class PositionBlock(centerX: Float, centerY: Float, diameter: Float, angleRadians: Float) :
-    Block(centerX, centerY, diameter, angleRadians)
+class PositionBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :
+    Block(centerX, centerY, diameter, angle)
 
-open class DirectionBlock(centerX: Float, centerY: Float, diameter: Float, angleRadians: Float) :
-    Block(centerX, centerY, diameter, angleRadians)
+open class DirectionBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :
+    Block(centerX, centerY, diameter, angle)
 
-class ForwardBlock(centerX: Float, centerY: Float, diameter: Float, angleRadians: Float) :
-    DirectionBlock(centerX, centerY, diameter, angleRadians)
+class ForwardBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :
+    DirectionBlock(centerX, centerY, diameter, angle)
 
-class BackwardBlock(centerX: Float, centerY: Float, diameter: Float, angleRadians: Float) :
-    DirectionBlock(centerX, centerY, diameter, angleRadians)
+class BackwardBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :
+    DirectionBlock(centerX, centerY, diameter, angle)
 
-class LeftBlock(centerX: Float, centerY: Float, diameter: Float, angleRadians: Float) :
-    DirectionBlock(centerX, centerY, diameter, angleRadians)
+class LeftBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :
+    DirectionBlock(centerX, centerY, diameter, angle)
 
-class RightBlock(centerX: Float, centerY: Float, diameter: Float, angleRadians: Float) :
-    DirectionBlock(centerX, centerY, diameter, angleRadians)
+class RightBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :
+    DirectionBlock(centerX, centerY, diameter, angle)

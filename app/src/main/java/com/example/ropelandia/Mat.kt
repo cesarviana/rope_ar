@@ -4,10 +4,19 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.SurfaceView
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
+import kotlin.math.cos
+import kotlin.math.sin
 
 class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) {
 
     var blocks = listOf<Block>()
+        set(value) {
+            field = value
+            program.clear()
+            program.addAll(ProgramFactory.createProgram(blocks))
+        }
+    private val program = mutableListOf<Block>()
 
     init {
         setWillNotDraw(false)
@@ -15,44 +24,54 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
         holder.setFormat(PixelFormat.TRANSPARENT)
     }
 
-    private val paint = Paint().apply {
-        this.color = Color.YELLOW
+    private val blockPaint = Paint().apply {
+        color = Color.RED
     }
-    private val borderMarkers = Paint().apply {
-        this.color = Color.WHITE
+
+    private val textPaint = Paint().apply {
+        textSize = 50f
+        color = Color.BLUE
     }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-
         canvas?.apply {
-            drawTicTacToe(canvas)
-            drawWhiteRectangles()
+
             blocks.forEach {
-                it.paint(canvas)
+//                drawCircle(it.x, it.y, it.diameter, blockPaint)
+//                drawText(it.angle.toString(), it.x + 20, it.y, textPaint)
             }
+
+
+            drawPlaceholder(canvas)
+
         }
     }
 
-    private fun Canvas.drawWhiteRectangles() {
-        val rectHeight = 50f
-        val rectWidth = 130f
-        val firstSquareTop = (height / 2).toFloat()
-        drawRect(0f, firstSquareTop, rectWidth, firstSquareTop + rectHeight, borderMarkers)
-        drawRect(0f, height - rectHeight, rectWidth, height.toFloat(), borderMarkers)
+    private fun drawPlaceholder(canvas: Canvas) {
+
+        val lastBlock = program.lastOrNull()
+
+        lastBlock?.let {
+            val degrees = Math.toDegrees(it.angle.toDouble())
+            canvas.rotate(degrees.toFloat(), lastBlock.x, lastBlock.y)
+
+            VectorDrawableCompat.create(resources, R.drawable.ic_placeholder, null)
+                ?.let {
+                    val blockRadius = lastBlock.diameter / 2
+                    val blockWidth = 140
+                    val blockHeight = 100
+
+                    val left = (lastBlock.x.toInt() - blockRadius).toInt() + blockWidth
+                    val top = (lastBlock.y - blockRadius).toInt()
+                    val bottom = top + blockHeight
+                    val right = left + blockWidth
+
+                    it.bounds = Rect(left, top, right, bottom)
+                    it.draw(canvas)
+
+                }
+        }
     }
-
-    private fun Canvas.drawTicTacToe(canvas: Canvas) {
-        var tercoHeight = (height / 3).toFloat()
-        canvas.drawRect(0f, tercoHeight, width.toFloat(), tercoHeight + 10, paint)
-        tercoHeight *= 2
-        canvas.drawRect(0f, tercoHeight, width.toFloat(), tercoHeight + 10, paint)
-
-
-        var tercoWidth = (width / 3).toFloat()
-        canvas.drawRect(tercoWidth, 0f, tercoWidth + 10, height.toFloat(), paint)
-        tercoWidth *= 2
-        canvas.drawRect(tercoWidth, 0f, tercoWidth + 10, height.toFloat(), paint)
-    }
-
 }
+

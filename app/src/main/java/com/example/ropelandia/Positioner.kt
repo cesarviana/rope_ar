@@ -12,7 +12,7 @@ class ScreenSizeBlocksPositioner(private val proportion: Float) : BlocksPosition
                 it.x * proportion,
                 it.y * proportion,
                 it.diameter * proportion,
-                it.angleRadians
+                it.angle
             )
         }.filterNot { it is PositionBlock }
     }
@@ -101,7 +101,7 @@ class ProjectorBlocksPositioner(
                 (newPoint.x - adjustedRectangle!!.topLeft.x).toFloat() * proportionWidth,
                 (newPoint.y - adjustedRectangle!!.topLeft.y).toFloat() * proportionHeight,
                 it.diameter,
-                it.angleRadians
+                it.angle
             )
         }
     }

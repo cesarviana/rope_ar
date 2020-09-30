@@ -9,7 +9,7 @@
     tools:context=".MainActivity">
 
     <androidx.camera.view.PreviewView
-        android:id="@+id/viewFinder"
+        android:id="@+id/previewView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:scaleType="fitStart"
@@ -24,6 +24,7 @@
         android:id="@+id/mat"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@android:color/black"
         android:onClick="togglePreview"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
