@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:textAlignment="center"
     android:orientation="horizontal"
-    tools:context=".MainActivity">
+    tools:context=".game.GameActivity">
 
     <androidx.camera.view.PreviewView
         android:id="@+id/previewView"
@@ -20,7 +20,7 @@
         app:layout_constraintVertical_bias="0.869">
     </androidx.camera.view.PreviewView>
 
-    <com.rope.ropelandia.Mat
+    <com.rope.ropelandia.game.Mat
         android:id="@+id/mat"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

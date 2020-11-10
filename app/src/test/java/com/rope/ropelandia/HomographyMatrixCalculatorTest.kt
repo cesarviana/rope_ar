@@ -1,5 +1,6 @@
 package com.rope.ropelandia
 
+import com.rope.ropelandia.capture.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 

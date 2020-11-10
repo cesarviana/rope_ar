@@ -1,5 +1,7 @@
 package com.rope.ropelandia
 
+import com.rope.ropelandia.capture.Point
+import com.rope.ropelandia.capture.RectangleFinder
 import org.junit.Test
 
 import org.junit.Assert.*

@@ -1,4 +1,6 @@
-package com.rope.ropelandia
+package com.rope.ropelandia.capture
+
+import com.rope.ropelandia.*
 
 object TopCodeToClassMapper {
 

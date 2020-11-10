@@ -1,4 +1,4 @@
-package com.rope.ropelandia
+package com.rope.ropelandia.game
 
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -13,13 +13,14 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.rope.ropelandia.R
 import kotlinx.android.synthetic.main.main_activity.*
 import java.io.File
 import java.util.*
 import java.util.concurrent.ExecutorService
 import kotlin.concurrent.scheduleAtFixedRate
 
-class MainActivity : AppCompatActivity() {
+class GameActivity : AppCompatActivity() {
 
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var imageCapture: ImageCapture
