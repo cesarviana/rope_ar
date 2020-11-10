@@ -1,4 +1,4 @@
-package com.example.ropelandia
+package com.rope.ropelandia
 
 class RectangleFinder {
     fun adjustRectangle(points: List<Point>): Rectangle {

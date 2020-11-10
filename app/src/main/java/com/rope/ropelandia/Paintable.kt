@@ -1,4 +1,4 @@
-package com.example.ropelandia
+package com.rope.ropelandia
 
 import android.graphics.Canvas
 

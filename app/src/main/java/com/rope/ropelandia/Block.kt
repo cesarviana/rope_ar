@@ -1,4 +1,4 @@
-package com.example.ropelandia
+package com.rope.ropelandia
 
 open class Block(
     val x: Float,
@@ -6,27 +6,10 @@ open class Block(
     val diameter: Float,
     val angle: Float
 ) {
-
     init {
         require(x >= 0)
         require(y >= 0)
     }
-
-//    private val paint = Paint().apply {
-//        color = Color.RED
-//        strokeWidth = 6f
-//        textSize = 20f
-//    }
-//
-//    private val textPaint = Paint().apply {
-//        color = Color.WHITE
-//        textSize = 45f
-//    }
-//
-//    override fun paint(canvas: Canvas) {
-////        canvas.drawCircle(x, y, diameter, paint)
-////        canvas.drawText("$angle", x + 40, y, textPaint)
-//    }
 }
 
 object BlockFactory {

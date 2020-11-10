@@ -1,4 +1,4 @@
-package com.example.ropelandia
+package com.rope.ropelandia
 
 interface BlocksPositioner {
     fun reposition(blocks: List<Block>): List<Block>

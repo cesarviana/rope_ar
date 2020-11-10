@@ -20,7 +20,7 @@
         app:layout_constraintVertical_bias="0.869">
     </androidx.camera.view.PreviewView>
 
-    <com.example.ropelandia.Mat
+    <com.rope.ropelandia.Mat
         android:id="@+id/mat"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

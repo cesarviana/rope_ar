@@ -1,4 +1,4 @@
-package com.example.ropelandia
+package com.rope.ropelandia
 
 import android.content.pm.PackageManager
 import android.graphics.Color

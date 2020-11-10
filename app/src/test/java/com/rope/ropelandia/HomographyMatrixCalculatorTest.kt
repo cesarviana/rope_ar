@@ -1,4 +1,4 @@
-package com.example.ropelandia
+package com.rope.ropelandia
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test

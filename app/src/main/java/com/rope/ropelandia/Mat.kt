@@ -1,12 +1,10 @@
-package com.example.ropelandia
+package com.rope.ropelandia
 
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.SurfaceView
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
-import kotlin.math.cos
-import kotlin.math.sin
 
 class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) {
 
@@ -33,16 +31,21 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
         color = Color.BLUE
     }
 
+    private val borderPaint = Paint().apply {
+        style = Paint.Style.STROKE
+        color = Color.GREEN
+    }
+
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.apply {
 
-            blocks.forEach {
+//            blocks.forEach {
 //                drawCircle(it.x, it.y, it.diameter, blockPaint)
 //                drawText(it.angle.toString(), it.x + 20, it.y, textPaint)
-            }
+//            }
 
-
+            drawRect(0f, 0f, width.toFloat() - 3, height.toFloat() - 3, borderPaint)
             drawPlaceholder(canvas)
 
         }
@@ -50,25 +53,32 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
 
     private fun drawPlaceholder(canvas: Canvas) {
 
-        val lastBlock = program.lastOrNull()
+        val baseBlock = program.find { it is StartBlock }
 
-        lastBlock?.let {
+        baseBlock?.let {
             val degrees = Math.toDegrees(it.angle.toDouble())
-            canvas.rotate(degrees.toFloat(), lastBlock.x, lastBlock.y)
+            canvas.rotate(degrees.toFloat(), baseBlock.x, baseBlock.y)
 
             VectorDrawableCompat.create(resources, R.drawable.ic_placeholder, null)
-                ?.let {
-                    val blockRadius = lastBlock.diameter / 2
+                ?.let { drawable ->
+                    val blockRadius = baseBlock.diameter / 2
                     val blockWidth = 140
                     val blockHeight = 100
 
-                    val left = (lastBlock.x.toInt() - blockRadius).toInt() + blockWidth
-                    val top = (lastBlock.y - blockRadius).toInt()
+                    val left = (baseBlock.x.toInt() - blockRadius).toInt() + blockWidth
+                    val top = (baseBlock.y - blockRadius).toInt()
                     val bottom = top + blockHeight
                     val right = left + blockWidth
 
-                    it.bounds = Rect(left, top, right, bottom)
-                    it.draw(canvas)
+                    drawable.bounds = Rect(left, top, right, bottom)
+                    drawable.draw(canvas)
+
+                    program.forEach { _ ->
+                        drawable.bounds.left += blockWidth
+                        drawable.bounds.right = drawable.bounds.left + blockWidth
+                        drawable.alpha = (drawable.alpha * 0.8).toInt()
+                        drawable.draw(canvas)
+                    }
 
                 }
         }

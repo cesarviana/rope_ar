@@ -1,4 +1,4 @@
-package com.example.ropelandia
+package com.rope.ropelandia
 
 import kotlin.math.abs
 import kotlin.math.cos

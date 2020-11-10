@@ -1,4 +1,4 @@
-package com.example.ropelandia
+package com.rope.ropelandia
 
 import android.graphics.Bitmap
 import topcodes.TopCode
@@ -22,7 +22,7 @@ class BitmapToBlocksConverter(targetHeight: Int, targetWidth: Int) {
     }
 
     private fun scale(bitmap: Bitmap): Bitmap {
-        val scale = .8
+        val scale = .6
         val width = (bitmap.width * scale).toInt()
         val height = (bitmap.height * scale).toInt()
         return Bitmap.createScaledBitmap(bitmap, width, height, true)
