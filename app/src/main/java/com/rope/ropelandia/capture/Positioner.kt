@@ -1,23 +1,11 @@
 package com.rope.ropelandia.capture
 
-import com.rope.ropelandia.*
+import com.rope.ropelandia.game.Block
+import com.rope.ropelandia.game.BlockFactory
+import com.rope.ropelandia.game.PositionBlock
 
 interface BlocksPositioner {
     fun reposition(blocks: List<Block>): List<Block>
-}
-
-class ScreenSizeBlocksPositioner(private val proportion: Float) : BlocksPositioner {
-    override fun reposition(blocks: List<Block>): List<Block> {
-        return blocks.map {
-            BlockFactory.createBlock(
-                it.javaClass,
-                it.x * proportion,
-                it.y * proportion,
-                it.diameter * proportion,
-                it.angle
-            )
-        }.filterNot { it is PositionBlock }
-    }
 }
 
 class ProjectorBlocksPositioner(

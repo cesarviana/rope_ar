@@ -1,5 +1,8 @@
-package com.rope.ropelandia
+package com.rope.ropelandia.capture
 
+import com.rope.ropelandia.game.Block
+import com.rope.ropelandia.game.DirectionBlock
+import com.rope.ropelandia.game.StartBlock
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin

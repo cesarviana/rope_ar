@@ -5,10 +5,8 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.SurfaceView
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
-import com.rope.ropelandia.Block
-import com.rope.ropelandia.ProgramFactory
+import com.rope.ropelandia.capture.ProgramFactory
 import com.rope.ropelandia.R
-import com.rope.ropelandia.StartBlock
 
 class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) {
 

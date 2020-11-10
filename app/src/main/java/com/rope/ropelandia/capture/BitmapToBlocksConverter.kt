@@ -1,8 +1,8 @@
 package com.rope.ropelandia.capture
 
 import android.graphics.Bitmap
-import com.rope.ropelandia.Block
-import com.rope.ropelandia.BlockFactory
+import com.rope.ropelandia.game.Block
+import com.rope.ropelandia.game.BlockFactory
 import topcodes.TopCode
 import topcodes.TopCodesScanner
 

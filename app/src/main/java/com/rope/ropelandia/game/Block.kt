@@ -1,4 +1,4 @@
-package com.rope.ropelandia
+package com.rope.ropelandia.game
 
 open class Block(
     val x: Float,

@@ -4,7 +4,6 @@ import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
-import com.rope.ropelandia.Block
 import com.rope.ropelandia.capture.BitmapToBlocksConverter
 import java.io.File
 
