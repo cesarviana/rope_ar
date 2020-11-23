@@ -1,11 +1,9 @@
 package com.rope.ropelandia.game
 
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -13,6 +11,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.rope.ropelandia.PermissionChecker
 import com.rope.ropelandia.R
 import kotlinx.android.synthetic.main.main_activity.*
 import java.io.File
@@ -28,6 +27,7 @@ class GameActivity : AppCompatActivity() {
     private lateinit var photoFile: File
     private lateinit var photoFileOutputOptions: ImageCapture.OutputFileOptions
     private lateinit var imageSavedCallback: ImageSavedCallback
+    private val permissionChecker = PermissionChecker()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,10 +36,12 @@ class GameActivity : AppCompatActivity() {
         photoFileOutputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
         imageSavedCallback = ImageSavedCallback(photoFile, mat, 720, 1280)
 
-        if (allPermissionsGranted()) {
+        permissionChecker.executeOrRequestPermission(
+            this,
+            REQUIRED_PERMISSIONS,
+            REQUEST_PERMISSIONS_CODE
+        ) {
             startCamera()
-        } else {
-            requestPermissions()
         }
 
         Timer().apply {
@@ -50,32 +52,14 @@ class GameActivity : AppCompatActivity() {
 
     }
 
-    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(
-            baseContext, it
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun requestPermissions() {
-        ActivityCompat.requestPermissions(
-            this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
-        )
-    }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        if (requestCode == REQUEST_CODE_PERMISSIONS) {
-            if (allPermissionsGranted()) {
+        if (requestCode == REQUEST_PERMISSIONS_CODE) {
+            permissionChecker.executeOrCry(this, REQUIRED_PERMISSIONS) {
                 startCamera()
-            } else {
-                Toast.makeText(
-                    baseContext,
-                    resources.getString(R.string.permission_not_granted),
-                    Toast.LENGTH_SHORT
-                ).show()
             }
         }
     }
@@ -138,7 +122,7 @@ class GameActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "CameraXBasic"
-        private const val REQUEST_CODE_PERMISSIONS = 10
+        private const val REQUEST_PERMISSIONS_CODE = 10
         private val REQUIRED_PERMISSIONS = arrayOf(
             android.Manifest.permission.CAMERA
         )

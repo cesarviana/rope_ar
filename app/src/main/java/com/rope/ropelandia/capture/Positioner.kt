@@ -22,9 +22,9 @@ class ProjectorBlocksPositioner(
     private var proportionHeight: Float = 0.0f
 
     override fun reposition(blocks: List<Block>): List<Block> {
-        val positionBlocks = blocks.filterIsInstance<PositionBlock>()
 
         if (calibrating) {
+            val positionBlocks = blocks.filterIsInstance<PositionBlock>()
             calibrate(positionBlocks)
         }
 

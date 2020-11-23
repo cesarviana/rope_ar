@@ -42,13 +42,13 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
         super.onDraw(canvas)
         canvas?.apply {
 
-//            blocks.forEach {
-//                drawCircle(it.x, it.y, it.diameter, blockPaint)
-//                drawText(it.angle.toString(), it.x + 20, it.y, textPaint)
-//            }
+            blocks.forEach {
+                drawCircle(it.x, it.y, it.diameter, blockPaint)
+                drawText(it.angle.toString(), it.x + 20, it.y, textPaint)
+            }
 
-            drawRect(0f, 0f, width.toFloat() - 3, height.toFloat() - 3, borderPaint)
-            drawPlaceholder(canvas)
+//            drawRect(0f, 0f, width.toFloat() - 3, height.toFloat() - 3, borderPaint)
+//            drawPlaceholder(canvas)
 
         }
     }
