@@ -73,7 +73,7 @@ class GameActivity : AppCompatActivity() {
             val preview = Preview.Builder()
                 .build()
                 .also {
-                    it.setSurfaceProvider(previewView.createSurfaceProvider())
+                    it.setSurfaceProvider(previewView.surfaceProvider)
                 }
 
             imageCapture = ImageCapture.Builder().build()

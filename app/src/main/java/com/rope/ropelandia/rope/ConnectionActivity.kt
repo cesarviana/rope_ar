@@ -14,8 +14,13 @@ import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
 import com.rope.ropelandia.PermissionChecker
 import com.rope.ropelandia.R
+import com.rope.ropelandia.databinding.ActivityConnectionBinding
+import com.rope.ropelandia.log.Logger
+import model.Task
+import viewmodel.ConnectionViewModel
 import java.util.*
 
 class ConnectionActivity : AppCompatActivity() {
@@ -30,6 +35,8 @@ class ConnectionActivity : AppCompatActivity() {
     private lateinit var bluetoothGatt: BluetoothGatt
     private lateinit var characteristic: BluetoothGattCharacteristic
 
+    private lateinit var binding: ActivityConnectionBinding
+
     private var scanning = false
     private var self = this
 
@@ -38,16 +45,44 @@ class ConnectionActivity : AppCompatActivity() {
     private val myScanCallback = MyScanCallback()
     private val myGattCallback = MyGattCallback()
 
+    private lateinit var logger: Logger
+    private lateinit var model: ConnectionViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_connection)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_connection)
 
-        findViewById<Button>(R.id.buttonConnect).setOnClickListener {
-            requestEnableBluetoothOrStartScan()
+        model = ConnectionViewModel()
+        model.tasks = listOf(
+            Task("Atividade livre inicial"),
+            Task("Posterior 1 avanço"),
+            Task("Posterior 2 avanços"),
+            Task("Posterior avanço e direita"),
+
+            Task("Lateral 1 avanço"),
+            Task("Lateral 2 avanços"),
+            Task("Lateral avanço e direita"),
+
+            Task("Frontal 1 avanço"),
+            Task("Frontal 2 avanços"),
+            Task("Frontal avanço e direita"),
+        )
+
+        binding.model = model
+
+        findViewById<Button>(R.id.nextTask).setOnClickListener {
+            model.nextTask()
+            binding.invalidateAll()
         }
-        findViewById<Button>(R.id.buttonTurn).setOnClickListener {
-            send("cmds:le")
+
+        findViewById<Button>(R.id.previousTask).setOnClickListener {
+            model.previousTask()
+            binding.invalidateAll()
         }
+
+        logger = Logger(this)
+
+        scan(myScanCallback)
     }
 
     private fun requestEnableBluetoothOrStartScan() {
@@ -110,20 +145,28 @@ class ConnectionActivity : AppCompatActivity() {
         private val CONNECTED = 2
 
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
-            Log.d(TAG, "connection state changed")
             when (newState) {
-                DISCONNECTED -> Toast.makeText(self, "Desconectado", Toast.LENGTH_SHORT).show()
-                CONNECTED -> gatt?.discoverServices()
+                DISCONNECTED -> {
+                    model.rope.connected = false
+                    binding.invalidateAll()
+                    Toast.makeText(self, "Desconectado", Toast.LENGTH_SHORT).show()
+                }
+                CONNECTED -> {
+                    model.rope.connected = true
+                    binding.invalidateAll()
+                    gatt?.discoverServices()
+                }
             }
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
+
             if (BluetoothGatt.GATT_SUCCESS == status) {
                 val serviceUUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb")
                 gatt?.getService(serviceUUID)?.let {
                     val characteristicUUID = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb")
                     characteristic = it.getCharacteristic(characteristicUUID)
-
+                    send("cmds:e")
                     enableNotifications()
                 }
             }
@@ -137,7 +180,7 @@ class ConnectionActivity : AppCompatActivity() {
                     bluetoothGatt.writeDescriptor(descriptor)
                 }
             } catch (e: Throwable) {
-                Log.e(TAG, e.message?:"Error when enabling notifications")
+                Log.e(TAG, e.message ?: "Error when enabling notifications")
             }
         }
 
@@ -145,8 +188,9 @@ class ConnectionActivity : AppCompatActivity() {
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic
         ) {
+            val tag = model.task.description
             val stringValue = characteristic.getStringValue(0)
-            Log.d(TAG, stringValue)
+            logger.log(tag, stringValue)
         }
     }
 
@@ -165,7 +209,7 @@ class ConnectionActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= 23) {
             permissionChecker.executeOrRequestPermission(
                 this,
-                BLUETOOTH_PERMISSIONS,
+                PERMISSIONS,
                 REQUEST_BLUETOOTH_PERMISSION_CODE
             ) {
                 val filter = createScanFilter()
@@ -182,7 +226,7 @@ class ConnectionActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         if (requestCode == REQUEST_BLUETOOTH_PERMISSION_CODE) {
-            permissionChecker.executeOrCry(this, BLUETOOTH_PERMISSIONS) {
+            permissionChecker.executeOrCry(this, PERMISSIONS) {
                 scan(myScanCallback)
             }
         }
@@ -191,10 +235,12 @@ class ConnectionActivity : AppCompatActivity() {
     companion object {
         private const val REQUEST_BLUETOOTH_PERMISSION_CODE = 11
         private const val REQUEST_ENABLE_BLUETOOTH = 12
-        private val BLUETOOTH_PERMISSIONS = arrayOf(
+        private val PERMISSIONS = arrayOf(
             android.Manifest.permission.ACCESS_COARSE_LOCATION,
             android.Manifest.permission.BLUETOOTH,
-            android.Manifest.permission.BLUETOOTH_ADMIN
+            android.Manifest.permission.BLUETOOTH_ADMIN,
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            android.Manifest.permission.READ_EXTERNAL_STORAGE
         )
     }
 
