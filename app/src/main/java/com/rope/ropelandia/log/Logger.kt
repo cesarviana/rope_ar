@@ -1,13 +1,10 @@
 package com.rope.ropelandia.log
 
 import android.content.Context
-import android.os.Environment
 import androidx.room.*
-import java.io.File
-import java.time.Instant
 import java.util.*
 
-@Entity(tableName = "log")
+@Entity
 data class Log (
     @PrimaryKey(autoGenerate = true) val id: Int? = null,
     val message: String?,
@@ -34,6 +31,7 @@ class Logger(context: Context) {
 
     init {
         try {
+            //context.deleteDatabase("rope_database")
             db = Room.databaseBuilder(
                 context,
                 AppDatabase::class.java,
@@ -44,21 +42,12 @@ class Logger(context: Context) {
         }
     }
 
-    // command examples: <add:l>
-    private val regex = """<(\w+):(\w)>\r\n*""".toRegex()
-
     fun log(tag: String, text: String) {
-        if (regex.matches(text)) {
-            val result = regex.find(text)
-            result?.let {
-                it.groups[2]
-            }?.let { group ->
-                val command = group.value
-                val time = Date().toString()
-                val logText = "$tag - ${command},${time}"
-                val log = Log(message = logText, time = time)
-                db.logDao().insertAll(log)
-            }
+        if(text.contains(":")){
+            val time = Date().toString()
+            val logText = "$tag - ${text},${time}"
+            val log = Log(message = logText, time = time)
+            db.logDao().insertAll(log)
         }
     }
 

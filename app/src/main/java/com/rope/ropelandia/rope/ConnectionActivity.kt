@@ -37,7 +37,6 @@ class ConnectionActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityConnectionBinding
 
-    private var scanning = false
     private var self = this
 
     private val permissionChecker = PermissionChecker()
@@ -70,6 +69,10 @@ class ConnectionActivity : AppCompatActivity() {
 
         binding.model = model
 
+        findViewById<Button>(R.id.connectButton).setOnClickListener {
+            requestEnableBluetoothOrStartScan()
+        }
+
         findViewById<Button>(R.id.nextTask).setOnClickListener {
             model.nextTask()
             binding.invalidateAll()
@@ -82,7 +85,7 @@ class ConnectionActivity : AppCompatActivity() {
 
         logger = Logger(this)
 
-        scan(myScanCallback)
+        requestEnableBluetoothOrStartScan()
     }
 
     private fun requestEnableBluetoothOrStartScan() {
@@ -113,7 +116,6 @@ class ConnectionActivity : AppCompatActivity() {
                 }
             }
         }
-
     }
 
     private inner class MyScanCallback : ScanCallback() {
@@ -121,7 +123,6 @@ class ConnectionActivity : AppCompatActivity() {
             result?.let {
                 bluetoothGatt = it.device.connectGatt(self, true, myGattCallback)
             }
-            scanning = false
         }
 
         override fun onScanFailed(errorCode: Int) {
@@ -131,7 +132,6 @@ class ConnectionActivity : AppCompatActivity() {
                     "Scaneamento em execução"
                 }
                 else -> {
-                    scanning = false
                     "Falha de conexão"
                 }
             }
@@ -190,7 +190,11 @@ class ConnectionActivity : AppCompatActivity() {
         ) {
             val tag = model.task.description
             val stringValue = characteristic.getStringValue(0)
-            logger.log(tag, stringValue)
+            try {
+                logger.log(tag, stringValue)
+            } catch (e: Exception) {
+                print(e)
+            }
         }
     }
 
@@ -200,9 +204,7 @@ class ConnectionActivity : AppCompatActivity() {
     }
 
     private fun scan(scanCallback: ScanCallback) {
-        if (!scanning) {
-            requestPermissionAndScan(scanCallback)
-        }
+        requestPermissionAndScan(scanCallback)
     }
 
     private fun requestPermissionAndScan(scanCallback: ScanCallback) {
@@ -214,7 +216,6 @@ class ConnectionActivity : AppCompatActivity() {
             ) {
                 val filter = createScanFilter()
                 val settings = createScanSettings()
-                scanning = true
                 bluetoothAdapter?.bluetoothLeScanner?.startScan(filter, settings, scanCallback)
             }
         }

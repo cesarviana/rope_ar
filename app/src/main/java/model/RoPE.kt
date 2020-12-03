@@ -1,5 +1,7 @@
 package model
 
+import androidx.fragment.app.Fragment
+
 object RoPEFactory {
     fun create() = RoPE(false)
 }
