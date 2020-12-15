@@ -8,12 +8,15 @@ import java.util.*
 class RoPE(private val context: Context, private val device: BluetoothDevice) {
 
     private object Listeners {
+
         fun clear() {
+            onMessage.clear()
             onConnected.clear()
             onDisconnected.clear()
         }
 
-        lateinit var onMessage: (message: String) -> Unit
+        lateinit var onStartPressed: () -> Unit
+        val onMessage: MutableList<(message: String) -> Unit> = mutableListOf()
         val onConnected: MutableList<() -> Unit> = mutableListOf()
         val onDisconnected: MutableList<() -> Unit> = mutableListOf()
     }
@@ -67,7 +70,11 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
     }
 
     fun onMessage(function: (message: String) -> Unit) {
-        Listeners.onMessage = function
+        Listeners.onMessage.add(function)
+    }
+
+    fun onStartedPressed(function: () -> Unit) {
+        Listeners.onStartPressed = function
     }
 
     private inner class MyGattCallback : BluetoothGattCallback() {
@@ -111,7 +118,7 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
             characteristic: BluetoothGattCharacteristic
         ) {
             val characteristicValue = characteristic.getStringValue(0)
-            Listeners.onMessage(characteristicValue)
+            Listeners.onMessage.forEach { it(characteristicValue) }
         }
     }
 

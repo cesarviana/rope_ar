@@ -9,10 +9,11 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.rope.ropelandia.PermissionChecker
 import com.rope.ropelandia.R
+import com.rope.ropelandia.rope.RoPE
+import com.rope.ropelandia.rope.rope
 import kotlinx.android.synthetic.main.main_activity.*
 import java.io.File
 import java.util.*
@@ -44,22 +45,20 @@ class GameActivity : AppCompatActivity() {
             startCamera()
         }
 
-        Timer().apply {
-            scheduleAtFixedRate(1000, 2000) {
-                takePhoto(mat)
-            }
+        rope.onDisconnected {
+            this.finish() // return to connection activity
         }
 
-        //rope.onStartButtonPressed {
+        rope.onStartedPressed {
+            takePhoto(mat)
             // get program
             // - take photo
             // - recognize blocks
             // send program
-        //}
+        }
         //rope.onStartExecution {
             // highlight command
         //}
-
     }
 
     override fun onRequestPermissionsResult(

@@ -8,11 +8,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.rope.ropelandia.R
 import com.rope.ropelandia.databinding.ActivityConnectionBinding
+import com.rope.ropelandia.game.GameActivity
 import com.rope.ropelandia.log.Logger
+
+lateinit var rope: RoPE
 
 class ConnectionActivity : AppCompatActivity() {
 
-    private lateinit var rope: RoPE
     private lateinit var ropeFinder: RoPEFinder
 
     private lateinit var binding: ActivityConnectionBinding
@@ -69,15 +71,9 @@ class ConnectionActivity : AppCompatActivity() {
     }
 
     private fun setupRoPEListeners() {
-        rope.onDisconnected {
-            show("RoPE desconectou")
-        }
         rope.onConnected {
-            //show("RoPE Conectou")
-            rope.go(RoPE.Action.BACKWARD)
-        }
-        rope.onMessage {
-            show(it)
+            val intent = Intent(this, GameActivity::class.java)
+            startActivity(intent)
         }
     }
 

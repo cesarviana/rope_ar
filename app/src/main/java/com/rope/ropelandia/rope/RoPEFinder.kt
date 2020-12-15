@@ -135,7 +135,7 @@ class RoPEFinder(private val activity: Activity) {
     }
 
     private fun createRoPE(scanResult: ScanResult): RoPE {
-        return RoPE(activity, scanResult.device)
+        return RoPE(activity.applicationContext, scanResult.device)
     }
 
     fun onConnectionFailed(function: (errorCode: Int) -> Unit) {
