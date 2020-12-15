@@ -35,6 +35,22 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
         FORWARD {
             override val stringSequence: String
                 get() = "f"
+        },
+        LEFT {
+            override val stringSequence: String
+                get() = "l"
+        },
+        RIGHT {
+            override val stringSequence: String
+                get() = "r"
+        },
+        EXECUTE {
+            override val stringSequence: String
+                get() = "e"
+        },
+        NULL {
+            override val stringSequence: String
+                get() = ""
         };
 
         abstract val stringSequence: String
@@ -42,18 +58,17 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
 
     init {
         Listeners.clear()
+        this.onMessage {
+            if(it.contains("memory is")) { // TODO update firmware to send something like <required:start> message
+                Listeners.onStartPressed()
+            }
+        }
     }
+
+    private val commandsPrefix = "cmds:"
 
     fun connect() {
         device.connectGatt(context, false, callback)
-    }
-
-    fun go(action: Action) {
-        send("cmds:${action.stringSequence}e")
-    }
-
-    fun program(action: Action) {
-        send("cmds:${action.stringSequence}")
     }
 
     private fun send(command: String) {
@@ -69,12 +84,19 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
         Listeners.onConnected.add(function)
     }
 
-    fun onMessage(function: (message: String) -> Unit) {
+    private fun onMessage(function: (message: String) -> Unit) {
         Listeners.onMessage.add(function)
     }
 
     fun onStartedPressed(function: () -> Unit) {
         Listeners.onStartPressed = function
+    }
+
+    fun execute(actionList: List<Action>) {
+        val actions = actionList.joinToString("") { it.stringSequence }
+        val executeSuffix = Action.EXECUTE.stringSequence
+        val command = "$commandsPrefix$actions$executeSuffix"
+        send(command)
     }
 
     private inner class MyGattCallback : BluetoothGattCallback() {

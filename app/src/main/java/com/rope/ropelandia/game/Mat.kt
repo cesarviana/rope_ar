@@ -14,7 +14,7 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
         set(value) {
             field = value
             program.clear()
-            program.addAll(ProgramFactory.createProgram(blocks))
+            program.addAll(ProgramFactory.findSequence(blocks))
         }
     private val program = mutableListOf<Block>()
 

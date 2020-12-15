@@ -11,7 +11,7 @@ object ProgramFactory {
 
     private const val SNAP_DISTANCE = 140
 
-    fun createProgram(blocks: List<Block>): List<Block> {
+    fun findSequence(blocks: List<Block>): List<Block> {
 
         val program = mutableListOf<Block>()
 

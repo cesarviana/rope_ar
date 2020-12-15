@@ -1,5 +1,6 @@
 package com.rope.ropelandia.game
 
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -12,13 +13,13 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.rope.ropelandia.PermissionChecker
 import com.rope.ropelandia.R
+import com.rope.ropelandia.capture.BitmapToBlocksConverter
+import com.rope.ropelandia.capture.ProgramFactory
 import com.rope.ropelandia.rope.RoPE
 import com.rope.ropelandia.rope.rope
 import kotlinx.android.synthetic.main.main_activity.*
 import java.io.File
-import java.util.*
 import java.util.concurrent.ExecutorService
-import kotlin.concurrent.scheduleAtFixedRate
 
 class GameActivity : AppCompatActivity() {
 
@@ -30,12 +31,35 @@ class GameActivity : AppCompatActivity() {
     private lateinit var imageSavedCallback: ImageSavedCallback
     private val permissionChecker = PermissionChecker()
 
+    private val bitmapToBlocksConverter = BitmapToBlocksConverter(720, 1280)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
         photoFile = File(filesDir, "topCodes.jpg")
         photoFileOutputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-        imageSavedCallback = ImageSavedCallback(photoFile, mat, 720, 1280)
+        imageSavedCallback = ImageSavedCallback(photoFile)
+
+        imageSavedCallback.onBitmap { bitmap: Bitmap ->
+            val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
+            val blocksSequence = ProgramFactory.findSequence(blocks)
+
+            val program = mutableListOf<RoPE.Action>()
+
+            blocksSequence.map {
+                when (it) {
+                    is ForwardBlock -> RoPE.Action.FORWARD
+                    is BackwardBlock -> RoPE.Action.BACKWARD
+                    is LeftBlock -> RoPE.Action.LEFT
+                    is RightBlock -> RoPE.Action.RIGHT
+                    else -> RoPE.Action.NULL
+                }
+            }.toCollection(program)
+
+            rope.execute(program)
+
+            updateView(blocks)
+        }
 
         permissionChecker.executeOrRequestPermission(
             this,
@@ -57,8 +81,13 @@ class GameActivity : AppCompatActivity() {
             // send program
         }
         //rope.onStartExecution {
-            // highlight command
+        // highlight command
         //}
+    }
+
+    private fun updateView(it: List<Block>) {
+        mat.blocks = it
+        mat.invalidate()
     }
 
     override fun onRequestPermissionsResult(

@@ -16,7 +16,7 @@ class ProgramFactoryTest {
 
         val blocks = listOf(startBlock, forwardBlock)
 
-        val program = ProgramFactory.createProgram(blocks)
+        val program = ProgramFactory.findSequence(blocks)
 
         assertThat(program)
             .hasSize(2)
@@ -31,7 +31,7 @@ class ProgramFactoryTest {
 
         val blocks = listOf(startBlock, forwardBlock, leftBlock)
 
-        val program = ProgramFactory.createProgram(blocks)
+        val program = ProgramFactory.findSequence(blocks)
 
         assertThat(program)
             .hasSize(2)
@@ -46,7 +46,7 @@ class ProgramFactoryTest {
 
         val blocks = listOf(startBlock, forwardBlock)
 
-        val program = ProgramFactory.createProgram(blocks)
+        val program = ProgramFactory.findSequence(blocks)
 
         assertThat(program)
             .hasSize(2)
@@ -60,7 +60,7 @@ class ProgramFactoryTest {
 
         val blocks = listOf(startBlock, forwardBlock)
 
-        val program = ProgramFactory.createProgram(blocks)
+        val program = ProgramFactory.findSequence(blocks)
 
         assertThat(program)
             .hasSize(2)
