@@ -50,6 +50,16 @@ class GameActivity : AppCompatActivity() {
             }
         }
 
+        //rope.onStartButtonPressed {
+            // get program
+            // - take photo
+            // - recognize blocks
+            // send program
+        //}
+        //rope.onStartExecution {
+            // highlight command
+        //}
+
     }
 
     override fun onRequestPermissionsResult(

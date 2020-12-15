@@ -1,12 +1,9 @@
 package viewmodel
 
-import model.RoPE
-import model.RoPEFactory
+import com.rope.ropelandia.rope.RoPE
 import model.Task
 
-data class ConnectionViewModel(
-    val rope: RoPE = RoPEFactory.create()
-) {
+data class ConnectionViewModel(val rope: RoPE) {
     private val finalFreeTask = Task("Tarefa livre final")
 
     var tasks = listOf<Task>()
@@ -22,12 +19,7 @@ data class ConnectionViewModel(
             return tasks[taskIndex]
         }
 
-    fun connectionState(): String {
-        if (rope.connected) {
-            return "Conectado"
-        }
-        return "Desconectado"
-    }
+    fun connectionState() = "Implement"
 
     fun nextTask() {
         taskIndex++
