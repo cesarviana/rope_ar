@@ -34,26 +34,5 @@
             android:textSize="15sp"
             />
 
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <Button
-                android:id="@+id/previousTask"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/previous"
-                />
-
-            <Button
-                android:id="@+id/nextTask"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/next"
-                />
-
-        </LinearLayout>
-
     </LinearLayout>
 </layout>

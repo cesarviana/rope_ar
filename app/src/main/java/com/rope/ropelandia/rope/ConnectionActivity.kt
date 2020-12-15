@@ -29,12 +29,15 @@ class ConnectionActivity : AppCompatActivity() {
             startActivityForResult(request.intent, request.code)
         }
         ropeFinder.onEnableConnectionRefused {
-            Toast
-                .makeText(this, "Falha ao ativar conexão", Toast.LENGTH_SHORT)
-                .show()
+            show("Falha ao ativar conexão")
+        }
+        ropeFinder.onConnectionFailed {
+            show("Falha ao conectar")
         }
         ropeFinder.onRoPEFound {
-            this.rope = it
+            rope = it
+            setupRoPEListeners()
+            rope.connect()
         }
 
         findViewById<Button>(R.id.connectButton).setOnClickListener {
@@ -44,6 +47,12 @@ class ConnectionActivity : AppCompatActivity() {
         logger = Logger(this)
 
         ropeFinder.findRoPE()
+    }
+
+    private fun show(message: String) {
+        Toast
+            .makeText(this, message, Toast.LENGTH_SHORT)
+            .show()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -57,6 +66,19 @@ class ConnectionActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         ropeFinder.handleRequestConnectionPermissionResult(requestCode)
+    }
+
+    private fun setupRoPEListeners() {
+        rope.onDisconnected {
+            show("RoPE desconectou")
+        }
+        rope.onConnected {
+            //show("RoPE Conectou")
+            rope.go(RoPE.Action.BACKWARD)
+        }
+        rope.onMessage {
+            show(it)
+        }
     }
 
 }

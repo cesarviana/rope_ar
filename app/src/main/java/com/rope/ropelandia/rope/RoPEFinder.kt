@@ -33,6 +33,7 @@ class RoPEFinder(private val activity: Activity) {
     private lateinit var onRoPEFound: (rope: RoPE) -> Unit
     private lateinit var onRequestEnableConnection: (EnableBluetoothRequest) -> Unit
     private lateinit var onEnableConnectionRefused: (resultCode: Int) -> Unit
+    private lateinit var onConnectionFailed: (errorCode: Int) -> Unit
 
     private val bluetoothAdapter: BluetoothAdapter? by lazy(LazyThreadSafetyMode.NONE) {
         val bluetoothManager =
@@ -52,7 +53,7 @@ class RoPEFinder(private val activity: Activity) {
             if (!it.isEnabled) {
                 requestEnableBluetooth()
             } else {
-                this.scan(myScanCallback)
+                scan(myScanCallback)
             }
         }
     }
@@ -134,30 +135,41 @@ class RoPEFinder(private val activity: Activity) {
     }
 
     private fun createRoPE(scanResult: ScanResult): RoPE {
-        return RoPE()
+        return RoPE(activity, scanResult.device)
     }
+
+    fun onConnectionFailed(function: (errorCode: Int) -> Unit) {
+        this.onConnectionFailed = function
+    }
+
+    var ropeConnected = false
 
     private inner class MyScanCallback : ScanCallback() {
         override fun onScanResult(callbackType: Int, scanResult: ScanResult?) {
+
+            bluetoothAdapter?.bluetoothLeScanner?.stopScan(myScanCallback)
+
+            if (ropeConnected) {
+                return
+            }
+
+            ropeConnected = true
+
             scanResult?.let {
                 val rope = createRoPE(scanResult)
+                rope.onDisconnected {
+                    ropeConnected = false
+                }
+                rope.onConnected {
+                    ropeConnected = true
+                }
                 onRoPEFound(rope)
             }
-//            result?.let {
-//                bluetoothGatt = it.device.connectGatt(self, true, myGattCallback)
-//            }
         }
 
         override fun onScanFailed(errorCode: Int) {
             super.onScanFailed(errorCode)
-            val cause = when (errorCode) {
-                SCAN_FAILED_ALREADY_STARTED -> {
-                    "Scaneamento em execução"
-                }
-                else -> {
-                    "Falha de conexão"
-                }
-            }
+            onConnectionFailed(errorCode)
         }
     }
 
