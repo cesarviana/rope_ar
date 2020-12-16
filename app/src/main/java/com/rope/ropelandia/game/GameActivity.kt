@@ -65,15 +65,26 @@ class GameActivity : AppCompatActivity() {
         }
 
         rope.onDisconnected {
-            this.finish() // return to connection activity
+            returnToPreviousActivity()
         }
-
         rope.onStartedPressed {
             takePhoto(mat)
         }
-        //rope.onStartExecution {
-        // highlight command
-        //}
+        rope.onExecution { actionIndex ->
+            highlight(actionIndex)
+        }
+        rope.onExecutionStarted {
+            highlight(0)
+        }
+    }
+
+    private fun highlight(actionIndex: Int) {
+        mat.highlight(actionIndex)
+        mat.invalidate()
+    }
+
+    private fun returnToPreviousActivity() {
+        this.finish()
     }
 
     private fun updateView(it: List<Block>) {

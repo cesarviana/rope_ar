@@ -5,11 +5,12 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.SurfaceView
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
-import com.rope.ropelandia.capture.ProgramFactory
 import com.rope.ropelandia.R
+import com.rope.ropelandia.capture.ProgramFactory
 
 class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) {
 
+    private var highlightIndex: Int = NO_HIGHLIGHT
     var blocks = listOf<Block>()
         set(value) {
             field = value
@@ -21,8 +22,8 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
     init {
         setWillNotDraw(false)
         setZOrderOnTop(true)
-        holder.setFormat(PixelFormat.TRANSPARENT)
-//        setBackgroundColor(Color.WHITE)
+        //holder.setFormat(PixelFormat.TRANSPARENT)
+        setBackgroundColor(Color.DKGRAY)
     }
 
     private val blockPaint = Paint().apply {
@@ -34,62 +35,33 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
         color = Color.BLUE
     }
 
-    private val borderPaint = Paint().apply {
-        style = Paint.Style.STROKE
-        color = Color.GREEN
-    }
-
-    private val white = Paint().apply {
-        color = Color.WHITE
-    }
-
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.apply {
 
-            drawRect(0f, 0f, width.toFloat(), height.toFloat(), white)
+            val mustHighlight = highlightIndex != NO_HIGHLIGHT
+            val hasBlockToHighlight = blocks.size > highlightIndex
 
-            blocks.forEach {
-                drawCircle(it.x, it.y, it.diameter, blockPaint)
-                drawText(it.angle.toString(), it.x + 20, it.y, textPaint)
+            if (mustHighlight && hasBlockToHighlight) {
+                drawBlock(blocks[highlightIndex])
+            } else {
+                blocks.forEach { drawBlock(it) }
             }
-//            drawRect(0f, 0f, width.toFloat() - 3, height.toFloat() - 3, borderPaint)
-//            drawPlaceholder(canvas)
 
         }
     }
 
-    private fun drawPlaceholder(canvas: Canvas) {
+    private fun Canvas.drawBlock(it: Block) {
+        drawCircle(it.x, it.y, it.diameter, blockPaint)
+        drawText(it.angle.toString(), it.x + 20, it.y, textPaint)
+    }
 
-        val baseBlock = program.find { it is StartBlock }
+    fun highlight(highlightIndex: Int) {
+        this.highlightIndex = highlightIndex
+    }
 
-        baseBlock?.let {
-            val degrees = Math.toDegrees(it.angle.toDouble())
-            canvas.rotate(degrees.toFloat(), baseBlock.x, baseBlock.y)
-
-            VectorDrawableCompat.create(resources, R.drawable.ic_placeholder, null)
-                ?.let { drawable ->
-                    val blockRadius = baseBlock.diameter / 2
-                    val blockWidth = 140
-                    val blockHeight = 100
-
-                    val left = (baseBlock.x.toInt() - blockRadius).toInt() + blockWidth
-                    val top = (baseBlock.y - blockRadius).toInt()
-                    val bottom = top + blockHeight
-                    val right = left + blockWidth
-
-                    drawable.bounds = Rect(left, top, right, bottom)
-                    drawable.draw(canvas)
-
-                    program.forEach { _ ->
-                        drawable.bounds.left += blockWidth
-                        drawable.bounds.right = drawable.bounds.left + blockWidth
-                        drawable.alpha = (drawable.alpha * 0.8).toInt()
-                        drawable.draw(canvas)
-                    }
-
-                }
-        }
+    private companion object {
+        const val NO_HIGHLIGHT = -1
     }
 }
 
