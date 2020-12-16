@@ -10,6 +10,7 @@ import com.rope.ropelandia.R
 
 class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) {
 
+    private var highlightIndex: Int = NO_HIGHLIGHT
     var blocks = listOf<Block>()
         set(value) {
             field = value
@@ -42,15 +43,21 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
         super.onDraw(canvas)
         canvas?.apply {
 
-            blocks.forEach {
-                drawCircle(it.x, it.y, it.diameter, blockPaint)
-                drawText(it.angle.toString(), it.x + 20, it.y, textPaint)
+//            val mustHighlight = highlightIndex != NO_HIGHLIGHT
+//            val hasBlockToHighlight = blocks.size > highlightIndex
+//
+//            if (mustHighlight && hasBlockToHighlight) {
+//                drawBlock(blocks[highlightIndex])
+//            }
+            blocks.forEach{
+                drawBlock(it)
             }
-
-//            drawRect(0f, 0f, width.toFloat() - 3, height.toFloat() - 3, borderPaint)
-//            drawPlaceholder(canvas)
-
         }
+    }
+
+    private fun Canvas.drawBlock(it: Block) {
+        drawCircle(it.x, it.y, it.diameter, blockPaint)
+        drawText(it.angle.toString(), it.x + 20, it.y, textPaint)
     }
 
     private fun drawPlaceholder(canvas: Canvas) {
@@ -84,6 +91,14 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
 
                 }
         }
+    }
+
+    fun highlight(highlightIndex: Int) {
+        this.highlightIndex = highlightIndex
+    }
+
+    private companion object {
+        const val NO_HIGHLIGHT = -1
     }
 }
 

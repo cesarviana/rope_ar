@@ -15,6 +15,7 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
             onDisconnected.clear()
         }
 
+        lateinit var onExecution: (actionIndex: Int) -> Unit
         lateinit var onStartPressed: () -> Unit
         val onMessage: MutableList<(message: String) -> Unit> = mutableListOf()
         val onConnected: MutableList<() -> Unit> = mutableListOf()
@@ -63,6 +64,17 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
                 Listeners.onStartPressed()
             }
         }
+        this.onMessage { message ->
+            val regex = "<executed:(?<actionIndex>\\d+)>\r\n".toRegex()
+            if(regex.containsMatchIn(message)) {
+                val matches = regex.matchEntire(message)
+                val numberGroup = 1 // the group 0 is the complete string, group 1 is the desired info
+                val actionIndex = matches!!.groups[numberGroup]!!.value
+                actionIndex.toIntOrNull()?.let {
+                    Listeners.onExecution(it)
+                }
+            }
+        }
     }
 
     private val commandsPrefix = "cmds:"
@@ -90,6 +102,10 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
 
     fun onStartedPressed(function: () -> Unit) {
         Listeners.onStartPressed = function
+    }
+
+    fun onExecution(function: (actionIndex: Int) -> Unit) {
+        Listeners.onExecution = function
     }
 
     fun execute(actionList: List<Action>) {

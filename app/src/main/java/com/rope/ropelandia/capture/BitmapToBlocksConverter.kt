@@ -24,13 +24,16 @@ class BitmapToBlocksConverter(targetHeight: Int, targetWidth: Int) {
     }
 
     private fun scale(bitmap: Bitmap): Bitmap {
-        val scale = .6
+        val scale = .4
         val width = (bitmap.width * scale).toInt()
         val height = (bitmap.height * scale).toInt()
         return Bitmap.createScaledBitmap(bitmap, width, height, true)
     }
 
-    private fun scanTopCodes(it: Bitmap) = topCodesScanner.searchTopCodes(it)
+    private fun scanTopCodes(it: Bitmap): List<TopCode> {
+        topCodesScanner.setMaxCodeDiameter(200)
+        return topCodesScanner.searchTopCodes(it)
+    }
 
     private fun convertToBlocks(topCodes: List<TopCode>) = topCodes.map {
         val blockClass = TopCodeToClassMapper.map(it.code)

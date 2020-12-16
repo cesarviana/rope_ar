@@ -42,20 +42,7 @@ class GameActivity : AppCompatActivity() {
 
         imageSavedCallback.onBitmap { bitmap: Bitmap ->
             val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
-            val blocksSequence = ProgramFactory.findSequence(blocks)
-
-            val program = mutableListOf<RoPE.Action>()
-
-            blocksSequence.map {
-                when (it) {
-                    is ForwardBlock -> RoPE.Action.FORWARD
-                    is BackwardBlock -> RoPE.Action.BACKWARD
-                    is LeftBlock -> RoPE.Action.LEFT
-                    is RightBlock -> RoPE.Action.RIGHT
-                    else -> RoPE.Action.NULL
-                }
-            }.toCollection(program)
-
+            val program = createProgram(blocks)
             rope.execute(program)
 
             updateView(blocks)
@@ -70,19 +57,36 @@ class GameActivity : AppCompatActivity() {
         }
 
         rope.onDisconnected {
-            this.finish() // return to connection activity
+            returnToPreviousActivity()
         }
-
         rope.onStartedPressed {
             takePhoto(mat)
-            // get program
-            // - take photo
-            // - recognize blocks
-            // send program
         }
-        //rope.onStartExecution {
-        // highlight command
-        //}
+        rope.onExecution { actionIndex ->
+            mat.highlight(actionIndex)
+            mat.invalidate()
+        }
+    }
+
+    private fun returnToPreviousActivity() {
+        this.finish()
+    }
+
+    private fun createProgram(blocks: List<Block>): List<RoPE.Action> {
+        val blocksSequence = ProgramFactory.findSequence(blocks)
+
+        val program = mutableListOf<RoPE.Action>()
+
+        blocksSequence.map {
+            when (it) {
+                is ForwardBlock -> RoPE.Action.FORWARD
+                is BackwardBlock -> RoPE.Action.BACKWARD
+                is LeftBlock -> RoPE.Action.LEFT
+                is RightBlock -> RoPE.Action.RIGHT
+                else -> RoPE.Action.NULL
+            }
+        }.toCollection(program)
+        return program
     }
 
     private fun updateView(it: List<Block>) {
