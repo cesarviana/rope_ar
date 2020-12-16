@@ -1,6 +1,5 @@
 package com.rope.ropelandia.game
 
-import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -13,7 +12,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.rope.ropelandia.PermissionChecker
 import com.rope.ropelandia.R
-import com.rope.ropelandia.capture.BitmapToBlocksConverter
 import com.rope.ropelandia.capture.ProgramFactory
 import com.rope.ropelandia.rope.RoPE
 import com.rope.ropelandia.rope.rope
@@ -31,8 +29,6 @@ class GameActivity : AppCompatActivity() {
     private lateinit var imageSavedCallback: ImageSavedCallback
     private val permissionChecker = PermissionChecker()
 
-    private val bitmapToBlocksConverter = BitmapToBlocksConverter(720, 1280)
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
@@ -40,8 +36,7 @@ class GameActivity : AppCompatActivity() {
         photoFileOutputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
         imageSavedCallback = ImageSavedCallback(photoFile)
 
-        imageSavedCallback.onBitmap { bitmap: Bitmap ->
-            val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
+        imageSavedCallback.onFoundBlocks { blocks: List<Block> ->
             val blocksSequence = ProgramFactory.findSequence(blocks)
 
             val program = mutableListOf<RoPE.Action>()
@@ -75,10 +70,6 @@ class GameActivity : AppCompatActivity() {
 
         rope.onStartedPressed {
             takePhoto(mat)
-            // get program
-            // - take photo
-            // - recognize blocks
-            // send program
         }
         //rope.onStartExecution {
         // highlight command

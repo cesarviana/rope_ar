@@ -22,6 +22,7 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
         setWillNotDraw(false)
         setZOrderOnTop(true)
         holder.setFormat(PixelFormat.TRANSPARENT)
+//        setBackgroundColor(Color.WHITE)
     }
 
     private val blockPaint = Paint().apply {
@@ -38,15 +39,20 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
         color = Color.GREEN
     }
 
+    private val white = Paint().apply {
+        color = Color.WHITE
+    }
+
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.apply {
+
+            drawRect(0f, 0f, width.toFloat(), height.toFloat(), white)
 
             blocks.forEach {
                 drawCircle(it.x, it.y, it.diameter, blockPaint)
                 drawText(it.angle.toString(), it.x + 20, it.y, textPaint)
             }
-
 //            drawRect(0f, 0f, width.toFloat() - 3, height.toFloat() - 3, borderPaint)
 //            drawPlaceholder(canvas)
 
