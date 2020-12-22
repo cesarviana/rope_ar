@@ -20,4 +20,10 @@
     <string name="connect_button">Conectar</string>
     <string name="searching">Procurando</string>
     <string name="turn">Girar</string>
+    <string name="config">Configurações</string>
+    <string name="image_quality">Qualidade da imagem</string>
+    <string name="image_quality_key">image_quality</string>
+    <string name="image_quality_high">Alta</string>
+    <string name="image_quality_medium">Média</string>
+    <string name="image_quality_low">Baixa</string>
 </resources>

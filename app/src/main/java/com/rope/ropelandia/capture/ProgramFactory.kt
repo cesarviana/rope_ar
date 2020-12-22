@@ -23,7 +23,13 @@ object ProgramFactory {
             block = findSnappedBlock(remainingBlocks, block)
         }
 
+        removeStartBlock(program)
+
         return program
+    }
+
+    private fun removeStartBlock(program: MutableList<Block>) {
+        program.removeFirst()
     }
 
     private fun findSnappedBlock(blocks: List<Block>, block: Block): Block? {

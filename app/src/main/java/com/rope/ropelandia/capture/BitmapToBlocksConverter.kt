@@ -6,7 +6,11 @@ import com.rope.ropelandia.game.BlockFactory
 import topcodes.TopCode
 import topcodes.TopCodesScanner
 
-class BitmapToBlocksConverter(targetHeight: Int, targetWidth: Int) {
+class BitmapToBlocksConverter(
+    targetHeight: Int,
+    targetWidth: Int,
+    private val imageQualityPref: ImageQualityPref
+) {
 
     private val topCodesScanner = TopCodesScanner()
     private val positioner = ProjectorBlocksPositioner(targetHeight, targetWidth)
@@ -24,7 +28,7 @@ class BitmapToBlocksConverter(targetHeight: Int, targetWidth: Int) {
     }
 
     private fun scale(bitmap: Bitmap): Bitmap {
-        val scale = .6
+        val scale = imageQualityPref.floatValue()
         val width = (bitmap.width * scale).toInt()
         val height = (bitmap.height * scale).toInt()
         return Bitmap.createScaledBitmap(bitmap, width, height, true)
@@ -43,7 +47,7 @@ class BitmapToBlocksConverter(targetHeight: Int, targetWidth: Int) {
         val angle = it.angleInRadians - pastedPaperErrorInRadians
 
         BlockFactory.createBlock(
-            blockClass, it.centerX, it.centerY, it.diameter, angle
+            blockClass, it.centerX, it.centerY, it.diameter * 2, angle
         )
     }
 

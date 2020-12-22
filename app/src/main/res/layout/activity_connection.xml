@@ -23,16 +23,14 @@
             android:id="@+id/connectButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/connect_button"/>
+            android:text="@string/connect_button"
+            android:layout_margin="30sp"/>
 
-        <TextView
-            android:id="@+id/activity_id"
-            android:text="@{model.task.description}"
+        <Button
+            android:id="@+id/configButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="10sp"
-            android:textSize="15sp"
-            />
+            android:text="@string/config" />
 
     </LinearLayout>
 </layout>

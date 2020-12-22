@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.rope.ropelandia.R
+import com.rope.ropelandia.config.ConfigActivity
 import com.rope.ropelandia.databinding.ActivityConnectionBinding
 import com.rope.ropelandia.game.GameActivity
 import com.rope.ropelandia.log.Logger
@@ -46,9 +47,12 @@ class ConnectionActivity : AppCompatActivity() {
             ropeFinder.findRoPE()
         }
 
-        logger = Logger(this)
+        findViewById<Button>(R.id.configButton).setOnClickListener {
+            val intent = Intent(this, ConfigActivity::class.java)
+            startActivity(intent)
+        }
 
-        ropeFinder.findRoPE()
+        logger = Logger(this)
     }
 
     private fun show(message: String) {

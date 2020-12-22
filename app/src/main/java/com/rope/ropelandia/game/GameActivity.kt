@@ -1,5 +1,6 @@
 package com.rope.ropelandia.game
 
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -12,6 +13,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.rope.ropelandia.PermissionChecker
 import com.rope.ropelandia.R
+import com.rope.ropelandia.capture.ImageQualityPref
 import com.rope.ropelandia.capture.ProgramFactory
 import com.rope.ropelandia.rope.RoPE
 import com.rope.ropelandia.rope.rope
@@ -34,7 +36,20 @@ class GameActivity : AppCompatActivity() {
         setContentView(R.layout.main_activity)
         photoFile = File(filesDir, "topCodes.jpg")
         photoFileOutputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-        imageSavedCallback = ImageSavedCallback(photoFile)
+
+        val imageQualityPref =
+            getSharedPreferences(applicationContext.packageName, Context.MODE_PRIVATE).let {
+                val defaultValue = ImageQualityPref.MEDIUM.name
+                val storedPreference =
+                    it.getString(
+                        getString(R.string.image_quality_key),
+                        defaultValue
+                    )
+                ImageQualityPref.valueOf(storedPreference!!)
+            }
+
+        val imageProcessingConfig = ImageProcessingConfig(photoFile, imageQualityPref)
+        imageSavedCallback = ImageSavedCallback(imageProcessingConfig)
 
         imageSavedCallback.onFoundBlocks { blocks: List<Block> ->
             val blocksSequence = ProgramFactory.findSequence(blocks)
@@ -53,7 +68,7 @@ class GameActivity : AppCompatActivity() {
 
             rope.execute(program)
 
-            updateView(blocks)
+            updateView(blocksSequence)
         }
 
         permissionChecker.executeOrRequestPermission(
@@ -71,16 +86,19 @@ class GameActivity : AppCompatActivity() {
             takePhoto(mat)
         }
         rope.onExecution { actionIndex ->
-            highlight(actionIndex)
+            val nextAction = actionIndex + 1
+            highlight(nextAction)
         }
         rope.onExecutionStarted {
             highlight(0)
+        }
+        rope.onExecutionFinished {
+            mat.hideHighlight()
         }
     }
 
     private fun highlight(actionIndex: Int) {
         mat.highlight(actionIndex)
-        mat.invalidate()
     }
 
     private fun returnToPreviousActivity() {
@@ -148,7 +166,7 @@ class GameActivity : AppCompatActivity() {
     fun togglePreview(view: View) {
         if (previewView.visibility == View.VISIBLE) {
             previewView.visibility = View.INVISIBLE
-            mat.setBackgroundColor(Color.DKGRAY)
+            mat.setBackgroundColor(Color.WHITE)
         } else {
             previewView.visibility = View.VISIBLE
             mat.setBackgroundColor(Color.TRANSPARENT)

@@ -15,6 +15,7 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
             onDisconnected.clear()
         }
 
+        lateinit var executionFinished: () -> Unit
         lateinit var onExecutionStarted: () -> Unit
         lateinit var onExecution: (actionIndex: Int) -> Unit
         lateinit var onStartPressed: () -> Unit
@@ -28,6 +29,12 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
     private lateinit var bluetoothGatt: BluetoothGatt
 
     private lateinit var characteristic: BluetoothGattCharacteristic
+
+    enum class State {
+        EXECUTING, STOPPED
+    }
+
+    private var state = State.STOPPED
 
     enum class Action {
         BACKWARD {
@@ -61,24 +68,34 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
     init {
         Listeners.clear()
         this.onMessage {
-            if(it.contains("memory is")) { // TODO update firmware to send something like <required:start> message
+            if (it.contains("memory is")) { // TODO update firmware to send something like <required:start> message
                 Listeners.onStartPressed()
             }
         }
         this.onMessage { message ->
-            if(message.contains("start")) {
+            val isStartMessage = message.contains("start")
+            val canStart = isStartMessage && isStopped()
+            if (canStart) {
+                state = State.EXECUTING
                 Listeners.onExecutionStarted()
             }
         }
         this.onMessage { message ->
             val regex = "<executed:(?<actionIndex>\\d+)>\r\n".toRegex()
-            if(regex.containsMatchIn(message)) {
+            if (regex.containsMatchIn(message)) {
                 val matches = regex.matchEntire(message)
-                val numberGroup = 1 // the group 0 is the complete string, group 1 is the desired info
+                val numberGroup =
+                    1 // the group 0 is the complete string, group 1 is the desired info
                 val actionIndex = matches!!.groups[numberGroup]!!.value
                 actionIndex.toIntOrNull()?.let {
                     Listeners.onExecution(it)
                 }
+            }
+        }
+        this.onMessage { message ->
+            if (message.contains("terminated")) {
+                state = State.STOPPED
+                Listeners.executionFinished()
             }
         }
     }
@@ -115,14 +132,22 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
     }
 
     fun execute(actionList: List<Action>) {
-        val actions = actionList.joinToString("") { it.stringSequence }
-        val executeSuffix = Action.EXECUTE.stringSequence
-        val command = "$commandsPrefix$actions$executeSuffix"
-        send(command)
+        if (isStopped()) {
+            val actions = actionList.joinToString("") { it.stringSequence }
+            val executeSuffix = Action.EXECUTE.stringSequence
+            val command = "$commandsPrefix$actions$executeSuffix"
+            send(command)
+        }
     }
+
+    private fun isStopped() = state == State.STOPPED
 
     fun onExecutionStarted(function: () -> Unit) {
         Listeners.onExecutionStarted = function
+    }
+
+    fun onExecutionFinished(function: () -> Unit) {
+        Listeners.executionFinished = function
     }
 
     private inner class MyGattCallback : BluetoothGattCallback() {
