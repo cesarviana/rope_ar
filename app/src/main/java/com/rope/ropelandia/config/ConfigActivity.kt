@@ -3,6 +3,7 @@ package com.rope.ropelandia.config
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.widget.Button
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.appcompat.app.AppCompatActivity
@@ -26,9 +27,8 @@ class ConfigActivity : AppCompatActivity() {
 
         activeRadioButton(imageQualityPref)
 
-        findViewById<RadioGroup>(R.id.radioGroup).apply {
+        findViewById<RadioGroup>(R.id.radioGroup).
             setOnCheckedChangeListener(storeCheckedPreference(sharedPreferences, imageQualityKey))
-        }
 
     }
 

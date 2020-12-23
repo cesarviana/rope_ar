@@ -3,45 +3,52 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".config.ConfigActivity"
-    android:orientation="horizontal"
     android:gravity="center"
-    >
+    android:orientation="vertical"
+    tools:context=".config.ConfigActivity">
 
-    <TextView
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/image_quality"/>
+
+        <RadioGroup
+            android:id="@+id/radioGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <RadioButton
+                android:id="@+id/radioHigh"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/image_quality_high" />
+
+            <RadioButton
+                android:id="@+id/radioMedium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/image_quality_medium" />
+
+            <RadioButton
+                android:id="@+id/radioLow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/image_quality_low" />
+
+        </RadioGroup>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/recalibrateButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/image_quality"
-        >
-    </TextView>
-
-    <RadioGroup
-        android:id="@+id/radioGroup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
-        <RadioButton
-            android:id="@+id/radioHigh"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/image_quality_high"
-            />
-
-        <RadioButton
-            android:id="@+id/radioMedium"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/image_quality_medium"
-            />
-
-        <RadioButton
-            android:id="@+id/radioLow"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/image_quality_low"
-            />
-
-    </RadioGroup>
+        android:text="@string/recalibrate" />
 
 </LinearLayout>

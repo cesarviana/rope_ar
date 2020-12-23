@@ -26,4 +26,5 @@
     <string name="image_quality_high">Alta</string>
     <string name="image_quality_medium">Média</string>
     <string name="image_quality_low">Baixa</string>
+    <string name="recalibrate">Recalibrar posição tapete</string>
 </resources>

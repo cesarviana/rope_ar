@@ -102,6 +102,7 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun returnToPreviousActivity() {
+        Log.i(this.localClassName, "returning to connection activity")
         this.finish()
     }
 
@@ -166,7 +167,7 @@ class GameActivity : AppCompatActivity() {
     fun togglePreview(view: View) {
         if (previewView.visibility == View.VISIBLE) {
             previewView.visibility = View.INVISIBLE
-            mat.setBackgroundColor(Color.WHITE)
+            mat.setBackgroundColor(Color.BLACK)
         } else {
             previewView.visibility = View.VISIBLE
             mat.setBackgroundColor(Color.TRANSPARENT)

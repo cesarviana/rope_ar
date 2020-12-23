@@ -15,7 +15,14 @@ import androidx.appcompat.app.AppCompatActivity
 import com.rope.ropelandia.PermissionChecker
 import java.util.*
 
-class RoPEFinder(private val activity: Activity) {
+class RoPEFinder {
+
+    lateinit var activity: Activity
+
+    fun initialize(activity: Activity) {
+        this.activity = activity
+        Listeners.clear()
+    }
 
     object BlePermissions {
         const val requestCode = 11
@@ -30,10 +37,20 @@ class RoPEFinder(private val activity: Activity) {
         const val requestCode = 12
     }
 
-    private lateinit var onRoPEFound: (rope: RoPE) -> Unit
-    private lateinit var onRequestEnableConnection: (EnableBluetoothRequest) -> Unit
-    private lateinit var onEnableConnectionRefused: (resultCode: Int) -> Unit
-    private lateinit var onConnectionFailed: (errorCode: Int) -> Unit
+    private object Listeners {
+
+        fun clear() {
+            onRoPEFound.clear()
+            onRequestEnableConnection.clear()
+            onEnableConnectionRefused.clear()
+            onConnectionFailed.clear()
+        }
+
+        val onRoPEFound = mutableListOf<(rope: RoPE) -> Unit>()
+        val onRequestEnableConnection = mutableListOf<(EnableBluetoothRequest) -> Unit>()
+        val onEnableConnectionRefused = mutableListOf<(resultCode: Int) -> Unit>()
+        val onConnectionFailed = mutableListOf<(errorCode: Int) -> Unit>()
+    }
 
     private val bluetoothAdapter: BluetoothAdapter? by lazy(LazyThreadSafetyMode.NONE) {
         val bluetoothManager =
@@ -63,7 +80,7 @@ class RoPEFinder(private val activity: Activity) {
         val intent = Intent(action)
         val code = BleEnabling.requestCode
         val enableBleRequest = EnableBluetoothRequest(intent, code)
-        this.onRequestEnableConnection(enableBleRequest)
+        Listeners.onRequestEnableConnection.forEach { it(enableBleRequest) }
     }
 
     private fun scan(scanCallback: ScanCallback) {
@@ -100,7 +117,7 @@ class RoPEFinder(private val activity: Activity) {
     }
 
     fun onRequestEnableConnection(onRequestEnableConnection: (EnableBluetoothRequest) -> Unit) {
-        this.onRequestEnableConnection = onRequestEnableConnection
+        Listeners.onRequestEnableConnection.add(onRequestEnableConnection)
     }
 
     fun handleRequestEnableConnectionResult(requestCode: Int, resultCode: Int) {
@@ -114,16 +131,16 @@ class RoPEFinder(private val activity: Activity) {
         if (allowedBluetooth) {
             scan(myScanCallback)
         } else {
-            this.onEnableConnectionRefused(resultCode)
+            Listeners.onEnableConnectionRefused.forEach { it(resultCode) }
         }
     }
 
     fun onEnableConnectionRefused(function: (resultCode: Int) -> Unit) {
-        this.onEnableConnectionRefused = function
+        Listeners.onEnableConnectionRefused.add(function)
     }
 
     fun onRoPEFound(function: (rope: RoPE) -> Unit) {
-        this.onRoPEFound = function
+        Listeners.onRoPEFound.add(function)
     }
 
     fun handleRequestConnectionPermissionResult(requestCode: Int) {
@@ -139,7 +156,7 @@ class RoPEFinder(private val activity: Activity) {
     }
 
     fun onConnectionFailed(function: (errorCode: Int) -> Unit) {
-        this.onConnectionFailed = function
+        Listeners.onConnectionFailed.add(function)
     }
 
     var ropeConnected = false
@@ -163,13 +180,18 @@ class RoPEFinder(private val activity: Activity) {
                 rope.onConnected {
                     ropeConnected = true
                 }
-                onRoPEFound(rope)
+                Listeners.onRoPEFound.forEach { it(rope) }
             }
         }
 
         override fun onScanFailed(errorCode: Int) {
             super.onScanFailed(errorCode)
-            onConnectionFailed(errorCode)
+
+            if(errorCode == SCAN_FAILED_ALREADY_STARTED){
+                bluetoothAdapter?.bluetoothLeScanner?.stopScan(myScanCallback)
+            }
+
+            Listeners.onConnectionFailed.forEach { it(errorCode) }
         }
     }
 

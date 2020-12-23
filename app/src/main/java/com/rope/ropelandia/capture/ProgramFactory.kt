@@ -29,7 +29,8 @@ object ProgramFactory {
     }
 
     private fun removeStartBlock(program: MutableList<Block>) {
-        program.removeFirst()
+        if(program.isNotEmpty())
+            program.removeFirst()
     }
 
     private fun findSnappedBlock(blocks: List<Block>, block: Block): Block? {

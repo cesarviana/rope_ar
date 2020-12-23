@@ -1,14 +1,14 @@
 package com.rope.ropelandia.rope
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil
 import com.rope.ropelandia.R
 import com.rope.ropelandia.config.ConfigActivity
-import com.rope.ropelandia.databinding.ActivityConnectionBinding
 import com.rope.ropelandia.game.GameActivity
 import com.rope.ropelandia.log.Logger
 
@@ -16,17 +16,16 @@ lateinit var rope: RoPE
 
 class ConnectionActivity : AppCompatActivity() {
 
-    private lateinit var ropeFinder: RoPEFinder
-
-    private lateinit var binding: ActivityConnectionBinding
-
     private lateinit var logger: Logger
+    private val ropeFinder = RoPEFinder()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_connection)
+        setContentView(R.layout.activity_connection)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
 
-        ropeFinder = RoPEFinder(this)
+        Log.i(this.localClassName, "Starting connection activity")
+        ropeFinder.initialize(this)
 
         ropeFinder.onRequestEnableConnection { request ->
             startActivityForResult(request.intent, request.code)

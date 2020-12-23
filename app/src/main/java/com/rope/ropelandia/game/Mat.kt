@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.SurfaceView
+import kotlin.math.cos
+import kotlin.math.sin
 
 class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) {
 
@@ -14,7 +16,7 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
         setWillNotDraw(false)
         setZOrderOnTop(true)
         //holder.setFormat(PixelFormat.TRANSPARENT)
-        setBackgroundColor(Color.WHITE)
+        setBackgroundColor(Color.BLACK)
     }
 
     private val highlightFill = Paint().apply {
@@ -22,7 +24,7 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
     }
 
     private val highlightBorderPaint = Paint().apply {
-        color = Color.BLUE
+        color = Color.WHITE
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -40,8 +42,32 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
     }
 
     private fun Canvas.drawBlock(it: Block) {
-        drawCircle(it.x, it.y, it.diameter * 1.2f, highlightBorderPaint)
-        drawCircle(it.x, it.y, it.diameter, highlightFill)
+        val angle = it.angle.toDouble()
+
+        /**
+         * Subtract 90º from top code angle to point to top of top code.
+         * The arrow symbol is there. Them move x y in that direction, and draw a rectangle
+         * in which x, y are almost centered.
+         */
+
+        val degreesInRadians90 = Math.toRadians(90.0)
+        val anglePointingUpTopCode = angle - degreesInRadians90
+
+        val cos = cos(anglePointingUpTopCode)
+        val sin = sin(anglePointingUpTopCode)
+        val distance = 80
+        val xIcon = (cos * distance + it.x).toInt()
+        val yIcon = (sin * distance + it.y).toInt()
+
+        val squareSize = 50
+        val rectLeft = xIcon - squareSize
+        val rectTop = yIcon - squareSize
+        val rectRight = xIcon + squareSize
+        val rectBottom = yIcon + squareSize
+        val rect = Rect(rectLeft, rectTop, rectRight, rectBottom)
+        drawRect(rect, highlightBorderPaint)
+
+        rotate(Math.toDegrees(angle).toFloat())
     }
 
     fun highlight(highlightIndex: Int) {
