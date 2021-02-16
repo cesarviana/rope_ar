@@ -1,6 +1,6 @@
 package com.rope.ropelandia.capture
 
-enum class ImageQualityPref {
+enum class ImageQuality {
     HIGH {
         override fun floatValue() = 1.0f
     },

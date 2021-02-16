@@ -5,15 +5,15 @@ import android.util.Log
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import com.rope.ropelandia.capture.BitmapToBlocksConverter
-import com.rope.ropelandia.capture.ImageQualityPref
+import com.rope.ropelandia.capture.ImageQuality
 import java.io.File
 
-data class ImageProcessingConfig(val imageFile: File, val imageQualityPref: ImageQualityPref)
+data class ImageProcessingConfig(val imageFile: File, val imageQuality: ImageQuality)
 
 class ImageSavedCallback(private val imageProcessingConfig: ImageProcessingConfig) : ImageCapture.OnImageSavedCallback {
 
     private lateinit var onFoundBlocks: (List<Block>) -> Unit
-    private val bitmapToBlocksConverter = BitmapToBlocksConverter(720, 1280, imageProcessingConfig.imageQualityPref)
+    private val bitmapToBlocksConverter = BitmapToBlocksConverter(720, 1280, imageProcessingConfig.imageQuality)
 
     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
         getBitmap().let {

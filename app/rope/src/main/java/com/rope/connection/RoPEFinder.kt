@@ -1,4 +1,4 @@
-package com.rope.ropelandia.rope
+package com.rope.connection
 
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
@@ -12,19 +12,23 @@ import android.content.Intent
 import android.os.Build
 import android.os.ParcelUuid
 import androidx.appcompat.app.AppCompatActivity
-import com.rope.ropelandia.PermissionChecker
 import java.util.*
 
-class RoPEFinder {
+/**
+ * Object to be used by other projects. It will find a instance of RoPE.
+ * This implementation uses Bluetooth connection, but the interface don't exposes
+ * Bluetooth.
+ */
+class RoPEFinder(private val activity: Activity) {
 
-    lateinit var activity: Activity
-
-    fun initialize(activity: Activity) {
-        this.activity = activity
+    init {
         Listeners.clear()
     }
 
-    object BlePermissions {
+    var rope: RoPE? = null
+    var ropeConnected = false
+
+    private object BlePermissions {
         const val requestCode = 11
         val list = arrayOf(
             android.Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -33,7 +37,7 @@ class RoPEFinder {
         )
     }
 
-    object BleEnabling {
+    private object BleEnabling {
         const val requestCode = 12
     }
 
@@ -58,7 +62,7 @@ class RoPEFinder {
         bluetoothManager.adapter
     }
 
-    private val permissionChecker = PermissionChecker()
+    private val permissionChecker = com.rope.droideasy.PermissionChecker()
     private val myScanCallback = MyScanCallback()
 
     fun findRoPE() {
@@ -151,20 +155,23 @@ class RoPEFinder {
         }
     }
 
-    private fun createRoPE(scanResult: ScanResult): RoPE {
-        return RoPE(activity.applicationContext, scanResult.device)
-    }
-
     fun onConnectionFailed(function: (errorCode: Int) -> Unit) {
         Listeners.onConnectionFailed.add(function)
     }
 
-    var ropeConnected = false
+    private fun createRoPE(scanResult: ScanResult): RoPE {
+        return RoPE(activity.applicationContext, scanResult.device)
+    }
 
     private inner class MyScanCallback : ScanCallback() {
         override fun onScanResult(callbackType: Int, scanResult: ScanResult?) {
 
             bluetoothAdapter?.bluetoothLeScanner?.stopScan(myScanCallback)
+
+            /**
+             * There is an error that causes this method to be called multiple times, even
+             * the rope already being found. So, if rope is connected, we ignore further results.
+             */
 
             if (ropeConnected) {
                 return
@@ -173,14 +180,11 @@ class RoPEFinder {
             ropeConnected = true
 
             scanResult?.let {
-                val rope = createRoPE(scanResult)
-                rope.onDisconnected {
+                rope = createRoPE(scanResult)
+                Listeners.onRoPEFound.forEach { it(rope!!) }
+                rope?.onDisconnected {
                     ropeConnected = false
                 }
-                rope.onConnected {
-                    ropeConnected = true
-                }
-                Listeners.onRoPEFound.forEach { it(rope) }
             }
         }
 

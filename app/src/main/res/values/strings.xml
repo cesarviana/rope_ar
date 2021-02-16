@@ -8,8 +8,8 @@
     <string name="button_take_photo">Take photo</string>
     <string name="permission_not_granted">Permission not granted</string>
     <string name="top_codes_detected">TopCodes detected will be here</string>
-    <string name="title_activity_connection">Connection</string>
-    <!-- Strings used for fragments for navigation -->
+    <string name="title_activity_connection">RoPE AR</string>
+    <!-- Strings used for fragments for naviation -->
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Próxima</string>

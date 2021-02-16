@@ -2,6 +2,7 @@ package com.rope.ropelandia.capture
 
 import com.rope.ropelandia.game.Block
 import com.rope.ropelandia.game.DirectionBlock
+import com.rope.ropelandia.game.Program
 import com.rope.ropelandia.game.StartBlock
 import kotlin.math.abs
 import kotlin.math.cos
@@ -11,21 +12,21 @@ object ProgramFactory {
 
     private const val SNAP_DISTANCE = 140
 
-    fun findSequence(blocks: List<Block>): List<Block> {
+    fun findSequence(blocks: List<Block>): Program {
 
-        val program = mutableListOf<Block>()
+        val blocksList = mutableListOf<Block>()
 
         var block = blocks.find { it is StartBlock }
 
         while (block != null) {
-            program.add(block)
-            val remainingBlocks = blocks.filterNot { program.contains(it) }
+            blocksList.add(block)
+            val remainingBlocks = blocks.filterNot { blocksList.contains(it) }
             block = findSnappedBlock(remainingBlocks, block)
         }
 
-        removeStartBlock(program)
+        removeStartBlock(blocksList)
 
-        return program
+        return Program(blocksList)
     }
 
     private fun removeStartBlock(program: MutableList<Block>) {

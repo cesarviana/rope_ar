@@ -9,7 +9,7 @@ import topcodes.TopCodesScanner
 class BitmapToBlocksConverter(
     targetHeight: Int,
     targetWidth: Int,
-    private val imageQualityPref: ImageQualityPref
+    private val imageQuality: ImageQuality
 ) {
 
     private val topCodesScanner = TopCodesScanner()
@@ -28,7 +28,7 @@ class BitmapToBlocksConverter(
     }
 
     private fun scale(bitmap: Bitmap): Bitmap {
-        val scale = imageQualityPref.floatValue()
+        val scale = imageQuality.floatValue()
         val width = (bitmap.width * scale).toInt()
         val height = (bitmap.height * scale).toInt()
         return Bitmap.createScaledBitmap(bitmap, width, height, true)

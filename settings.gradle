@@ -1,2 +1,4 @@
+include ':app:droideasy'
+include ':app:rope'
 include ':app'
 rootProject.name = "RoPELandia"

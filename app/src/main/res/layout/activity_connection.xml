@@ -1,32 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
-    >
-
-    <data>
-        <variable
-            name="model"
-            type="viewmodel.ConnectionViewModel" />
-    </data>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@{model.connectionState}"
-            />
-
-        <Button
-            android:id="@+id/connectButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/connect_button"
-            android:layout_margin="30sp"/>
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:orientation="vertical">
 
         <Button
             android:id="@+id/configButton"
@@ -35,4 +17,27 @@
             android:text="@string/config" />
 
     </LinearLayout>
-</layout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/connectButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="30sp"
+            android:text="@string/connect_button" />
+
+        <TextView
+            android:id="@+id/connectionStateTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+        </TextView>
+
+    </LinearLayout>
+
+</LinearLayout>

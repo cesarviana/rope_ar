@@ -3,6 +3,7 @@ package com.rope.ropelandia.capture
 import com.rope.ropelandia.game.Block
 import com.rope.ropelandia.game.BlockFactory
 import com.rope.ropelandia.game.PositionBlock
+import kotlin.math.abs
 
 interface BlocksPositioner {
     fun reposition(blocks: List<Block>): List<Block>
@@ -45,11 +46,11 @@ class ProjectorBlocksPositioner(
                 calibrateProportions(newAdjustedRectangle)
                 calcHomographyMatrix(perspectiveRectangle, newAdjustedRectangle)
 
-                if(adjustedRectangle == null) {
-                    adjustedRectangle = newAdjustedRectangle
+                adjustedRectangle = if(adjustedRectangle == null) {
+                    newAdjustedRectangle
                 } else {
                     stopCalibrationIfSimilar(newAdjustedRectangle)
-                    adjustedRectangle = newAdjustedRectangle
+                    newAdjustedRectangle
                 }
             }
     }
@@ -59,7 +60,7 @@ class ProjectorBlocksPositioner(
             val oldTop = adjustedRectangle!!.topLeft.y
             val newTop = newAdjustedRectangle.topLeft.y
 
-            if(Math.abs(oldTop - newTop) < 3){
+            if(abs(oldTop - newTop) < 3){
                 calibrating = false
             }
         }

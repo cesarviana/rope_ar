@@ -1,32 +1,36 @@
-package com.rope.ropelandia.rope
+package com.rope.ropelandia.connection
 
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.media.MediaPlayer
 import android.os.Bundle
-import android.util.Log
-import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.rope.ropelandia.R
 import com.rope.ropelandia.config.ConfigActivity
+import com.rope.ropelandia.databinding.ActivityConnectionBinding
 import com.rope.ropelandia.game.GameActivity
-import com.rope.ropelandia.log.Logger
 
-lateinit var rope: RoPE
+var rope: com.rope.connection.RoPE? = null
 
 class ConnectionActivity : AppCompatActivity() {
 
-    private lateinit var logger: Logger
-    private val ropeFinder = RoPEFinder()
+    private lateinit var binding: ActivityConnectionBinding
+    private val ropeFinder = com.rope.connection.RoPEFinder(this)
+    private val connectionViewModel = ConnectionViewModel(rope)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_connection)
+        binding = ActivityConnectionBinding.inflate(layoutInflater)
+        binding.connectionStateTextView.text = connectionViewModel.getConnectionState()
+        setContentView(binding.root)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
 
-        Log.i(this.localClassName, "Starting connection activity")
-        ropeFinder.initialize(this)
+        setupRopeFinder()
+        setupActivityListeners()
+    }
 
+    private fun setupRopeFinder() {
         ropeFinder.onRequestEnableConnection { request ->
             startActivityForResult(request.intent, request.code)
         }
@@ -39,20 +43,24 @@ class ConnectionActivity : AppCompatActivity() {
         ropeFinder.onRoPEFound {
             rope = it
             setupRoPEListeners()
-            rope.connect()
+            rope?.connect()
         }
+    }
 
-        findViewById<Button>(R.id.connectButton).setOnClickListener {
-            ropeFinder.findRoPE()
+    private fun setupActivityListeners() {
+        binding.connectButton.setOnClickListener {
+            if (ropeFound())
+                goToGameActivity()
+            else
+                ropeFinder.findRoPE()
         }
-
-        findViewById<Button>(R.id.configButton).setOnClickListener {
+        binding.configButton.setOnClickListener {
             val intent = Intent(this, ConfigActivity::class.java)
             startActivity(intent)
         }
-
-        logger = Logger(this)
     }
+
+    private fun ropeFound() = rope != null && rope?.isConnected() == true
 
     private fun show(message: String) {
         Toast
@@ -74,10 +82,20 @@ class ConnectionActivity : AppCompatActivity() {
     }
 
     private fun setupRoPEListeners() {
-        rope.onConnected {
-            val intent = Intent(this, GameActivity::class.java)
-            startActivity(intent)
+        rope?.onConnected {
+            playConnectedSound()
+            goToGameActivity()
         }
+    }
+
+    private fun playConnectedSound() {
+        val mediaPlayer = MediaPlayer.create(this, R.raw.audio_rope_conectado)
+        mediaPlayer.start()
+    }
+
+    private fun goToGameActivity() {
+        val intent = Intent(this, GameActivity::class.java)
+        startActivity(intent)
     }
 
 }

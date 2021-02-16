@@ -3,13 +3,12 @@ package com.rope.ropelandia.config
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.widget.Button
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import com.rope.ropelandia.R
-import com.rope.ropelandia.capture.ImageQualityPref
+import com.rope.ropelandia.capture.ImageQuality
 
 class ConfigActivity : AppCompatActivity() {
 
@@ -22,8 +21,8 @@ class ConfigActivity : AppCompatActivity() {
         val sharedPreferences =
             getSharedPreferences(applicationContext.packageName, Context.MODE_PRIVATE)
 
-        val imageQualityPrefString = sharedPreferences.getString(imageQualityKey, ImageQualityPref.MEDIUM.name)
-        val imageQualityPref = ImageQualityPref.valueOf(imageQualityPrefString!!)
+        val imageQualityPrefString = sharedPreferences.getString(imageQualityKey, ImageQuality.MEDIUM.name)
+        val imageQualityPref = ImageQuality.valueOf(imageQualityPrefString!!)
 
         activeRadioButton(imageQualityPref)
 
@@ -32,11 +31,11 @@ class ConfigActivity : AppCompatActivity() {
 
     }
 
-    private fun activeRadioButton(imageQualityPref: ImageQualityPref) {
-        val radioButtonId = when (imageQualityPref) {
-            ImageQualityPref.HIGH -> R.id.radioHigh
-            ImageQualityPref.MEDIUM -> R.id.radioMedium
-            ImageQualityPref.LOW -> R.id.radioLow
+    private fun activeRadioButton(imageQuality: ImageQuality) {
+        val radioButtonId = when (imageQuality) {
+            ImageQuality.HIGH -> R.id.radioHigh
+            ImageQuality.MEDIUM -> R.id.radioMedium
+            ImageQuality.LOW -> R.id.radioLow
         }
         findViewById<RadioButton>(radioButtonId).isChecked = true
     }
@@ -46,10 +45,10 @@ class ConfigActivity : AppCompatActivity() {
         imageQualityKey: String
     ): (group: RadioGroup, checkedId: Int) -> Unit = { _, checkedId ->
         val imageQuality = when (checkedId) {
-            R.id.radioHigh -> ImageQualityPref.HIGH
-            R.id.radioMedium -> ImageQualityPref.MEDIUM
-            R.id.radioLow -> ImageQualityPref.LOW
-            else -> ImageQualityPref.MEDIUM
+            R.id.radioHigh -> ImageQuality.HIGH
+            R.id.radioMedium -> ImageQuality.MEDIUM
+            R.id.radioLow -> ImageQuality.LOW
+            else -> ImageQuality.MEDIUM
         }
         sharedPreferences.apply {
             edit {

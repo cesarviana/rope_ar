@@ -24,7 +24,7 @@
         android:theme="@style/AppTheme.NoActionBar">
         <activity android:name=".config.ConfigActivity"></activity>
         <activity
-            android:name=".rope.ConnectionActivity"
+            android:name=".connection.ConnectionActivity"
             android:label="@string/title_activity_connection"
             android:theme="@style/AppTheme.NoActionBar.NoActionBar">
             <intent-filter>

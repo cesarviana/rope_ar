@@ -1,13 +1,12 @@
-package com.rope.ropelandia
+package com.rope.droideasy
 
 import android.app.Activity
 import android.content.pm.PackageManager
-import android.widget.Toast
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
 class PermissionChecker {
-
     fun executeOrRequestPermission(
         activity: Activity,
         requiredPermissions: Array<String>,
@@ -53,10 +52,6 @@ class PermissionChecker {
     }
 
     private fun cry(activity: Activity){
-        Toast.makeText(
-            activity,
-            activity.resources.getString(R.string.permission_not_granted),
-            Toast.LENGTH_SHORT
-        ).show()
+        Log.e("PERMISSIONS", "Permission not granted")
     }
 }
