@@ -1,10 +1,12 @@
 package com.rope.ropelandia.capture
 
 import android.graphics.Bitmap
-import com.rope.ropelandia.game.Block
-import com.rope.ropelandia.game.BlockFactory
+import com.rope.ropelandia.model.Block
+import com.rope.ropelandia.model.BlockFactory
 import topcodes.TopCode
 import topcodes.TopCodesScanner
+import kotlin.math.cos
+import kotlin.math.sin
 
 class BitmapToBlocksConverter(
     targetHeight: Int,
@@ -42,12 +44,8 @@ class BitmapToBlocksConverter(
     private fun convertToBlocks(topCodes: List<TopCode>) = topCodes.map {
         val blockClass = TopCodeToClassMapper.map(it.code)
 
-        val pastedPaperErrorInRadians = 1.5708f
-
-        val angle = it.angleInRadians - pastedPaperErrorInRadians
-
         BlockFactory.createBlock(
-            blockClass, it.centerX, it.centerY, it.diameter * 2, angle
+            blockClass, it.centerX, it.centerY, it.diameter, it.angleInRadians
         )
     }
 

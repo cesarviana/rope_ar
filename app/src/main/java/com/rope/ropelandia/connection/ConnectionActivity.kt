@@ -28,6 +28,7 @@ class ConnectionActivity : AppCompatActivity() {
 
         setupRopeFinder()
         setupActivityListeners()
+        findAndConnectRoPE()
     }
 
     private fun setupRopeFinder() {
@@ -49,15 +50,19 @@ class ConnectionActivity : AppCompatActivity() {
 
     private fun setupActivityListeners() {
         binding.connectButton.setOnClickListener {
-            if (ropeFound())
-                goToGameActivity()
-            else
-                ropeFinder.findRoPE()
+            findAndConnectRoPE()
         }
         binding.configButton.setOnClickListener {
             val intent = Intent(this, ConfigActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    private fun findAndConnectRoPE() {
+        if (ropeFound())
+            goToGameActivity()
+        else
+            ropeFinder.findRoPE()
     }
 
     private fun ropeFound() = rope != null && rope?.isConnected() == true
@@ -83,14 +88,18 @@ class ConnectionActivity : AppCompatActivity() {
 
     private fun setupRoPEListeners() {
         rope?.onConnected {
-            playConnectedSound()
-            goToGameActivity()
+            playConnectedSound {
+                goToGameActivity()
+            }
         }
     }
 
-    private fun playConnectedSound() {
+    private fun playConnectedSound(onPlayed: ()->Unit) {
         val mediaPlayer = MediaPlayer.create(this, R.raw.audio_rope_conectado)
         mediaPlayer.start()
+        mediaPlayer.setOnCompletionListener {
+            onPlayed()
+        }
     }
 
     private fun goToGameActivity() {

@@ -1,8 +1,8 @@
 package com.rope.ropelandia.capture
 
-import com.rope.ropelandia.game.Block
-import com.rope.ropelandia.game.BlockFactory
-import com.rope.ropelandia.game.PositionBlock
+import com.rope.ropelandia.model.Block
+import com.rope.ropelandia.model.BlockFactory
+import com.rope.ropelandia.model.PositionBlock
 import kotlin.math.abs
 
 interface BlocksPositioner {
@@ -15,7 +15,6 @@ class ProjectorBlocksPositioner(
 ) : BlocksPositioner {
 
     private val rectangleFinder = RectangleFinder()
-    private var calibrating: Boolean = true
 
     private var homographyMatrix: HomographyMatrix? = null
     private var adjustedRectangle: Rectangle? = null
@@ -24,10 +23,8 @@ class ProjectorBlocksPositioner(
 
     override fun reposition(blocks: List<Block>): List<Block> {
 
-        if (calibrating) {
-            val positionBlocks = blocks.filterIsInstance<PositionBlock>()
-            calibrate(positionBlocks)
-        }
+        val positionBlocks = blocks.filterIsInstance<PositionBlock>()
+        calibrate(positionBlocks)
 
         return moveBlocks(blocks)
     }
@@ -38,7 +35,7 @@ class ProjectorBlocksPositioner(
             return
 
         positionBlocks
-            .map { Point(it.x.toDouble(), it.y.toDouble()) }
+            .map { Point(it.centerX.toDouble(), it.centerY.toDouble()) }
             .let { positionPoints ->
                 createPerspectiveRectangle(positionPoints)
             }.let { perspectiveRectangle ->
@@ -46,24 +43,10 @@ class ProjectorBlocksPositioner(
                 calibrateProportions(newAdjustedRectangle)
                 calcHomographyMatrix(perspectiveRectangle, newAdjustedRectangle)
 
-                adjustedRectangle = if(adjustedRectangle == null) {
-                    newAdjustedRectangle
-                } else {
-                    stopCalibrationIfSimilar(newAdjustedRectangle)
-                    newAdjustedRectangle
+                if(adjustedRectangle == null) {
+                    adjustedRectangle = newAdjustedRectangle
                 }
             }
-    }
-
-    private fun stopCalibrationIfSimilar(newAdjustedRectangle: Rectangle) {
-        if(adjustedRectangle != null && adjustedRectangle != newAdjustedRectangle) {
-            val oldTop = adjustedRectangle!!.topLeft.y
-            val newTop = newAdjustedRectangle.topLeft.y
-
-            if(abs(oldTop - newTop) < 3){
-                calibrating = false
-            }
-        }
     }
 
     private fun calcHomographyMatrix(
@@ -85,7 +68,7 @@ class ProjectorBlocksPositioner(
             return blocks
 
         return blocks.map {
-            val point = Point(it.x.toDouble(), it.y.toDouble())
+            val point = Point(it.centerX.toDouble(), it.centerY.toDouble())
             val newPoint = PointPositionCalculator.calculatePoint(point, homographyMatrix!!)
             BlockFactory.createBlock(
                 it.javaClass,

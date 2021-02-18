@@ -6,6 +6,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import com.rope.ropelandia.capture.BitmapToBlocksConverter
 import com.rope.ropelandia.capture.ImageQuality
+import com.rope.ropelandia.model.Block
 import java.io.File
 
 data class ImageProcessingConfig(val imageFile: File, val imageQuality: ImageQuality)

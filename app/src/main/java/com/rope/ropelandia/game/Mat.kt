@@ -3,27 +3,24 @@ package com.rope.ropelandia.game
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.view.SurfaceHolder
 import android.view.SurfaceView
+import com.rope.ropelandia.model.Program
 
-class Program(val blocks: List<Block>) {
-    init {
-        blocks.forEachIndexed { programIndex, block ->
-            block.indexInProgram = programIndex
-        }
-    }
-}
+private const val BORDER_WIDTH = 15f
 
-class GameContext(var program: Program, var currentBlock: Int)
+class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs), SurfaceHolder.Callback {
 
-class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) {
-
-    private val gameContext = GameContext(Program(listOf()), NO_CURRENT_BLOCK)
+    private val blocks = mutableListOf<BlockView>()
 
     var program = Program(listOf())
-        set(value) {
-            field = value
-            gameContext.program = value
+    set(value) {
+        field = value
+        blocks.clear()
+        program.blocks.forEach {
+            blocks.add(BlockView(context, it))
         }
+    }
 
     init {
         setWillNotDraw(false)
@@ -31,29 +28,54 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs) 
         setBackgroundColor(Color.BLACK)
     }
 
-    override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
+    private val matBorderPaint = Paint().apply{
+        style = Paint.Style.STROKE
+        color = Color.WHITE
+        strokeWidth = BORDER_WIDTH
+    }
+
+    override fun draw(canvas: Canvas?) {
+        super.draw(canvas)
         canvas?.apply {
-
-            program.blocks.forEach {
-                it.draw(canvas, gameContext)
+            drawMatBorder()
+            blocks.forEach {
+                it.draw(canvas)
             }
-
         }
     }
 
-    fun highlight(highlightIndex: Int) {
-        this.gameContext.currentBlock = highlightIndex
-        invalidate()
+    private fun Canvas.drawMatBorder() {
+        val right = width - BORDER_WIDTH * 2
+        val bottom = height - BORDER_WIDTH * 2
+        drawRect(0f, 0f, right, bottom, matBorderPaint)
     }
 
     fun hideHighlight() {
-        this.gameContext.currentBlock = NO_CURRENT_BLOCK
-        invalidate()
+        blocks.forEach {
+            it.highlighted = false
+        }
+        updateDraw()
     }
 
-    private companion object {
-        const val NO_CURRENT_BLOCK = -1
+    private fun updateDraw() {
+        val canvas = holder.lockCanvas()
+        draw(canvas)
+        holder.unlockCanvasAndPost(canvas)
     }
+
+    fun highlight(actionIndex: Int) {
+        if(blocks.size > actionIndex) {
+            val blockView = blocks[actionIndex]
+            blockView.highlighted = true
+            updateDraw()
+        }
+    }
+
+    override fun surfaceCreated(holder: SurfaceHolder) {}
+
+    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
+
+    override fun surfaceDestroyed(holder: SurfaceHolder) {}
+
 }
 

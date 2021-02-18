@@ -3,6 +3,7 @@ package com.rope.connection
 import android.bluetooth.*
 import android.content.Context
 import android.util.Log.d
+import java.lang.IllegalStateException
 import java.util.*
 
 class RoPE(private val context: Context, private val device: BluetoothDevice) {
@@ -60,6 +61,10 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
         EXECUTE {
             override val stringSequence: String
                 get() = "e"
+        },
+        SOUND_OFF {
+            override val stringSequence: String
+                get() = "s"
         },
         NULL {
             override val stringSequence: String
@@ -142,6 +147,8 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
         Listeners.onActionExecution.add(function)
     }
 
+    fun execute(vararg actions: Action) = execute(actions.asList())
+
     fun execute(actionList: List<Action>) {
         if (isStopped()) {
             val actions = actionList.joinToString("") { it.stringSequence }
@@ -171,6 +178,9 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
                         bluetoothGatt = it
                         bluetoothGatt.discoverServices()
                     }
+                }
+                else -> {
+                    throw IllegalStateException("Bluetooth state changed to unhandled state")
                 }
             }
         }

@@ -16,6 +16,7 @@ import com.rope.ropelandia.R
 import com.rope.ropelandia.capture.ImageQuality
 import com.rope.ropelandia.capture.ProgramFactory
 import com.rope.ropelandia.connection.rope
+import com.rope.ropelandia.model.*
 import kotlinx.android.synthetic.main.main_activity.*
 import java.io.File
 
@@ -42,8 +43,8 @@ class GameActivity : AppCompatActivity() {
         imageSavedCallback = ImageSavedCallback(imageProcessingConfig)
         imageSavedCallback.onFoundBlocks { blocks: List<Block> ->
             val program = ProgramFactory.findSequence(blocks)
+            mat.program = program
             ropeExecute(program)
-            updateView(program)
         }
     }
 
@@ -56,10 +57,11 @@ class GameActivity : AppCompatActivity() {
         }
         rope?.onActionFinished { actionIndex ->
             val nextAction = actionIndex + 1
-            highlight(nextAction)
+            mat.hideHighlight()
+            mat.highlight(nextAction)
         }
         rope?.onExecutionStarted {
-            highlight(0)
+            mat.highlight(0)
         }
         rope?.onExecutionFinished {
             mat.hideHighlight()
@@ -78,7 +80,6 @@ class GameActivity : AppCompatActivity() {
 
     private fun ropeExecute(program: Program) {
         val ropeActions = convertToRoPEActions(program)
-
         rope?.execute(ropeActions)
     }
 
@@ -113,17 +114,8 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    private fun highlight(actionIndex: Int) {
-        mat.highlight(actionIndex)
-    }
-
     private fun returnToPreviousActivity() {
         this.finish()
-    }
-
-    private fun updateView(program: Program) {
-        mat.program = program
-        mat.invalidate()
     }
 
     override fun onRequestPermissionsResult(

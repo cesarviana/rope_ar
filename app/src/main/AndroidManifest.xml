@@ -22,14 +22,22 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
-        <activity android:name=".config.ConfigActivity"></activity>
+
+        <activity
+            android:name=".study.StudyActivity"
+            android:label="@string/title_activity_studies">
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+        </activity>
+        <activity android:name=".config.ConfigActivity" />
         <activity
             android:name=".connection.ConnectionActivity"
             android:label="@string/title_activity_connection"
             android:theme="@style/AppTheme.NoActionBar.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

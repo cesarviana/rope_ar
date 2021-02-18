@@ -1,9 +1,9 @@
 package com.rope.ropelandia
 
 import com.rope.ropelandia.capture.ProgramFactory
-import com.rope.ropelandia.game.ForwardBlock
-import com.rope.ropelandia.game.LeftBlock
-import com.rope.ropelandia.game.StartBlock
+import com.rope.ropelandia.model.ForwardBlock
+import com.rope.ropelandia.model.LeftBlock
+import com.rope.ropelandia.model.StartBlock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
