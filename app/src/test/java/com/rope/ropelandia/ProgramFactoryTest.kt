@@ -11,21 +11,21 @@ class ProgramFactoryTest {
 
     @Test
     fun testHorizontalProgram() {
-        val startBlock = StartBlock(10f, 100f, 20f, 0f)
-        val forwardBlock = ForwardBlock(100f, 100f, 20f, 0f)
+        val startBlock = StartBlock(10f, 70f, 20f, 0f)
+        val forwardBlock = ForwardBlock(70f, 70f, 20f, 0f)
 
         val blocks = listOf(startBlock, forwardBlock)
 
         val program = ProgramFactory.findSequence(blocks)
 
-        assertThat(program)
-            .hasSize(2)
-            .containsSequence(startBlock, forwardBlock)
+        assertThat(program.blocks)
+            .hasSize(1)
+            .containsSequence(forwardBlock)
     }
 
     @Test
     fun testHorizontalProgramWithDistantBlock() {
-        val startBlock = StartBlock(10f, 100f, 20f, 0f)
+        val startBlock = StartBlock(10f, 100f, 20f, -90f)
         val forwardBlock = ForwardBlock(100f, 100f, 20f, 0f)
         val leftBlock = LeftBlock(1000f, 100f, 20f, 0f)
 
@@ -33,10 +33,10 @@ class ProgramFactoryTest {
 
         val program = ProgramFactory.findSequence(blocks)
 
-        assertThat(program)
-            .hasSize(2)
+        assertThat(program.blocks)
+            .hasSize(1)
             .doesNotContain(leftBlock)
-            .containsSequence(startBlock, forwardBlock)
+            .containsSequence(forwardBlock)
     }
 
     @Test
@@ -48,23 +48,23 @@ class ProgramFactoryTest {
 
         val program = ProgramFactory.findSequence(blocks)
 
-        assertThat(program)
-            .hasSize(2)
-            .containsSequence(startBlock, forwardBlock)
+        assertThat(program.blocks)
+            .hasSize(1)
+            .containsSequence(forwardBlock)
     }
 
     @Test
     fun testVerticalProgram() {
-        val startBlock = StartBlock(10f, 10f, 20f, 270f)
+        val startBlock = StartBlock(100f, 10f, 20f, 180f)
         val forwardBlock = ForwardBlock(100f, 100f, 20f, 0f)
 
         val blocks = listOf(startBlock, forwardBlock)
 
         val program = ProgramFactory.findSequence(blocks)
 
-        assertThat(program)
-            .hasSize(2)
-            .containsSequence(startBlock, forwardBlock)
+        assertThat(program.blocks)
+            .hasSize(1)
+            .containsSequence(forwardBlock)
     }
 
 }

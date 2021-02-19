@@ -1,6 +1,7 @@
 package com.rope.ropelandia.game
 
 import android.graphics.Color
+import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -43,7 +44,17 @@ class GameActivity : AppCompatActivity() {
         imageSavedCallback = ImageSavedCallback(imageProcessingConfig)
         imageSavedCallback.onFoundBlocks { blocks: List<Block> ->
             val program = ProgramFactory.findSequence(blocks)
-            mat.program = program
+            gameView.blocksViews = program.blocks.map { block ->
+                BlockView(this).apply {
+                    bounds = Rect(
+                        block.left.toInt(),
+                        block.top.toInt(),
+                        block.right.toInt(),
+                        block.bottom.toInt()
+                    )
+                    angle = block.angle
+                }
+            }
             ropeExecute(program)
         }
     }
@@ -53,18 +64,18 @@ class GameActivity : AppCompatActivity() {
             returnToPreviousActivity()
         }
         rope?.onStartedPressed {
-            takePhoto(mat)
+            takePhoto(gameView)
         }
         rope?.onActionFinished { actionIndex ->
             val nextAction = actionIndex + 1
-            mat.hideHighlight()
-            mat.highlight(nextAction)
+            gameView.hideHighlight()
+            gameView.highlight(nextAction)
         }
         rope?.onExecutionStarted {
-            mat.highlight(0)
+            gameView.highlight(0)
         }
         rope?.onExecutionFinished {
-            mat.hideHighlight()
+            gameView.hideHighlight()
         }
     }
 
@@ -174,10 +185,10 @@ class GameActivity : AppCompatActivity() {
     fun togglePreview(view: View) {
         if (previewView.visibility == View.VISIBLE) {
             previewView.visibility = View.INVISIBLE
-            mat.setBackgroundColor(Color.BLACK)
+            gameView.setBackgroundColor(Color.BLACK)
         } else {
             previewView.visibility = View.VISIBLE
-            mat.setBackgroundColor(Color.TRANSPARENT)
+            gameView.setBackgroundColor(Color.TRANSPARENT)
         }
     }
 

@@ -1,26 +1,19 @@
 package com.rope.ropelandia.game
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import com.rope.ropelandia.model.Program
 
-private const val BORDER_WIDTH = 15f
+private const val BORDER_WIDTH = 10f
 
-class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs), SurfaceHolder.Callback {
+class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs), SurfaceHolder.Callback {
 
-    private val blocks = mutableListOf<BlockView>()
-
-    var program = Program(listOf())
-    set(value) {
-        field = value
-        blocks.clear()
-        program.blocks.forEach {
-            blocks.add(BlockView(context, it))
-        }
-    }
+    lateinit var blocksViews: List<BlockView>
+    lateinit var matView: MatView
 
     init {
         setWillNotDraw(false)
@@ -38,20 +31,20 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs),
         super.draw(canvas)
         canvas?.apply {
             drawMatBorder()
-            blocks.forEach {
+            blocksViews.forEach {
                 it.draw(canvas)
             }
         }
     }
 
     private fun Canvas.drawMatBorder() {
-        val right = width - BORDER_WIDTH * 2
-        val bottom = height - BORDER_WIDTH * 2
+        val right = width - BORDER_WIDTH
+        val bottom = height - BORDER_WIDTH
         drawRect(0f, 0f, right, bottom, matBorderPaint)
     }
 
     fun hideHighlight() {
-        blocks.forEach {
+        blocksViews.forEach {
             it.highlighted = false
         }
         updateDraw()
@@ -64,8 +57,8 @@ class Mat(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs),
     }
 
     fun highlight(actionIndex: Int) {
-        if(blocks.size > actionIndex) {
-            val blockView = blocks[actionIndex]
+        if(blocksViews.size > actionIndex) {
+            val blockView = blocksViews[actionIndex]
             blockView.highlighted = true
             updateDraw()
         }
