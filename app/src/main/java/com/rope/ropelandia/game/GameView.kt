@@ -13,7 +13,7 @@ private const val BORDER_WIDTH = 10f
 class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs), SurfaceHolder.Callback {
 
     lateinit var blocksViews: List<BlockView>
-    lateinit var matView: MatView
+    var matView = MatView(context, null)
 
     init {
         setWillNotDraw(false)
@@ -34,6 +34,7 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
             blocksViews.forEach {
                 it.draw(canvas)
             }
+            matView.draw(canvas)
         }
     }
 
