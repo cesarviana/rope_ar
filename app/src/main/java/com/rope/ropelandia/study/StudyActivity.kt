@@ -33,10 +33,11 @@ class StudyActivity : AppCompatActivity() {
 //            }
 //        }
 
-        matView.mat = arrayOf(
-            arrayOf(4, 3),
-            arrayOf(1, 2)
-        )
+//        matView.mat = arrayOf(
+//            arrayOf(4, 3),
+//            arrayOf(1, 2)
+//        )
+
 
     }
 
@@ -45,18 +46,6 @@ class StudyActivity : AppCompatActivity() {
         val block2 = ForwardBlock(600f, 600f, 10f, 4f)
 
         return Program(listOf(block, block2))
-    }
-
-    private fun createTestTask(): Task {
-        val mat = Mat(
-            arrayOf(
-                arrayOf(0, 0, 0, 0),
-                arrayOf(0, 0, 0, 0),
-                arrayOf(0, 2, 0, 0),
-                arrayOf(0, 1, 0, 0)
-            )
-        )
-        return Task("Mapa de um avanço", mat)
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {

@@ -27,6 +27,8 @@ class GameActivity : AppCompatActivity() {
     private lateinit var photoFileOutputOptions: ImageCapture.OutputFileOptions
     private lateinit var imageSavedCallback: ImageSavedCallback
     private val permissionChecker = PermissionChecker()
+    private lateinit var levels: List<Level>
+    private var levelIndex = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +36,8 @@ class GameActivity : AppCompatActivity() {
         setupImageSavedCallback()
         setupRopeListeners()
         startCameraOrRequestPermission()
+        //levels = LevelLoader.load(applicationContext)
+        //startLevel(getLevel(levelIndex))
     }
 
     private fun setupImageSavedCallback() {
@@ -182,13 +186,27 @@ class GameActivity : AppCompatActivity() {
         )
     }
 
-    fun togglePreview(view: View) {
+    fun toggleCameraPreview(view: View) {
         if (previewView.visibility == View.VISIBLE) {
             previewView.visibility = View.INVISIBLE
             gameView.setBackgroundColor(Color.BLACK)
         } else {
             previewView.visibility = View.VISIBLE
             gameView.setBackgroundColor(Color.TRANSPARENT)
+        }
+    }
+
+    private fun getLevel(taskIndex: Int): Level {
+        if (levels.size > taskIndex) {
+            return levels[taskIndex]
+        }
+        return Level()
+    }
+
+    private fun startLevel(level: Level) {
+        MatView(applicationContext, null).let { matView ->
+            matView.mat = level.mat
+            //gameView.matView = matView
         }
     }
 

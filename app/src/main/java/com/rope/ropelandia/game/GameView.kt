@@ -7,13 +7,17 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-
-private const val BORDER_WIDTH = 10f
+import android.widget.FrameLayout
 
 class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs), SurfaceHolder.Callback {
 
-    lateinit var blocksViews: List<BlockView>
-    var matView = MatView(context, null)
+//    var matView = MatView(context, null)
+//    set(value) {
+//        field = value
+//        matView.minimumHeight = height
+//        invalidate()
+//    }
+    var blocksViews: List<BlockView> = listOf()
 
     init {
         setWillNotDraw(false)
@@ -21,27 +25,14 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
         setBackgroundColor(Color.BLACK)
     }
 
-    private val matBorderPaint = Paint().apply{
-        style = Paint.Style.STROKE
-        color = Color.WHITE
-        strokeWidth = BORDER_WIDTH
-    }
-
     override fun draw(canvas: Canvas?) {
         super.draw(canvas)
         canvas?.apply {
-            drawMatBorder()
             blocksViews.forEach {
                 it.draw(canvas)
             }
-            matView.draw(canvas)
+//            matView.draw(canvas)
         }
-    }
-
-    private fun Canvas.drawMatBorder() {
-        val right = width - BORDER_WIDTH
-        val bottom = height - BORDER_WIDTH
-        drawRect(0f, 0f, right, bottom, matBorderPaint)
     }
 
     fun hideHighlight() {
