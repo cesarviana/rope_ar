@@ -48,6 +48,7 @@ class MatView(context: Context, attributeSet: AttributeSet?) : View(context, att
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.let {
+            it.rotate(180f, (width / 2).toFloat(), (height / 2).toFloat())
             mat.forEach { layer ->
                 layer.forEachIndexed { lineIndex, line ->
                     line.forEachIndexed { columnIndex, tile ->
@@ -55,6 +56,7 @@ class MatView(context: Context, attributeSet: AttributeSet?) : View(context, att
                     }
                 }
             }
+            it.rotate(-180f, (width / 2).toFloat(), (height / 2).toFloat())
         }
     }
 
