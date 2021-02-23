@@ -1,6 +1,5 @@
 package com.rope.ropelandia.game
 
-import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
@@ -36,8 +35,8 @@ class GameActivity : AppCompatActivity() {
         setupImageSavedCallback()
         setupRopeListeners()
         startCameraOrRequestPermission()
-        //levels = LevelLoader.load(applicationContext)
-        //startLevel(getLevel(levelIndex))
+        levels = LevelLoader.load(applicationContext)
+        startLevel(getLevel(levelIndex))
     }
 
     private fun setupImageSavedCallback() {
@@ -74,6 +73,7 @@ class GameActivity : AppCompatActivity() {
             val nextAction = actionIndex + 1
             gameView.hideHighlight()
             gameView.highlight(nextAction)
+            matView.invalidate()
         }
         rope?.onExecutionStarted {
             gameView.highlight(0)
@@ -189,10 +189,8 @@ class GameActivity : AppCompatActivity() {
     fun toggleCameraPreview(view: View) {
         if (previewView.visibility == View.VISIBLE) {
             previewView.visibility = View.INVISIBLE
-            gameView.setBackgroundColor(Color.BLACK)
         } else {
             previewView.visibility = View.VISIBLE
-            gameView.setBackgroundColor(Color.TRANSPARENT)
         }
     }
 
@@ -204,10 +202,8 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun startLevel(level: Level) {
-        MatView(applicationContext, null).let { matView ->
-            matView.mat = level.mat
-            //gameView.matView = matView
-        }
+        matView.mat = level.mat
+        gameView.matView = matView
     }
 
     companion object {

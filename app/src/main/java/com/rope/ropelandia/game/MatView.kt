@@ -7,73 +7,34 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
-import androidx.core.content.res.ResourcesCompat
-import java.lang.Exception
 
+typealias Tile = Drawable
+typealias MatLayer = Array<Array<Tile>>
 typealias Mat = MutableList<MatLayer>
-typealias MatLayer = Array<Array<String>>
 
 class MatView(context: Context, attributeSet: AttributeSet?) : View(context, attributeSet) {
 
     var mat: Mat = mutableListOf()
 
-    private val tiles: MutableMap<String, Drawable> = mutableMapOf()
-    private var squareSize = 40
+    private var squareSize = 100
 
     private val paint = Paint().apply {
         style = Paint.Style.STROKE
         color = Color.BLUE
     }
 
-    private var background: MatLayer = arrayOf(
-        arrayOf("floor", "floor", "floor", "floor"),
-        arrayOf("floor", "floor", "floor", "floor"),
-        arrayOf("floor", "floor", "floor", "floor"),
-        arrayOf("floor", "floor", "floor", "floor")
-    )
-
-    private var path: MatLayer = arrayOf(
-        arrayOf("",      "",        "", ""),
-        arrayOf("", "brpath",       "", ""),
-        arrayOf("", "btpath", "btpath", ""),
-        arrayOf("", "trpath", "tlpath", "")
-    )
-
-    init {
-        setBackgroundColor(Color.GRAY)
-        addLayer(background)
-        addLayer(path)
-    }
-
-    fun addLayer(layer: MatLayer) {
-        mat.add(layer)
-        layer.forEach { line ->
-            line.forEach { tileId ->
-                if (!tiles.containsKey(tileId)) {
-                    tiles[tileId] = readTile(tileId)
-                }
-            }
-        }
-    }
-
-    private fun readTile(tileId: String): Drawable {
-        if(tileId.isBlank())
-            return readTile("floor")
-
-        return try {
-            val identifier = resources.getIdentifier(tileId, "drawable", context.packageName)
-            ResourcesCompat.getDrawable(resources, identifier, null)!!
-        } catch (e: Exception) {
-            Log.e("MAT_VIEW", "Read tile $tileId failed.")
-            throw e
-        }
-    }
-
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        squareSize = h / 4
+        updateSquareSize(h)
+    }
+
+    private fun updateSquareSize(height: Int) {
+        if (mat.isNotEmpty()) {
+            val matLayer: MatLayer = mat[0]
+            val lines = matLayer.size
+            squareSize = height / lines
+        }
     }
 
     private fun createRect(squareSize: Int, matLine: Int, matColumn: Int): Rect {
@@ -89,17 +50,17 @@ class MatView(context: Context, attributeSet: AttributeSet?) : View(context, att
         canvas?.let {
             mat.forEach { layer ->
                 layer.forEachIndexed { lineIndex, line ->
-                    line.forEachIndexed { columnIndex, tileId ->
-                        drawTile(canvas, lineIndex, columnIndex, tileId)
+                    line.forEachIndexed { columnIndex, tile ->
+                        drawTile(canvas, lineIndex, columnIndex, tile)
                     }
                 }
             }
         }
     }
 
-    private fun drawTile(canvas: Canvas, lineIndex: Int, columnIndex: Int, tileId: String) {
+    private fun drawTile(canvas: Canvas, lineIndex: Int, columnIndex: Int, tile: Drawable) {
         val rect = createRect(squareSize, lineIndex, columnIndex)
-        tiles[tileId]?.apply {
+        tile.apply {
             bounds = rect
             draw(canvas)
         }
