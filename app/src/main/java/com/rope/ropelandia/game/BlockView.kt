@@ -2,11 +2,10 @@ package com.rope.ropelandia.game
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Rect
-import android.graphics.drawable.Drawable
 import android.view.View
-import androidx.core.content.res.ResourcesCompat
-import com.rope.ropelandia.R
 
 class BlockView(context: Context) : View(context) {
 
@@ -14,8 +13,9 @@ class BlockView(context: Context) : View(context) {
     var bounds = Rect()
     var angle = 0.0f
 
-    private val highlightIcon: Drawable =
-        ResourcesCompat.getDrawable(resources, R.drawable.ic_highlight, null)!!
+    private val paint = Paint().apply{
+        color = Color.WHITE
+    }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
@@ -23,19 +23,12 @@ class BlockView(context: Context) : View(context) {
         if(!highlighted)
             return
 
-        val angleDegrees = Math.toDegrees(angle.toDouble()).toFloat()
         val centerX = bounds.centerX().toFloat()
         val centerY = bounds.centerY().toFloat()
+        val radius = bounds.height() / 2f
 
         canvas?.apply {
-            rotate(angleDegrees, centerX, centerY)
-
-           highlightIcon.let {
-                it.bounds = this@BlockView.bounds
-                it.draw(canvas)
-            }
-
-            rotate(-angleDegrees, centerX, centerY)
+            canvas.drawCircle(centerX, centerY, radius, paint)
         }
     }
 }

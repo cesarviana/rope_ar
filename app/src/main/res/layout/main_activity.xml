@@ -15,8 +15,7 @@
     <com.rope.ropelandia.game.MatView
         android:id="@+id/matView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#4CAF50" />
+        android:layout_height="match_parent"/>
 
     <com.rope.ropelandia.game.GameView
         android:id="@+id/gameView"
