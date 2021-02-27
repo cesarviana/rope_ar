@@ -1,5 +1,4 @@
 package com.rope.ropelandia.game
-
 import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
@@ -13,9 +12,9 @@ import androidx.core.content.ContextCompat
 import com.rope.connection.RoPE
 import com.rope.droideasy.PermissionChecker
 import com.rope.ropelandia.R
+import com.rope.ropelandia.app
 import com.rope.ropelandia.capture.ImageQuality
 import com.rope.ropelandia.capture.ProgramFactory
-import com.rope.ropelandia.connection.rope
 import com.rope.ropelandia.model.*
 import kotlinx.android.synthetic.main.main_activity.*
 import java.io.File
@@ -63,22 +62,22 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun setupRopeListeners() {
-        rope?.onDisconnected {
+        app.rope?.onDisconnected {
             returnToPreviousActivity()
         }
-        rope?.onStartedPressed {
+        app.rope?.onStartedPressed {
             takePhoto(gameView)
         }
-        rope?.onActionFinished { actionIndex ->
+        app.rope?.onActionFinished { actionIndex ->
             val nextAction = actionIndex + 1
             gameView.hideHighlight()
-            gameView.highlight(nextAction)
+            gameView.setExecuting(nextAction)
             matView.invalidate()
         }
-        rope?.onExecutionStarted {
-            gameView.highlight(0)
+        app.rope?.onExecutionStarted {
+            gameView.setExecuting(0)
         }
-        rope?.onExecutionFinished {
+        app.rope?.onExecutionFinished {
             gameView.hideHighlight()
         }
     }
@@ -95,7 +94,7 @@ class GameActivity : AppCompatActivity() {
 
     private fun ropeExecute(program: Program) {
         val ropeActions = convertToRoPEActions(program)
-        rope?.execute(ropeActions)
+        app.rope?.execute(ropeActions)
     }
 
     private fun convertToRoPEActions(program: Program): MutableList<RoPE.Action> {

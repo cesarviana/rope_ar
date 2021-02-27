@@ -8,7 +8,8 @@ import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 
-class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs), SurfaceHolder.Callback {
+class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs),
+    SurfaceHolder.Callback {
 
     var matView: MatView = MatView(context, null)
 
@@ -35,17 +36,20 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
         canvas?.drawColor(0, PorterDuff.Mode.CLEAR)
     }
 
-    fun highlight(actionIndex: Int) {
-        if(blocksViews.size > actionIndex) {
-            val blockView = blocksViews[actionIndex]
-            blockView.highlighted = true
-            updateDraw()
+    fun setExecuting(actionIndex: Int) {
+        blocksViews.forEachIndexed { index, blockView ->
+            blockView.state = if (index == actionIndex) {
+                BlockView.BlockState.EXECUTING
+            } else {
+                BlockView.BlockState.PARSED
+            }
         }
+        updateDraw()
     }
 
     fun hideHighlight() {
         blocksViews.forEach {
-            it.highlighted = false
+            it.state = BlockView.BlockState.PARSED
         }
         updateDraw()
     }

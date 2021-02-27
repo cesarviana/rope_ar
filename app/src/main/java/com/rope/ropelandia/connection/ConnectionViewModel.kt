@@ -2,14 +2,15 @@ package com.rope.ropelandia.connection
 
 import androidx.lifecycle.ViewModel
 import com.rope.connection.RoPE
+import com.rope.ropelandia.App
 
-data class ConnectionViewModel(private val rope: RoPE?) : ViewModel() {
+data class ConnectionViewModel(private val app: App) : ViewModel() {
 
     fun getConnectionState(): String {
-        rope?.let {
+        app.rope?.let {
             return when {
-                rope.isConnected() -> "Conectado"
-                rope.isConnecting() -> "Conectando..."
+                it.isConnected() -> "Conectado"
+                it.isConnecting() -> "Conectando..."
                 else -> "Desconectado"
             }
         }

@@ -6,29 +6,44 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.view.View
+import androidx.core.graphics.toRectF
 
 class BlockView(context: Context) : View(context) {
 
-    var highlighted: Boolean = false
+    enum class BlockState {
+        EXECUTING {
+            private val paint: Paint = Paint().apply {
+                this.color = Color.WHITE
+            }
+
+            override fun draw(block: BlockView, canvas: Canvas) {
+                val centerX = block.bounds.centerX().toFloat()
+                val centerY = block.bounds.centerY().toFloat()
+                val angle = Math.toDegrees(block.angle.toDouble()).toFloat()
+                canvas.apply {
+                    rotate(angle, centerX, centerY)
+                    drawOval(block.bounds.toRectF(), paint)
+                    rotate(-angle, centerX, centerY)
+                }
+            }
+        },
+        PARSED {
+            override fun draw(block: BlockView, canvas: Canvas) {}
+        };
+
+        abstract fun draw(block: BlockView, canvas: Canvas)
+    }
+
     var bounds = Rect()
     var angle = 0.0f
-
-    private val paint = Paint().apply{
-        color = Color.WHITE
-    }
+    var state = BlockState.PARSED
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
-        if(!highlighted)
-            return
-
-        val centerX = bounds.centerX().toFloat()
-        val centerY = bounds.centerY().toFloat()
-        val radius = bounds.height() / 2f
-
-        canvas?.apply {
-            canvas.drawCircle(centerX, centerY, radius, paint)
+        canvas?.let {
+            state.draw(this, canvas)
         }
+
     }
 }
