@@ -36,6 +36,7 @@
         <activity
             android:name=".connection.ConnectionActivity"
             android:label="@string/title_activity_connection"
+            android:screenOrientation="reverseLandscape"
             android:theme="@style/AppTheme.NoActionBar.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

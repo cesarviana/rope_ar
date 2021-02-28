@@ -23,7 +23,6 @@ class ConnectionActivity : AppCompatActivity() {
         val connectionViewModel = ConnectionViewModel(app)
         binding.connectionStateTextView.text = connectionViewModel.getConnectionState()
         setContentView(binding.root)
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
 
         setupRopeFinder()
         setupActivityListeners()
