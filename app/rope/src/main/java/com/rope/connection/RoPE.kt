@@ -2,8 +2,8 @@ package com.rope.connection
 
 import android.bluetooth.*
 import android.content.Context
+import android.util.Log
 import android.util.Log.d
-import java.lang.IllegalStateException
 import java.util.*
 
 class RoPE(private val context: Context, private val device: BluetoothDevice) {
@@ -16,19 +16,19 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
             onActionExecution.clear()
             onStartPressed.clear()
             onMessage.clear()
-            onConnected.clear()
             onDisconnected.clear()
         }
 
-        val onExecutionFinished: MutableList<() -> Unit> = mutableListOf()
-        val onExecutionStarted: MutableList<() -> Unit> = mutableListOf()
-        val onActionExecution: MutableList<(actionIndex: Int) -> Unit> = mutableListOf()
-        val onStartPressed: MutableList<() -> Unit> = mutableListOf()
+        val onExecutionFinished: MutableList<RoPEExecutionFinishedListener> = mutableListOf()
+        val onExecutionStarted: MutableList<RoPEExecutionStartedListener> = mutableListOf()
+        val onActionExecution: MutableList<RoPEActionListener> = mutableListOf()
+        val onStartPressed: MutableList<RoPEStartPressedListener> = mutableListOf()
         val onMessage: MutableList<(message: String) -> Unit> = mutableListOf()
-        val onConnected: MutableList<() -> Unit> = mutableListOf()
-        val onDisconnected: MutableList<() -> Unit> = mutableListOf()
+        var onConnected: (() -> Unit)? = null
+        val onDisconnected: MutableList<RoPEDisconnectedListener> = mutableListOf()
     }
 
+    var actionIndex = 0
     private val callback = MyGattCallback()
 
     private lateinit var bluetoothGatt: BluetoothGatt
@@ -75,14 +75,13 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
     }
 
     init {
-        Listeners.clear()
         setupSelfListeners()
     }
 
     private fun setupSelfListeners() {
-        this.onMessage {
-            if (it.contains("memory is")) { // TODO update firmware to send something like <required:start> message
-                Listeners.onStartPressed.forEach { it() }
+        this.onMessage { message ->
+            if (message.contains("memory is")) { // TODO update firmware to send something like <required:start> message
+                Listeners.onStartPressed.forEach { it.startPressed(this) }
             }
         }
         this.onMessage { message ->
@@ -90,7 +89,7 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
             val canStart = isStartMessage && isStopped()
             if (canStart) {
                 state = State.EXECUTING
-                Listeners.onExecutionStarted.forEach { it() }
+                Listeners.onExecutionStarted.forEach { it.executionStarted(this) }
             }
         }
         this.onMessage { message ->
@@ -101,14 +100,15 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
                     1 // the group 0 is the complete string, group 1 is the desired info
                 val actionIndex = matches!!.groups[numberGroup]!!.value
                 actionIndex.toIntOrNull()?.let { index ->
-                    Listeners.onActionExecution.forEach { it(index) }
+                    this.actionIndex = index
+                    Listeners.onActionExecution.forEach { it.actionFinished(this) }
                 }
             }
         }
         this.onMessage { message ->
             if (message.contains("terminated")) {
                 state = State.STOPPED
-                Listeners.onExecutionFinished.forEach { it() }
+                Listeners.onExecutionFinished.forEach { it.executionEnded(this) }
             }
         }
     }
@@ -116,7 +116,10 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
     private val commandsPrefix = "cmds:"
 
     fun connect() {
-        device.connectGatt(context, false, callback)
+        if (isConnected())
+            Log.w("ROPE", "Device is already connected, not connecting again")
+        else
+            device.connectGatt(context, false, callback)
     }
 
     fun isConnected() = device.bondState == BluetoothDevice.BOND_BONDED
@@ -127,24 +130,24 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
         bluetoothGatt.writeCharacteristic(characteristic)
     }
 
-    fun onDisconnected(function: () -> Unit) {
-        Listeners.onDisconnected.add(function)
+    fun onDisconnected(ropeDisconnectListener: RoPEDisconnectedListener) {
+        Listeners.onDisconnected.add(ropeDisconnectListener)
     }
 
     fun onConnected(function: () -> Unit) {
-        Listeners.onConnected.add(function)
+        Listeners.onConnected = function
     }
 
     private fun onMessage(function: (message: String) -> Unit) {
         Listeners.onMessage.add(function)
     }
 
-    fun onStartedPressed(function: () -> Unit) {
-        Listeners.onStartPressed.add(function)
+    fun onStartedPressed(ropeStartPressedListener: RoPEStartPressedListener) {
+        Listeners.onStartPressed.add(ropeStartPressedListener)
     }
 
-    fun onActionFinished(function: (actionIndex: Int) -> Unit) {
-        Listeners.onActionExecution.add(function)
+    fun onActionFinished(ropeActionListener: RoPEActionListener) {
+        Listeners.onActionExecution.add(ropeActionListener)
     }
 
     fun execute(vararg actions: Action) = execute(actions.asList())
@@ -160,19 +163,47 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
 
     private fun isStopped() = state == State.STOPPED
 
-    fun onExecutionStarted(function: () -> Unit) {
-        Listeners.onExecutionStarted.add(function)
+    fun onExecutionStarted(executionStartedListener: RoPEExecutionStartedListener) {
+        Listeners.onExecutionStarted.add(executionStartedListener)
     }
 
-    fun onExecutionFinished(function: () -> Unit) {
-        Listeners.onExecutionFinished.add(function)
+    fun onExecutionFinished(executionFinishedListener: RoPEExecutionFinishedListener) {
+        Listeners.onExecutionFinished.add(executionFinishedListener)
+    }
+
+    fun disconnect() {
+        bluetoothGatt.disconnect()
+    }
+
+    fun removeDisconnectedListener(listener: RoPEDisconnectedListener) {
+        Listeners.onDisconnected.remove(listener)
+    }
+
+    fun removeStartPressedListener(listener: RoPEStartPressedListener) {
+        Listeners.onStartPressed.remove(listener)
+    }
+
+    fun removeActionListener(listener: RoPEActionListener) {
+        Listeners.onActionExecution.remove(listener)
+    }
+
+    fun removeExecutionStartedListener(listener: RoPEExecutionStartedListener) {
+        Listeners.onExecutionStarted.remove(listener)
+    }
+
+    fun removeExecutionFinishedListener(listener: RoPEExecutionFinishedListener) {
+        Listeners.onExecutionFinished.remove(listener)
     }
 
     private inner class MyGattCallback : BluetoothGattCallback() {
 
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
             when (newState) {
-                ConnectionState.DISCONNECTED -> Listeners.onDisconnected.forEach { it() }
+                ConnectionState.DISCONNECTED -> Listeners.onDisconnected.forEach {
+                    it.disconnected(
+                        this@RoPE
+                    )
+                }
                 ConnectionState.CONNECTED -> {
                     gatt?.let {
                         bluetoothGatt = it
@@ -190,7 +221,7 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
                 gatt?.getService(IDs.serviceUUID)?.let {
                     characteristic = it.getCharacteristic(IDs.characteristicUUID)
                     try {
-                        Listeners.onConnected.forEach { it() }
+                        Listeners.onConnected?.let { it() }
                     } catch (e: Exception) {
                         d("RoPE", e.message!!)
                     }
@@ -226,4 +257,24 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
         val serviceUUID: UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb")
         val characteristicUUID: UUID = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb")
     }
+}
+
+interface RoPEDisconnectedListener {
+    fun disconnected(rope: RoPE)
+}
+
+interface RoPEStartPressedListener {
+    fun startPressed(rope: RoPE)
+}
+
+interface RoPEActionListener {
+    fun actionFinished(rope: RoPE)
+}
+
+interface RoPEExecutionStartedListener {
+    fun executionStarted(rope: RoPE)
+}
+
+interface RoPEExecutionFinishedListener {
+    fun executionEnded(rope: RoPE)
 }

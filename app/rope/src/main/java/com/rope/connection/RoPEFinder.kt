@@ -10,6 +10,8 @@ import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.ParcelUuid
 import androidx.appcompat.app.AppCompatActivity
 import java.util.*
@@ -19,14 +21,13 @@ import java.util.*
  * This implementation uses Bluetooth connection, but the interface don't exposes
  * Bluetooth.
  */
-class RoPEFinder(private val activity: Activity) {
+class RoPEFinder(var activity: Activity) {
 
     init {
         Listeners.clear()
     }
 
     var rope: RoPE? = null
-    var ropeConnected = false
 
     private object BlePermissions {
         const val requestCode = 11
@@ -100,7 +101,9 @@ class RoPEFinder(private val activity: Activity) {
             ) {
                 val filter = createScanFilter()
                 val settings = createScanSettings()
-                bluetoothAdapter?.bluetoothLeScanner?.startScan(filter, settings, scanCallback)
+                Handler(Looper.getMainLooper()).postDelayed({
+                    bluetoothAdapter?.bluetoothLeScanner?.startScan(filter, settings, scanCallback)
+                }, 10000)
             }
         }
     }
@@ -172,26 +175,21 @@ class RoPEFinder(private val activity: Activity) {
              * There is an error that causes this method to be called multiple times, even
              * the rope already being found. So, if rope is connected, we ignore further results.
              */
-
-            if (ropeConnected) {
-                return
-            }
-
-            ropeConnected = true
-
-            scanResult?.let {
-                rope = createRoPE(scanResult)
+            if (rope != null) {
                 Listeners.onRoPEFound.forEach { it(rope!!) }
-                rope?.onDisconnected {
-                    ropeConnected = false
+            } else {
+                scanResult?.let {
+                    rope = createRoPE(scanResult)
+                    Listeners.onRoPEFound.forEach { it(rope!!) }
                 }
             }
+
         }
 
         override fun onScanFailed(errorCode: Int) {
             super.onScanFailed(errorCode)
 
-            if(errorCode == SCAN_FAILED_ALREADY_STARTED){
+            if (errorCode == SCAN_FAILED_ALREADY_STARTED) {
                 bluetoothAdapter?.bluetoothLeScanner?.stopScan(myScanCallback)
             }
 

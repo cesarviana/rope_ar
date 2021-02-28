@@ -6,6 +6,7 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.rope.connection.RoPEFinder
 import com.rope.ropelandia.R
 import com.rope.ropelandia.app
 import com.rope.ropelandia.config.ConfigActivity
@@ -15,7 +16,6 @@ import com.rope.ropelandia.game.GameActivity
 class ConnectionActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityConnectionBinding
-    private val ropeFinder = com.rope.connection.RoPEFinder(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,21 +31,32 @@ class ConnectionActivity : AppCompatActivity() {
     }
 
     private fun setupRopeFinder() {
-        ropeFinder.onRequestEnableConnection { request ->
+        if (app.ropeFinder != null) {
+            app.ropeFinder?.activity = this
+        } else {
+            app.ropeFinder = RoPEFinder(this)
+            addRoPEFinderListeners()
+        }
+    }
+
+    private fun addRoPEFinderListeners() {
+        app.ropeFinder?.onRequestEnableConnection { request ->
             startActivityForResult(request.intent, request.code)
         }
-        ropeFinder.onEnableConnectionRefused {
+        app.ropeFinder?.onEnableConnectionRefused {
             show("Falha ao ativar conexão")
         }
-        ropeFinder.onConnectionFailed {
+        app.ropeFinder?.onConnectionFailed {
             show("Falha ao conectar")
         }
-        ropeFinder.onRoPEFound {
-
-            app.rope = it
-
-            setupRoPEListeners()
-            app.rope?.connect()
+        app.ropeFinder?.onRoPEFound {
+            if(app.rope == null){
+                app.rope = it
+                setupRoPEListeners()
+            }
+            if(app.rope?.isConnected() == false){
+                app.rope?.connect()
+            }
         }
     }
 
@@ -60,10 +71,12 @@ class ConnectionActivity : AppCompatActivity() {
     }
 
     private fun findAndConnectRoPE() {
-        if (ropeFound())
+        if (ropeFound()) {
             goToGameActivity()
-        else
-            ropeFinder.findRoPE()
+        } else {
+            app.rope?.disconnect()
+            app.ropeFinder?.findRoPE()
+        }
     }
 
     private fun ropeFound() = app.rope != null && app.rope?.isConnected() == true
@@ -76,7 +89,7 @@ class ConnectionActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        ropeFinder.handleRequestEnableConnectionResult(requestCode, resultCode)
+        app.ropeFinder?.handleRequestEnableConnectionResult(requestCode, resultCode)
     }
 
     override fun onRequestPermissionsResult(
@@ -84,7 +97,7 @@ class ConnectionActivity : AppCompatActivity() {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        ropeFinder.handleRequestConnectionPermissionResult(requestCode)
+        app.ropeFinder?.handleRequestConnectionPermissionResult(requestCode)
     }
 
     private fun setupRoPEListeners() {

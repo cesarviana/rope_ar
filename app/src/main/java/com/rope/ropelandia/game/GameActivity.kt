@@ -1,4 +1,5 @@
 package com.rope.ropelandia.game
+
 import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
@@ -9,7 +10,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
-import com.rope.connection.RoPE
+import com.rope.connection.*
 import com.rope.droideasy.PermissionChecker
 import com.rope.ropelandia.R
 import com.rope.ropelandia.app
@@ -19,7 +20,12 @@ import com.rope.ropelandia.model.*
 import kotlinx.android.synthetic.main.main_activity.*
 import java.io.File
 
-class GameActivity : AppCompatActivity() {
+class GameActivity : AppCompatActivity(),
+    RoPEDisconnectedListener,
+    RoPEStartPressedListener,
+    RoPEActionListener,
+    RoPEExecutionStartedListener,
+    RoPEExecutionFinishedListener {
 
     private lateinit var imageCapture: ImageCapture
     private lateinit var photoFileOutputOptions: ImageCapture.OutputFileOptions
@@ -36,6 +42,15 @@ class GameActivity : AppCompatActivity() {
         startCameraOrRequestPermission()
         levels = LevelLoader.load(applicationContext)
         startLevel(getLevel(levelIndex))
+    }
+
+    override fun onStop() {
+        super.onStop()
+        app.rope?.removeDisconnectedListener(this)
+        app.rope?.removeStartPressedListener(this)
+        app.rope?.removeActionListener(this)
+        app.rope?.removeExecutionStartedListener(this)
+        app.rope?.removeExecutionFinishedListener(this)
     }
 
     private fun setupImageSavedCallback() {
@@ -62,24 +77,34 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun setupRopeListeners() {
-        app.rope?.onDisconnected {
-            returnToPreviousActivity()
-        }
-        app.rope?.onStartedPressed {
-            takePhoto(gameView)
-        }
-        app.rope?.onActionFinished { actionIndex ->
-            val nextAction = actionIndex + 1
-            gameView.hideHighlight()
-            gameView.setExecuting(nextAction)
-            matView.invalidate()
-        }
-        app.rope?.onExecutionStarted {
-            gameView.setExecuting(0)
-        }
-        app.rope?.onExecutionFinished {
-            gameView.hideHighlight()
-        }
+        app.rope?.onDisconnected(this)
+        app.rope?.onStartedPressed(this)
+        app.rope?.onActionFinished(this)
+        app.rope?.onExecutionStarted(this)
+        app.rope?.onExecutionFinished(this)
+    }
+
+    override fun disconnected(rope: RoPE) {
+        returnToPreviousActivity()
+    }
+
+    override fun startPressed(rope: RoPE) {
+        takePhoto(gameView)
+    }
+
+    override fun actionFinished(rope: RoPE) {
+        val nextAction = rope.actionIndex + 1
+        gameView.hideHighlight()
+        gameView.setExecuting(nextAction)
+        matView.invalidate()
+    }
+
+    override fun executionStarted(rope: RoPE) {
+        gameView.setExecuting(0)
+    }
+
+    override fun executionEnded(rope: RoPE) {
+        gameView.hideHighlight()
     }
 
     private fun startCameraOrRequestPermission() {
