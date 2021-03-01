@@ -3,10 +3,9 @@ package com.rope.ropelandia.capture
 import android.graphics.Bitmap
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.BlockFactory
+import com.rope.ropelandia.model.PositionBlock
 import topcodes.TopCode
 import topcodes.TopCodesScanner
-import kotlin.math.cos
-import kotlin.math.sin
 
 class BitmapToBlocksConverter(
     targetHeight: Int,
@@ -17,17 +16,42 @@ class BitmapToBlocksConverter(
     private val topCodesScanner = TopCodesScanner()
     private val positioner = ProjectorBlocksPositioner(targetHeight, targetWidth)
 
+    private object Cropper {
+        fun crop(bitmap: Bitmap): Bitmap {
+            return if (cropRect == null)
+                bitmap
+            else
+                Bitmap.createBitmap(
+                    bitmap,
+                    cropRect!!.topLeft.x.toInt(),
+                    cropRect!!.topLeft.y.toInt(),
+                    cropRect!!.width().toInt() / 3,
+                    cropRect!!.height().toInt()
+                )
+        }
+
+        var cropRect: Rectangle? = null
+    }
+
     fun convertBitmapToBlocks(bitmap: Bitmap): List<Block> {
-        return bitmap.let {
+        val blocks = bitmap.let {
             scale(it)
+        }.let {
+            cropAreaToScan(it)
         }.let {
             scanTopCodes(it)
         }.let {
             convertToBlocks(it)
-        }.let {
+        }
+
+        setupCropRect(blocks)
+
+        return blocks.let {
             reposition(it)
         }
     }
+
+    private fun cropAreaToScan(bitmap: Bitmap) = Cropper.crop(bitmap)
 
     private fun scale(bitmap: Bitmap): Bitmap {
         val scale = imageQuality.floatValue()
@@ -47,6 +71,16 @@ class BitmapToBlocksConverter(
         BlockFactory.createBlock(
             blockClass, it.centerX, it.centerY, it.diameter, it.angleInRadians
         )
+    }
+
+    private fun setupCropRect(blocks: List<Block>) {
+        val positionBlocks = blocks.filterIsInstance<PositionBlock>()
+        val sufficientRectPoints = positionBlocks.size == 4
+        if (sufficientRectPoints) {
+            val points = positionBlocks.map { Point(it.centerX.toDouble(), it.centerY.toDouble()) }
+            val rectangle = RectangleFinder().adjustRectangle(points)
+            Cropper.cropRect = rectangle
+        }
     }
 
     private fun reposition(blocks: List<Block>) = positioner.reposition(blocks)

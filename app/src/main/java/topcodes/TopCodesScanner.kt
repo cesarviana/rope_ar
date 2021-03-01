@@ -15,7 +15,7 @@ import kotlin.math.ceil
  */
 open class TopCodesScanner {
 
-    private var imageData: IntArray? = null
+    private lateinit var imageData: IntArray
 
     var imageWidth = 0
 
@@ -54,12 +54,12 @@ open class TopCodesScanner {
      * Returned value is between 0 (black) and 255 (white).
      */
     fun getSample3x3(x: Int, y: Int): Int {
-        if (x < 1 || x > imageWidth - 2 || y < 1 || y >= imageHeight - 2) return 0
+        if (isMarginPixel(x, y)) return 0
         var pixel: Int
         var sum = 0
         for (j in y - 1..y + 1) {
             for (i in x - 1..x + 1) {
-                pixel = imageData!![j * imageWidth + i]
+                pixel = imageData[j * imageWidth + i]
                 if (pixel and 0x01000000 > 0) {
                     sum += 0xff
                 }
@@ -73,21 +73,27 @@ open class TopCodesScanner {
      * Returned value is either 0 (black) or 1 (white).
      */
     fun getBW3x3(x: Int, y: Int): Int {
-        if (x < 1 || x > imageWidth - 2 || y < 1 || y >= imageHeight - 2) return 0
-        var pixel: Int
+        if (isMarginPixel(x, y)) return 0
         var sum = 0
         for (j in y - 1..y + 1) {
             for (i in x - 1..x + 1) {
-                pixel = imageData!![j * imageWidth + i]
+                val pixel = imageData[j * imageWidth + i]
                 sum += pixel shr 24 and 0x01
             }
         }
         return if (sum >= 5) 1 else 0
     }
 
+    private fun isMarginPixel(x: Int, y: Int) =
+        isLeftOrRightMargin(x) || upOrDownMargin(y)
+
+    private fun isLeftOrRightMargin(x: Int) = x < 1 || x > imageWidth - 2
+
+    private fun upOrDownMargin(y: Int) = (y < 1 || y >= imageHeight - 2)
+
     /**
      * Perform Wellner adaptive thresholding to produce binary pixel
-     * data.  Also mark candidate spotcode locations.
+     * data. Also mark candidate spotcode locations.
      *
      * "Adaptive Thresholding for the DigitalDesk"
      * EuroPARC Technical Report EPC-93-110
@@ -125,7 +131,7 @@ open class TopCodesScanner {
                 //----------------------------------------
                 // Calculate pixel intensity (0-255)
                 //----------------------------------------
-                pixel = imageData!![xy]
+                pixel = imageData[xy]
                 red = pixel shr 16 and 0xff
                 green = pixel shr 8 and 0xff
                 blue = pixel and 0xff
@@ -142,7 +148,7 @@ open class TopCodesScanner {
                 // Factor in sum from the previous row
                 //----------------------------------------
                 threshold = if (xy >= imageWidth) {
-                    (sum + (imageData!![xy - imageWidth] and 0xffffff)) / (2 * s)
+                    (sum + (imageData[xy - imageWidth] and 0xffffff)) / (2 * s)
                 } else {
                     sum / s
                 }
@@ -159,7 +165,7 @@ open class TopCodesScanner {
                 // the alpha channel, and the running sum
                 // for this pixel in the RGB channels
                 //----------------------------------------
-                imageData!![xy] = (alpha shl 24) + (sum and 0xffffff)
+                imageData[xy] = (alpha shl 24) + (sum and 0xffffff)
                 when (level) {
                     0 -> if (alpha == 0) {  // First black encountered
                         level = 1
@@ -197,9 +203,9 @@ open class TopCodesScanner {
                             } else {
                                 xy + dk
                             }
-                            imageData!![dk - 1] = imageData!![dk - 1] or mask
-                            imageData!![dk] = imageData!![dk] or mask
-                            imageData!![dk + 1] = imageData!![dk + 1] or mask
+                            imageData[dk - 1] = imageData[dk - 1] or mask
+                            imageData[dk] = imageData[dk] or mask
+                            imageData[dk + 1] = imageData[dk + 1] or mask
                             candidateCount += 3 // count candidate codes
                         }
                         b1 = b2
@@ -220,11 +226,11 @@ open class TopCodesScanner {
         var k = imageWidth * 2
         for (j in 2 until imageHeight - 2) {
             for (i in 0 until imageWidth) {
-                if (imageData!![k] and 0x2000000 > 0) {
-                    if (imageData!![k - 1] and 0x2000000 > 0 &&
-                        imageData!![k + 1] and 0x2000000 > 0 &&
-                        imageData!![k - imageWidth] and 0x2000000 > 0 &&
-                        imageData!![k + imageWidth] and 0x2000000 > 0)
+                if (imageData[k] and 0x2000000 > 0) {
+                    if (imageData[k - 1] and 0x2000000 > 0 &&
+                        imageData[k + 1] and 0x2000000 > 0 &&
+                        imageData[k - imageWidth] and 0x2000000 > 0 &&
+                        imageData[k + imageWidth] and 0x2000000 > 0)
                     {
                         if (!overlaps(spots, i, j)) {
                             testedCount++
