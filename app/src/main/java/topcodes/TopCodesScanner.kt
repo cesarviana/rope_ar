@@ -17,6 +17,13 @@ open class TopCodesScanner {
 
     private lateinit var imageData: IntArray
 
+    companion object {
+        // Used to load the 'native-lib' library on application startup.
+        init {
+            System.loadLibrary("native-lib")
+        }
+    }
+
     var imageWidth = 0
 
     var imageHeight = 0
@@ -54,6 +61,7 @@ open class TopCodesScanner {
      * Returned value is between 0 (black) and 255 (white).
      */
     fun getSample3x3(x: Int, y: Int): Int {
+
         if (isMarginPixel(x, y)) return 0
         var pixel: Int
         var sum = 0

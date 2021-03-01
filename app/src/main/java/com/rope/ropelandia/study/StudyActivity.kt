@@ -4,6 +4,7 @@ import android.content.pm.ActivityInfo
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.MotionEvent
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.rope.ropelandia.R
 import com.rope.ropelandia.game.BlockView
@@ -38,7 +39,15 @@ class StudyActivity : AppCompatActivity() {
 //            arrayOf(1, 2)
 //        )
 
+        Toast.makeText(this, stringFromJNI(), Toast.LENGTH_LONG).show()
+    }
 
+    external fun stringFromJNI(): String
+
+    companion object {
+        init {
+            System.loadLibrary("native-lib")
+        }
     }
 
     private fun createTestProgram(): Program {
