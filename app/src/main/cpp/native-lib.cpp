@@ -3,7 +3,7 @@
 #include "topcodes/topcode.h"
 #include <android/log.h>
 
-#define LOGV(TAG,FORMAT,...) __android_log_print(ANDROID_LOG_VERBOSE, TAG, FORMAT, __VA_ARGS__)
+#define LOGV(TAG, FORMAT, ...) __android_log_print(ANDROID_LOG_VERBOSE, TAG, FORMAT, __VA_ARGS__)
 
 using namespace TopCodes;
 
@@ -36,17 +36,25 @@ Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, jobject thiz, ji
     LOGV("Android", "Width: %d", image->width);
 
     jint image_data_buf[image_data_size];
+    LOGV("Android", "image_data_buf initialized", "");
     env->GetIntArrayRegion(image_data, 0, image_data_size, image_data_buf);
-
-    LOGV("Android", "First array element %d", image_data_buf[0]);
+    LOGV("Android", "GetIntArrayRegion called", "");
 
     image->ucdata = (unsigned int *) image_data_buf;
+    LOGV("Android", "image->ucdata initialized", "");
+
+/*
+    auto clazz = env->FindClass("topcodes/TopCode");
+    auto object = env->AllocObject(clazz);
+    return env->NewObjectArray(0, clazz, object);
+
+    std::vector<Code*> topcode_codes = std::vector<Code *>();
 
     LOGV("Android", "First array element ucdata %d", image->ucdata[0]);
+*/
 
     Scanner scanner;
-    std::vector<Code*> topcode_codes = scanner.scan(image, nullptr);
-//    std::vector<Code*> topcode_codes = std::vector<Code *>();
+    std::vector<Code *> topcode_codes = scanner.scan(image, nullptr);
 
     auto clazz = env->FindClass("topcodes/TopCode");
 
@@ -54,6 +62,7 @@ Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, jobject thiz, ji
     auto fieldCenterY = env->GetFieldID(clazz, "centerY", "F");
     auto fieldAngleRadians = env->GetFieldID(clazz, "angleInRadians", "F");
     auto fieldUnit = env->GetFieldID(clazz, "unit", "F");
+    auto fieldCode = env->GetFieldID(clazz, "code", "I");
 
     auto object = env->AllocObject(clazz);
 
@@ -63,8 +72,7 @@ Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, jobject thiz, ji
 
     auto array = env->NewObjectArray(num_topcodes, clazz, object);
 
-    for(auto i = 0; i < num_topcodes; i++)
-    {
+    for (auto i = 0; i < num_topcodes; i++) {
         auto topcode = topcode_codes[i];
 
         object = env->AllocObject(clazz);
@@ -72,9 +80,11 @@ Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, jobject thiz, ji
         env->SetFloatField(object, fieldCenterY, topcode->y);
         env->SetFloatField(object, fieldAngleRadians, topcode->orientation);
         env->SetFloatField(object, fieldUnit, topcode->unit);
-
+        env->SetIntField(object, fieldCode, topcode->code);
         env->SetObjectArrayElement(array, i, object);
     }
+
+    scanner.disposeCodes(topcode_codes);
 
     return array;
 }
