@@ -54,16 +54,13 @@ class BitmapToBlocksConverter(
     private fun cropAreaToScan(bitmap: Bitmap) = Cropper.crop(bitmap)
 
     private fun scale(bitmap: Bitmap): Bitmap {
-        val scale = 0.2f // imageQuality.floatValue()
+        val scale = 0.4f // imageQuality.floatValue()
         val width = (bitmap.width * scale).toInt()
         val height = (bitmap.height * scale).toInt()
         return Bitmap.createScaledBitmap(bitmap, width, height, true)
     }
 
-    private fun scanTopCodes(it: Bitmap): Array<TopCode> {
-        topCodesScanner.setMaxCodeDiameter(200)
-        return topCodesScanner.searchTopCodes(it)
-    }
+    private fun scanTopCodes(it: Bitmap) = topCodesScanner.searchTopCodes(it)
 
     private fun convertToBlocks(topCodes: Array<TopCode>) = topCodes.map {
         val blockClass = TopCodeToClassMapper.map(it.code)

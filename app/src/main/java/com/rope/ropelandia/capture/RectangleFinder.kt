@@ -10,10 +10,10 @@ class RectangleFinder {
         val xs = points.map { it.x }
         val ys = points.map { it.y }
 
-        val topLeft = Point(xs.min()!!, ys.min()!!)
-        val topRight = Point(xs.max()!!, ys.min()!!)
-        val bottomRight = Point(xs.max()!!, ys.max()!!)
-        val bottomLeft = Point(xs.min()!!, ys.max()!!)
+        val topLeft = Point(xs.minOrNull()!!, ys.minOrNull()!!)
+        val topRight = Point(xs.maxOrNull()!!, ys.minOrNull()!!)
+        val bottomRight = Point(xs.maxOrNull()!!, ys.maxOrNull()!!)
+        val bottomLeft = Point(xs.minOrNull()!!, ys.maxOrNull()!!)
 
         return Rectangle(topLeft, topRight, bottomRight, bottomLeft)
     }
@@ -31,24 +31,4 @@ class RectangleFinder {
     }
 }
 
-data class Point(val x: Double, val y: Double)
-data class Rectangle(
-    val topLeft: Point,
-    val topRight: Point,
-    val bottomRight: Point,
-    val bottomLeft: Point
-) {
-    fun height(): Double {
-        return kotlin.math.max(leftHeight(), rightHeight())
-    }
 
-    private fun leftHeight() = bottomLeft.y - topLeft.y
-    private fun rightHeight() = bottomRight.y - topRight.y
-
-    fun width(): Double {
-        return kotlin.math.max(topWidth(), bottomWidth())
-    }
-
-    private fun topWidth() = topRight.x - topLeft.x
-    private fun bottomWidth() = bottomRight.x - bottomLeft.x
-}
