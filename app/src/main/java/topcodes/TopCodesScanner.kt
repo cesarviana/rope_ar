@@ -15,8 +15,6 @@ import kotlin.math.ceil
  */
 open class TopCodesScanner {
 
-    private lateinit var imageData: IntArray
-
     companion object {
         // Used to load the 'native-lib' library on application startup.
         init {
@@ -24,23 +22,23 @@ open class TopCodesScanner {
         }
     }
 
-    var imageWidth = 0
+    external fun testDebug() : String
 
+    private lateinit var imageData: IntArray
+    var imageWidth = 0
     var imageHeight = 0
 
     private var maxWidthOfTopCodeInPixels = 80
 
-    fun searchTopCodes(bitmap: Bitmap): List<TopCode> {
-
-        imageWidth = bitmap.width
-        imageHeight = bitmap.height
-
-        imageData = IntArray(imageWidth * imageHeight)
-        bitmap.getPixels(this.imageData, 0, imageWidth, 0, 0, imageWidth, imageHeight)
-
-        threshold()
-        return findCodes()
+    fun searchTopCodes(bitmap: Bitmap): Array<TopCode> {
+        val imageWidth = bitmap.width
+        val imageHeight = bitmap.height
+        val imageData = IntArray(imageWidth * imageHeight)
+        bitmap.getPixels(imageData, 0, imageWidth, 0, 0, imageWidth, imageHeight)
+        return searchTopCodesNative(imageWidth, imageHeight, imageData)
     }
+
+    external fun searchTopCodesNative(imageWidth: Int, imageHeight: Int, imageData: IntArray) : Array<TopCode>
 
     /**
      * Setting this to a reasonable value for

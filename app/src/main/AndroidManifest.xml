@@ -27,10 +27,10 @@
         <activity
             android:name=".study.StudyActivity"
             android:label="@string/title_activity_studies">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
         </activity>
         <activity android:name=".config.ConfigActivity" />
         <activity
@@ -38,10 +38,10 @@
             android:label="@string/title_activity_connection"
             android:screenOrientation="reverseLandscape"
             android:theme="@style/AppTheme.NoActionBar.NoActionBar">
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.MAIN" />-->
-<!--                <category android:name="android.intent.category.LAUNCHER" />-->
-<!--            </intent-filter>-->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".game.GameActivity"

@@ -25,7 +25,7 @@ class BitmapToBlocksConverter(
                     bitmap,
                     cropRect!!.topLeft.x.toInt(),
                     cropRect!!.topLeft.y.toInt(),
-                    cropRect!!.width().toInt() / 3,
+                    cropRect!!.width().toInt(),
                     cropRect!!.height().toInt()
                 )
         }
@@ -60,12 +60,12 @@ class BitmapToBlocksConverter(
         return Bitmap.createScaledBitmap(bitmap, width, height, true)
     }
 
-    private fun scanTopCodes(it: Bitmap): List<TopCode> {
+    private fun scanTopCodes(it: Bitmap): Array<TopCode> {
         topCodesScanner.setMaxCodeDiameter(200)
         return topCodesScanner.searchTopCodes(it)
     }
 
-    private fun convertToBlocks(topCodes: List<TopCode>) = topCodes.map {
+    private fun convertToBlocks(topCodes: Array<TopCode>) = topCodes.map {
         val blockClass = TopCodeToClassMapper.map(it.code)
 
         BlockFactory.createBlock(

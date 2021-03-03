@@ -19,7 +19,7 @@ import kotlin.math.sin
  * @author Michael Horn
  * @version $Revision: 1.4 $, $Date: 2007/10/15 13:12:30 $
  */
-class TopCode() {
+class TopCode {
     var code: Int
 
     /** The width of a single ring.  */

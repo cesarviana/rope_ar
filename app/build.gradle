@@ -7,6 +7,10 @@ android {
     compileSdkVersion 30
     buildToolsVersion "30.0.2"
 
+    testOptions {
+        unitTests.includeAndroidResources = true
+    }
+
     defaultConfig {
         applicationId 'com.rope.ar'
         minSdkVersion 23
@@ -47,6 +51,11 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
+    }
+    sourceSets {
+        test {
+            resources.srcDirs += ['src/test/resources']
+        }
     }
 }
 
