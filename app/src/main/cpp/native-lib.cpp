@@ -7,19 +7,6 @@
 
 using namespace TopCodes;
 
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_rope_ropelandia_study_StudyActivity_stringFromJNI(JNIEnv *env, jobject thiz) {
-    std::string hello = "Hello from C++";
-    return env->NewStringUTF(hello.c_str());
-}
-
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_topcodes_TopCodesScanner_testDebug(JNIEnv *env, jobject thiz) {
-    std::string hello = "Test to debug";
-    return env->NewStringUTF(hello.c_str());
-}
-
 extern "C"
 JNIEXPORT jobjectArray JNICALL
 Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, jobject thiz, jint image_width,
@@ -64,12 +51,11 @@ Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, jobject thiz, ji
     auto fieldUnit = env->GetFieldID(clazz, "unit", "F");
     auto fieldCode = env->GetFieldID(clazz, "code", "I");
 
-    auto object = env->AllocObject(clazz);
-
     auto num_topcodes = topcode_codes.size();
 
     LOGV("Android", "num_topcodes %d", num_topcodes);
 
+    auto object = env->AllocObject(clazz);
     auto array = env->NewObjectArray(num_topcodes, clazz, object);
 
     for (auto i = 0; i < num_topcodes; i++) {
@@ -85,6 +71,7 @@ Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, jobject thiz, ji
     }
 
     scanner.disposeCodes(topcode_codes);
+    delete image;
 
     return array;
 }
