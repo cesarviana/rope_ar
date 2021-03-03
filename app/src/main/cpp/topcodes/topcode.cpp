@@ -1,8 +1,5 @@
 #include "topcode.h"
-#include <android/log.h>
 #include <math.h>
-
-#define LOG(FORMAT,...) __android_log_print(ANDROID_LOG_VERBOSE, "TOPCODES", FORMAT, __VA_ARGS__)
 
 #define _iround(v)  (int)((v < 0.0) ? v - 0.5 : v + 0.5)
 #define _fround(v)  (float)((int)((v < 0.0) ? v - 0.5 : v + 0.5))
@@ -423,7 +420,6 @@ namespace TopCodes {
     }
 
     void Scanner::threshold() {
-        LOG("threshold()", "");
         int threshold, sum = 128;
         int s = 30;
         int k;
@@ -561,7 +557,6 @@ namespace TopCodes {
     }
 
     std::vector<Code *> Scanner::findCodes(ScanListener *l) {
-        LOG("findCodes()", "");
         std::vector <Code *> spots;
         int w = image->width;
         int h = image->height;
