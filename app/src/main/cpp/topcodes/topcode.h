@@ -17,7 +17,6 @@ namespace TopCodes {
         unsigned int *ucdata;
         int width;
         int height;
-        int widthStep;
     };
 
     class Scanner;
