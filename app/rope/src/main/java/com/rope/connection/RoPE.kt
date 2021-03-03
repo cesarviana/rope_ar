@@ -9,16 +9,6 @@ import java.util.*
 class RoPE(private val context: Context, private val device: BluetoothDevice) {
 
     private object Listeners {
-
-        fun clear() {
-            onExecutionFinished.clear()
-            onExecutionStarted.clear()
-            onActionExecution.clear()
-            onStartPressed.clear()
-            onMessage.clear()
-            onDisconnected.clear()
-        }
-
         val onExecutionFinished: MutableList<RoPEExecutionFinishedListener> = mutableListOf()
         val onExecutionStarted: MutableList<RoPEExecutionStartedListener> = mutableListOf()
         val onActionExecution: MutableList<RoPEActionListener> = mutableListOf()
