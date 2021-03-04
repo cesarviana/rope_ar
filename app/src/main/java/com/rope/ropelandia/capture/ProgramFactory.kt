@@ -1,14 +1,17 @@
 package com.rope.ropelandia.capture
 
+import android.util.Log
 import com.rope.ropelandia.model.*
 import kotlin.math.cos
 import kotlin.math.sin
 
 object ProgramFactory {
 
-    private const val SNAP_DISTANCE = 80
+    private const val SNAP_DISTANCE = 100
 
     fun findSequence(blocks: List<Block>): Program {
+
+        Log.d("PROGRAM_FACTORY", blocks.map { it.toString() }.joinToString { "," })
 
         val remainingBlocks = mutableListOf<Block>().apply { addAll(blocks) }
         val programBlocks = mutableListOf<Block>()
@@ -27,11 +30,11 @@ object ProgramFactory {
     }
 
     private fun removeStartBlock(program: MutableList<Block>) {
-        if(program.isNotEmpty())
+        if (program.isNotEmpty())
             program.removeFirst()
     }
 
-    private fun Block.centerPoint() : Point {
+    private fun Block.centerPoint(): Point {
         return Point(this.centerX.toDouble(), this.centerY.toDouble())
     }
 

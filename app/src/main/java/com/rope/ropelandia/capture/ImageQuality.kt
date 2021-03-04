@@ -5,7 +5,7 @@ enum class ImageQuality {
         override fun floatValue() = 1.0f
     },
     MEDIUM {
-        override fun floatValue() = .6f
+        override fun floatValue() = .5f
     },
     LOW {
         override fun floatValue() = .3f

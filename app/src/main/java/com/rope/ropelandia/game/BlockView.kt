@@ -14,6 +14,8 @@ class BlockView(context: Context) : View(context) {
         EXECUTING {
             private val paint: Paint = Paint().apply {
                 this.color = Color.WHITE
+                this.style = Paint.Style.STROKE
+                this.strokeWidth = 10f
             }
 
             override fun draw(block: BlockView, canvas: Canvas) {
@@ -28,7 +30,21 @@ class BlockView(context: Context) : View(context) {
             }
         },
         PARSED {
-            override fun draw(block: BlockView, canvas: Canvas) {}
+            private val paint: Paint = Paint().apply {
+                this.color = Color.CYAN
+                this.style = Paint.Style.STROKE
+                this.strokeWidth = 10f
+            }
+            override fun draw(block: BlockView, canvas: Canvas) {
+                val centerX = block.bounds.centerX().toFloat()
+                val centerY = block.bounds.centerY().toFloat()
+                val angle = Math.toDegrees(block.angle.toDouble()).toFloat()
+                canvas.apply {
+                    rotate(angle, centerX, centerY)
+                    drawOval(block.bounds.toRectF(), paint)
+                    rotate(-angle, centerX, centerY)
+                }
+            }
         };
 
         abstract fun draw(block: BlockView, canvas: Canvas)

@@ -18,16 +18,20 @@ class BitmapToBlocksConverter(
 
     private object Cropper {
         fun crop(bitmap: Bitmap): Bitmap {
+            val cropMargin = 0.2
             return if (cropRect == null)
                 bitmap
-            else
+            else {
+                val marginWidth = (bitmap.width * cropMargin).toInt()
+                val marginHeight = (bitmap.height * cropMargin).toInt()
                 Bitmap.createBitmap(
                     bitmap,
-                    cropRect!!.topLeft.x.toInt(),
-                    cropRect!!.topLeft.y.toInt(),
-                    cropRect!!.width().toInt(),
-                    cropRect!!.height().toInt()
+                    marginWidth,
+                    marginHeight,
+                    bitmap.width - marginWidth,
+                    bitmap.height - marginHeight
                 )
+            }
         }
 
         var cropRect: Rectangle? = null
@@ -44,7 +48,7 @@ class BitmapToBlocksConverter(
             convertToBlocks(it)
         }
 
-        setupCropRect(blocks)
+        //setupCropRect(blocks)
 
         return blocks.let {
             reposition(it)
@@ -54,7 +58,7 @@ class BitmapToBlocksConverter(
     private fun cropAreaToScan(bitmap: Bitmap) = Cropper.crop(bitmap)
 
     private fun scale(bitmap: Bitmap): Bitmap {
-        val scale = 0.4f // imageQuality.floatValue()
+        val scale = 1f // imageQuality.floatValue()
         val width = (bitmap.width * scale).toInt()
         val height = (bitmap.height * scale).toInt()
         return Bitmap.createScaledBitmap(bitmap, width, height, true)

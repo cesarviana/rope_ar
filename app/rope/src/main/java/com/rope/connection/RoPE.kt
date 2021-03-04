@@ -116,6 +116,7 @@ class RoPE(private val context: Context, private val device: BluetoothDevice) {
     fun isConnecting() = device.bondState == BluetoothDevice.BOND_BONDING
 
     private fun send(command: String) {
+        d("ROPE", command)
         characteristic.value = command.toByteArray()
         bluetoothGatt.writeCharacteristic(characteristic)
     }
