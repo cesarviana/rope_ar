@@ -2,9 +2,7 @@ package com.rope.ropelandia.game
 
 import android.graphics.Rect
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.util.Log
-import android.util.Size
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
@@ -26,19 +24,19 @@ class GameActivity : AppCompatActivity(),
     RoPEExecutionStartedListener,
     RoPEExecutionFinishedListener {
 
+    private val permissionChecker by lazy { PermissionChecker() }
+    private val tag = "GAME_VIEW"
+    private val levels: List<Level> by lazy { LevelLoader.load(applicationContext) }
+
     private var startRequired: Boolean = false
-    private val permissionChecker = PermissionChecker()
-    private lateinit var levels: List<Level>
     private var levelIndex = 0
     private var program: Program = Program(listOf())
-    private val tag = "GAME_VIEW"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
         setupRopeListeners()
         startCameraOrRequestPermission()
-        levels = LevelLoader.load(applicationContext)
         startLevel(getLevel(levelIndex))
     }
 
