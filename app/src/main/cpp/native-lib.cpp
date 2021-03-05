@@ -1,15 +1,12 @@
 #include <jni.h>
 #include <string>
 #include "topcodes/topcode.h"
-#include <android/log.h>
-
-#define LOGV(TAG, FORMAT, ...) __android_log_print(ANDROID_LOG_VERBOSE, TAG, FORMAT, __VA_ARGS__)
 
 using namespace TopCodes;
 
 extern "C"
 JNIEXPORT jobjectArray JNICALL
-Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, jobject thiz, jint image_width,
+Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, __unused jobject _, jint image_width,
                                                    jint image_height, jintArray image_data) {
     auto *image = new Image();
     image->height = image_height;
@@ -17,17 +14,8 @@ Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, jobject thiz, ji
 
     auto image_data_size = env->GetArrayLength(image_data);
 
-    LOGV("Android", "Size of java imageData: %d", image_data_size);
-
-    LOGV("Android", "Height: %d", image->height);
-    LOGV("Android", "Width: %d", image->width);
-
-    LOGV("Android", "before image_data_buf initialized", "");
-
     std::vector<jint> image_data_buf(image_data_size);
     env->GetIntArrayRegion(image_data, 0, image_data_size, image_data_buf.data());
-
-    LOGV("Android", "GetIntArrayRegion called", "");
 
     image->ucdata = (unsigned int *) image_data_buf.data();
 
@@ -49,8 +37,6 @@ Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, jobject thiz, ji
     auto fieldCode = env->GetFieldID(clazz, "code", "I");
 
     auto num_topcodes = topcode_codes.size();
-
-    LOGV("Android", "num_topcodes %d", num_topcodes);
 
     auto object = env->AllocObject(clazz);
     auto java_topcodes = env->NewObjectArray(num_topcodes, clazz, object);
