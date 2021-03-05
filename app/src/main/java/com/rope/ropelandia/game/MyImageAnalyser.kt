@@ -4,14 +4,14 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.media.Image
-import androidx.renderscript.*
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
+import androidx.renderscript.*
 import com.rope.ropelandia.capture.BitmapToBlocksConverter
 import com.rope.ropelandia.model.Block
 import com.viana.soundprogramming.ScriptC_yuv4208888
 
-typealias ImageAnalyserListener = (Array<Block>) -> Unit
+typealias ImageAnalyserListener = (List<Block>) -> Unit
 
 class MyImageAnalyser(context: Context, val listener: ImageAnalyserListener) :
     ImageAnalysis.Analyzer {
@@ -27,7 +27,7 @@ class MyImageAnalyser(context: Context, val listener: ImageAnalyserListener) :
     }
 
     @SuppressLint("UnsafeExperimentalUsageError")
-    private fun findBlocks(image: ImageProxy): Array<Block> {
+    private fun findBlocks(image: ImageProxy): List<Block> {
         val bitmap = image.image?.let { readImage(it) }
         return bitmapToBlocksConverter.convertBitmapToBlocks(bitmap!!)
     }
