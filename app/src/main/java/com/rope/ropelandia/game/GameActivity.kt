@@ -2,26 +2,22 @@ package com.rope.ropelandia.game
 
 import android.graphics.Rect
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
+import android.util.DisplayMetrics
 import android.util.Log
-import android.view.View
+import android.util.Size
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.Preview
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
-import com.rope.connection.*
+import com.rope.connection.RoPE
+import com.rope.connection.ble.*
 import com.rope.droideasy.PermissionChecker
 import com.rope.ropelandia.R
 import com.rope.ropelandia.app
-import com.rope.ropelandia.capture.ImageQuality
-import com.rope.ropelandia.capture.ProgramFactory
 import com.rope.ropelandia.model.*
 import kotlinx.android.synthetic.main.main_activity.*
-import java.io.File
 
 class GameActivity : AppCompatActivity(),
     RoPEDisconnectedListener,
@@ -31,46 +27,19 @@ class GameActivity : AppCompatActivity(),
     RoPEExecutionFinishedListener {
 
     private var startRequired: Boolean = false
-    private lateinit var imageCapture: ImageCapture
-    private lateinit var photoFileOutputOptions: ImageCapture.OutputFileOptions
-    private lateinit var imageSavedCallback: ImageSavedCallback
     private val permissionChecker = PermissionChecker()
     private lateinit var levels: List<Level>
     private var levelIndex = 0
     private var program: Program = Program(listOf())
-
-    private val processHandler = ProcessHandler(Looper.getMainLooper()) {
-        takePhoto()
-    }
-
-    class ProcessHandler(looper: Looper, val takePhotoFun: () -> Unit) : Handler(looper) {
-        override fun handleMessage(msg: Message) {
-            if (msg.what == BLOCKS_ANALYSED || msg.what == EXECUTION_FINISHED) {
-                scheduleTakePhoto()
-            }
-        }
-
-        fun scheduleTakePhoto() {
-            post {
-                takePhotoFun()
-            }
-        }
-
-        companion object {
-            const val BLOCKS_ANALYSED = 0
-            const val EXECUTION_FINISHED = 1
-        }
-    }
+    private val tag = "GAME_VIEW"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
-        setupImageSavedCallback()
         setupRopeListeners()
         startCameraOrRequestPermission()
         levels = LevelLoader.load(applicationContext)
         startLevel(getLevel(levelIndex))
-        processHandler.scheduleTakePhoto()
     }
 
     override fun onStop() {
@@ -82,26 +51,8 @@ class GameActivity : AppCompatActivity(),
         app.rope?.removeExecutionFinishedListener(this)
     }
 
-    private fun setupImageSavedCallback() {
-        val photoFile = File(filesDir, "topCodes.jpg")
-        photoFileOutputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-        val imageQualityPref = getImageQualityPreference()
-        val imageProcessingConfig = ImageProcessingConfig(photoFile, imageQualityPref)
-        imageSavedCallback = ImageSavedCallback(imageProcessingConfig)
-        imageSavedCallback.onFoundBlocks { blocks: List<Block> ->
-            Log.d("GAME_VIEW", "Blocks found: ${blocks.size}")
-            program = ProgramFactory.findSequence(blocks)
-            updateViewWithProgram()
-            if(startRequired) {
-                startRequired = false
-                ropeExecute(program)
-            }
-            processHandler.sendEmptyMessage(ProcessHandler.BLOCKS_ANALYSED)
-        }
-    }
-
     private fun updateViewWithProgram() {
-        if(program.blocks.isEmpty())
+        if (program.blocks.isEmpty())
             return
         val programBlocksViews = program.blocks.map { block ->
             BlockView(this).apply {
@@ -147,7 +98,6 @@ class GameActivity : AppCompatActivity(),
 
     override fun executionEnded(rope: RoPE) {
         gameView.hideHighlight()
-        processHandler.sendEmptyMessage(ProcessHandler.EXECUTION_FINISHED)
     }
 
     private fun startCameraOrRequestPermission() {
@@ -181,21 +131,6 @@ class GameActivity : AppCompatActivity(),
         return ropeActions
     }
 
-    private fun getImageQualityPreference(): ImageQuality {
-        return getSharedPreferences(
-            applicationContext.packageName,
-            MODE_PRIVATE
-        ).let { sharedPreferences ->
-            val defaultImageQuality = ImageQuality.MEDIUM.name
-            val storedImageQuality =
-                sharedPreferences.getString(
-                    getString(R.string.image_quality_key),
-                    defaultImageQuality
-                )
-            ImageQuality.valueOf(storedImageQuality!!)
-        }
-    }
-
     private fun returnToPreviousActivity() {
         this.finish()
     }
@@ -213,29 +148,31 @@ class GameActivity : AppCompatActivity(),
     }
 
     private fun startCamera() {
+
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
         val cameraProviderFutureListener = Runnable {
             val cameraProvider = cameraProviderFuture.get()
 
-            val preview = Preview.Builder()
+            val myImageAnalyser = ImageAnalysis.Builder()
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
                 .also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
+                    it.setAnalyzer(ContextCompat.getMainExecutor(this), MyImageAnalyser(this) { blocks ->
+                        Log.d(javaClass.simpleName, "Blocks found: ${blocks.size}")
+                    })
                 }
-
-            imageCapture = ImageCapture.Builder().build()
 
             try {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
                     this,
                     CameraSelector.DEFAULT_BACK_CAMERA,
-                    preview,
-                    imageCapture
+                    myImageAnalyser
                 )
             } catch (e: Exception) {
-                Log.e(TAG, "Use case binding failed", e)
+                Log.e(tag, "Use case binding failed", e)
             }
         }
 
@@ -245,30 +182,7 @@ class GameActivity : AppCompatActivity(),
         )
     }
 
-    private fun takePhoto() {
-        if(imageCapture == null)
-            return
-        imageCapture.takePicture(
-            photoFileOutputOptions,
-            ContextCompat.getMainExecutor(this),
-            imageSavedCallback
-        )
-    }
-
-    fun toggleCameraPreview(view: View) {
-        if (previewView.visibility == View.VISIBLE) {
-            previewView.visibility = View.INVISIBLE
-        } else {
-            previewView.visibility = View.VISIBLE
-        }
-    }
-
-    private fun getLevel(taskIndex: Int): Level {
-        if (levels.size > taskIndex) {
-            return levels[taskIndex]
-        }
-        return Level()
-    }
+    private fun getLevel(taskIndex: Int) = if (levels.size > taskIndex) levels[taskIndex] else Level()
 
     private fun startLevel(level: Level) {
         matView.mat = level.mat
@@ -276,7 +190,6 @@ class GameActivity : AppCompatActivity(),
     }
 
     companion object {
-        private const val TAG = "CameraXBasic"
         private const val REQUEST_CODE_CAMERA_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(
             android.Manifest.permission.CAMERA

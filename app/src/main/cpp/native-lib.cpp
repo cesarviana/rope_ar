@@ -28,7 +28,6 @@ Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, jobject thiz, ji
     LOGV("Android", "GetIntArrayRegion called", "");
 
     image->ucdata = (unsigned int *) image_data_buf;
-    LOGV("Android", "image->ucdata initialized", "");
 
 /*
     auto clazz = env->FindClass("topcodes/TopCode");

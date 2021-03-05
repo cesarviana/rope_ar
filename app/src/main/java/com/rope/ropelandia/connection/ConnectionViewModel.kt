@@ -1,7 +1,6 @@
 package com.rope.ropelandia.connection
 
 import androidx.lifecycle.ViewModel
-import com.rope.connection.RoPE
 import com.rope.ropelandia.App
 
 data class ConnectionViewModel(private val app: App) : ViewModel() {

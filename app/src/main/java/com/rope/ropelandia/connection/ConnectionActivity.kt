@@ -1,12 +1,11 @@
 package com.rope.ropelandia.connection
 
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.rope.connection.RoPEFinder
+import com.rope.connection.fake.RoPEFinderFake
 import com.rope.ropelandia.R
 import com.rope.ropelandia.app
 import com.rope.ropelandia.config.ConfigActivity
@@ -26,14 +25,14 @@ class ConnectionActivity : AppCompatActivity() {
 
         setupRopeFinder()
         setupActivityListeners()
-        findAndConnectRoPE()
+//        findAndConnectRoPE()
     }
 
     private fun setupRopeFinder() {
         if (app.ropeFinder != null) {
             app.ropeFinder?.activity = this
         } else {
-            app.ropeFinder = RoPEFinder(this)
+            app.ropeFinder = RoPEFinderFake(this)
             addRoPEFinderListeners()
         }
     }

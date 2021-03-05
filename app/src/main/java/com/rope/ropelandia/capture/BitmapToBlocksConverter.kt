@@ -8,9 +8,8 @@ import topcodes.TopCode
 import topcodes.TopCodesScanner
 
 class BitmapToBlocksConverter(
-    targetHeight: Int,
-    targetWidth: Int,
-    private val imageQuality: ImageQuality
+    targetHeight: Int = 720,
+    targetWidth: Int = 1080
 ) {
 
     private val topCodesScanner = TopCodesScanner()
@@ -19,46 +18,40 @@ class BitmapToBlocksConverter(
     private object Cropper {
         fun crop(bitmap: Bitmap): Bitmap {
             val cropMargin = 0.2
-            return if (cropRect == null)
-                bitmap
-            else {
-                val marginWidth = (bitmap.width * cropMargin).toInt()
-                val marginHeight = (bitmap.height * cropMargin).toInt()
-                Bitmap.createBitmap(
-                    bitmap,
-                    marginWidth,
-                    marginHeight,
-                    bitmap.width - marginWidth,
-                    bitmap.height - marginHeight
-                )
-            }
+            val marginWidth = (bitmap.width * cropMargin).toInt()
+            val marginHeight = (bitmap.height * cropMargin).toInt()
+            return Bitmap.createBitmap(
+                bitmap,
+                marginWidth,
+                marginHeight,
+                bitmap.width - marginWidth,
+                bitmap.height - marginHeight
+            )
         }
 
         var cropRect: Rectangle? = null
     }
 
-    fun convertBitmapToBlocks(bitmap: Bitmap): List<Block> {
+    fun convertBitmapToBlocks(bitmap: Bitmap): Array<Block> {
         val blocks = bitmap.let {
-            scale(it)
-        }.let {
-            cropAreaToScan(it)
-        }.let {
+//            scale(it)
+//        }.let {
+//            cropAreaToScan(it)
+//        }.let {
             scanTopCodes(it)
         }.let {
             convertToBlocks(it)
         }
 
-        //setupCropRect(blocks)
-
         return blocks.let {
             reposition(it)
-        }
+        }.toTypedArray()
     }
 
     private fun cropAreaToScan(bitmap: Bitmap) = Cropper.crop(bitmap)
 
     private fun scale(bitmap: Bitmap): Bitmap {
-        val scale = 1f // imageQuality.floatValue()
+        val scale = 0.55 //imageQuality.floatValue()
         val width = (bitmap.width * scale).toInt()
         val height = (bitmap.height * scale).toInt()
         return Bitmap.createScaledBitmap(bitmap, width, height, true)

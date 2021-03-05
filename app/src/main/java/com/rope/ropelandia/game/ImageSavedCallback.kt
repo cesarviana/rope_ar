@@ -13,14 +13,17 @@ data class ImageProcessingConfig(val imageFile: File, val imageQuality: ImageQua
 
 class ImageSavedCallback(private val imageProcessingConfig: ImageProcessingConfig) : ImageCapture.OnImageSavedCallback {
 
-    private lateinit var onFoundBlocks: (List<Block>) -> Unit
-    private val bitmapToBlocksConverter = BitmapToBlocksConverter(720, 1280, imageProcessingConfig.imageQuality)
+    private var onFoundBlocks: ((Array<Block>) -> Unit)? = null
+    private var onFoundBlocksException: ((Exception) -> Unit)? = null
+    private val bitmapToBlocksConverter = BitmapToBlocksConverter(720, 1280)
 
     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-        getBitmap().let {
-            bitmapToBlocksConverter.convertBitmapToBlocks(it)
-        }.let {
-            onFoundBlocks(it)
+        try {
+            val bitmap = getBitmap()
+            val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
+            onFoundBlocks?.invoke(blocks)
+        } catch (e: Exception) {
+            onFoundBlocksException?.invoke(e)
         }
     }
 
@@ -30,7 +33,11 @@ class ImageSavedCallback(private val imageProcessingConfig: ImageProcessingConfi
         Log.e("ImageSavedCallback", exception.message, exception)
     }
 
-    fun onFoundBlocks(function: (List<Block>) -> Unit) {
+    fun onFoundBlocks(function: (Array<Block>) -> Unit) {
         this.onFoundBlocks = function
+    }
+
+    fun onFoundBlocksException(function: (Exception) -> Unit) {
+        this.onFoundBlocksException = function
     }
 }

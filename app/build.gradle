@@ -25,6 +25,10 @@ android {
                 cppFlags ""
             }
         }
+
+        renderscriptTargetApi 23
+        renderscriptSupportModeEnabled true
+
     }
 
     externalNativeBuild {
