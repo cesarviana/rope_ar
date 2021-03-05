@@ -4,12 +4,6 @@ import android.graphics.Bitmap
 
 open class TopCodesScanner {
 
-    companion object {
-        init {
-            System.loadLibrary("native-lib")
-        }
-    }
-
     fun searchTopCodes(bitmap: Bitmap): List<TopCode> {
         val imageWidth = bitmap.width
         val imageHeight = bitmap.height

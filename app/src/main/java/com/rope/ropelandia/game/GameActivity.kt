@@ -2,6 +2,8 @@ package com.rope.ropelandia.game
 
 import android.graphics.Rect
 import android.os.Bundle
+import android.os.HandlerThread
+import android.os.Looper
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
@@ -9,11 +11,13 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.os.HandlerCompat
 import com.rope.connection.RoPE
 import com.rope.connection.ble.*
 import com.rope.droideasy.PermissionChecker
 import com.rope.ropelandia.R
 import com.rope.ropelandia.app
+import com.rope.ropelandia.capture.ProgramFactory
 import com.rope.ropelandia.model.*
 import kotlinx.android.synthetic.main.main_activity.*
 
@@ -25,7 +29,6 @@ class GameActivity : AppCompatActivity(),
     RoPEExecutionFinishedListener {
 
     private val permissionChecker by lazy { PermissionChecker() }
-    private val tag = "GAME_VIEW"
     private val levels: List<Level> by lazy { LevelLoader.load(applicationContext) }
 
     private var startRequired: Boolean = false
@@ -36,6 +39,7 @@ class GameActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
         setupRopeListeners()
+        System.loadLibrary("native-lib")
         startCameraOrRequestPermission()
         startLevel(getLevel(levelIndex))
     }
@@ -157,21 +161,22 @@ class GameActivity : AppCompatActivity(),
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
                 .also {
-                    it.setAnalyzer(ContextCompat.getMainExecutor(this), MyImageAnalyser(this) { blocks ->
-                        Log.d(javaClass.simpleName, "Blocks found: ${blocks.size}")
-                    })
+                    val handler = HandlerCompat.createAsync(Looper.getMainLooper())
+                    it.setAnalyzer(
+                        ContextCompat.getMainExecutor(this),
+                        MyImageAnalyser(this, handler) { blocks ->
+                            program = ProgramFactory.findSequence(blocks)
+                            updateViewWithProgram()
+                        })
                 }
 
-            try {
-                cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
-                    this,
-                    CameraSelector.DEFAULT_BACK_CAMERA,
-                    myImageAnalyser
-                )
-            } catch (e: Exception) {
-                Log.e(tag, "Use case binding failed", e)
-            }
+            cameraProvider.unbindAll()
+            cameraProvider.bindToLifecycle(
+                this,
+                CameraSelector.DEFAULT_BACK_CAMERA,
+                myImageAnalyser
+            )
+
         }
 
         cameraProviderFuture.addListener(
@@ -180,7 +185,8 @@ class GameActivity : AppCompatActivity(),
         )
     }
 
-    private fun getLevel(taskIndex: Int) = if (levels.size > taskIndex) levels[taskIndex] else Level()
+    private fun getLevel(taskIndex: Int) =
+        if (levels.size > taskIndex) levels[taskIndex] else Level()
 
     private fun startLevel(level: Level) {
         matView.mat = level.mat

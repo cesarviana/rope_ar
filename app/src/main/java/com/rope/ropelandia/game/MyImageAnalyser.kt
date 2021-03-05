@@ -4,26 +4,41 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.media.Image
+import android.os.Handler
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.renderscript.*
 import com.rope.ropelandia.capture.BitmapToBlocksConverter
 import com.rope.ropelandia.model.Block
 import com.viana.soundprogramming.ScriptC_yuv4208888
+import kotlinx.coroutines.coroutineScope
+import java.util.concurrent.Executors
 
 typealias ImageAnalyserListener = (List<Block>) -> Unit
 
-class MyImageAnalyser(context: Context, val listener: ImageAnalyserListener) :
+class MyImageAnalyser(
+    context: Context,
+    private val handler: Handler,
+    val listener: ImageAnalyserListener
+) :
     ImageAnalysis.Analyzer {
 
     private val renderScript by lazy { RenderScript.create(context) }
+
     private val mYuv420 by lazy { ScriptC_yuv4208888(renderScript) }
     private val bitmapToBlocksConverter by lazy { BitmapToBlocksConverter() }
 
+    private val executorService by lazy { Executors.newSingleThreadExecutor() }
+
     override fun analyze(image: ImageProxy) {
-        val blocks = findBlocks(image)
-        listener(blocks)
-        image.close()
+        executorService.submit {
+            try {
+                val blocks = findBlocks(image)
+                handler.post { listener(blocks); }
+            } finally {
+                image.close()
+            }
+        }
     }
 
     @SuppressLint("UnsafeExperimentalUsageError")
@@ -33,10 +48,10 @@ class MyImageAnalyser(context: Context, val listener: ImageAnalyserListener) :
     }
 
     private fun readImage(image: Image): Bitmap {
-        return yuv420888t0RGB(image, image.width, image.height)
+        return yuv420888toRGB(image, image.width, image.height)
     }
 
-    private fun yuv420888t0RGB(image: Image, width: Int, height: Int): Bitmap {
+    private fun yuv420888toRGB(image: Image, width: Int, height: Int): Bitmap {
 
         // Get the three image planes
         val planes = image.planes

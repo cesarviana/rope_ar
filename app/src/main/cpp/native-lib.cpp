@@ -22,21 +22,19 @@ Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, jobject thiz, ji
     LOGV("Android", "Height: %d", image->height);
     LOGV("Android", "Width: %d", image->width);
 
-    jint image_data_buf[image_data_size];
-    LOGV("Android", "image_data_buf initialized", "");
-    env->GetIntArrayRegion(image_data, 0, image_data_size, image_data_buf);
+    LOGV("Android", "before image_data_buf initialized", "");
+
+    std::vector<jint> image_data_buf(image_data_size);
+    env->GetIntArrayRegion(image_data, 0, image_data_size, image_data_buf.data());
+
     LOGV("Android", "GetIntArrayRegion called", "");
 
-    image->ucdata = (unsigned int *) image_data_buf;
+    image->ucdata = (unsigned int *) image_data_buf.data();
 
 /*
-    auto clazz = env->FindClass("topcodes/TopCode");
-    auto object = env->AllocObject(clazz);
-    return env->NewObjectArray(0, clazz, object);
-
-    std::vector<Code*> topcode_codes = std::vector<Code *>();
-
-    LOGV("Android", "First array element ucdata %d", image->ucdata[0]);
+    auto clas = env->FindClass("topcodes/TopCode");
+    auto object = env->AllocObject(clas);
+    return env->NewObjectArray(0, clas, object);
 */
 
     Scanner scanner;
@@ -55,7 +53,7 @@ Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, jobject thiz, ji
     LOGV("Android", "num_topcodes %d", num_topcodes);
 
     auto object = env->AllocObject(clazz);
-    auto array = env->NewObjectArray(num_topcodes, clazz, object);
+    auto java_topcodes = env->NewObjectArray(num_topcodes, clazz, object);
 
     for (auto i = 0; i < num_topcodes; i++) {
         auto topcode = topcode_codes[i];
@@ -66,11 +64,12 @@ Java_topcodes_TopCodesScanner_searchTopCodesNative(JNIEnv *env, jobject thiz, ji
         env->SetFloatField(object, fieldAngleRadians, topcode->orientation);
         env->SetFloatField(object, fieldUnit, topcode->unit);
         env->SetIntField(object, fieldCode, topcode->code);
-        env->SetObjectArrayElement(array, i, object);
+        env->SetObjectArrayElement(java_topcodes, i, object);
     }
 
     scanner.disposeCodes(topcode_codes);
     delete image;
 
-    return array;
+    return java_topcodes;
+
 }
