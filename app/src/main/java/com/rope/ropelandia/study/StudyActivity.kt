@@ -11,16 +11,12 @@ import com.rope.ropelandia.model.Program
 import topcodes.TopCodesScanner
 
 class StudyActivity : AppCompatActivity() {
-    private var actionIndex: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_study)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-      //  Toast.makeText(this, stringFromJNI(), Toast.LENGTH_LONG).show()
     }
-
-    external fun stringFromJNI(): String
 
     companion object {
         init {

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.HandlerThread
 import android.os.Looper
 import android.util.Log
+import android.util.Size
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
@@ -31,7 +32,6 @@ class GameActivity : AppCompatActivity(),
     private val permissionChecker by lazy { PermissionChecker() }
     private val levels: List<Level> by lazy { LevelLoader.load(applicationContext) }
 
-    private var startRequired: Boolean = false
     private var levelIndex = 0
     private var program: Program = Program(listOf())
 
@@ -84,14 +84,16 @@ class GameActivity : AppCompatActivity(),
     }
 
     override fun startPressed(rope: RoPE) {
-        startRequired = true
+        ropeExecute(program)
     }
 
     override fun actionFinished(rope: RoPE) {
         val nextAction = rope.actionIndex + 1
-        gameView.hideHighlight()
-        gameView.setExecuting(nextAction)
-        matView.invalidate()
+        runOnUiThread {
+            gameView.hideHighlight()
+            gameView.setExecuting(nextAction)
+            matView.invalidate()
+        }
     }
 
     override fun executionStarted(rope: RoPE) {
@@ -117,7 +119,7 @@ class GameActivity : AppCompatActivity(),
         app.rope?.execute(ropeActions)
     }
 
-    private fun convertToRoPEActions(program: Program): MutableList<RoPE.Action> {
+    private fun convertToRoPEActions(program: Program): List<RoPE.Action> {
         val ropeActions = mutableListOf<RoPE.Action>()
 
         program.blocks.map {
@@ -158,6 +160,7 @@ class GameActivity : AppCompatActivity(),
 
             val myImageAnalyser = ImageAnalysis.Builder()
                 .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                //.setTargetResolution(Size(gameView.width,gameView.height))
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
                 .also {

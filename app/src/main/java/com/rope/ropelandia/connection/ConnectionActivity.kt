@@ -1,9 +1,11 @@
 package com.rope.ropelandia.connection
 
+import android.app.Activity
 import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.rope.connection.fake.RoPEFinderFake
 import com.rope.ropelandia.R
@@ -37,12 +39,19 @@ class ConnectionActivity : AppCompatActivity() {
         }
     }
 
+    private val activityResultLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { activityResult ->
+        val connectionAllowed = activityResult.resultCode == Activity.RESULT_OK
+        if(connectionAllowed)
+            app.ropeFinder?.handleConnectionAllowed(connectionAllowed)
+        else
+            show("Falha ao ativar conexão")
+    }
+
     private fun addRoPEFinderListeners() {
         app.ropeFinder?.onRequestEnableConnection { request ->
-            startActivityForResult(request.intent, request.code)
-        }
-        app.ropeFinder?.onEnableConnectionRefused {
-            show("Falha ao ativar conexão")
+            activityResultLauncher.launch(request.intent)
         }
         app.ropeFinder?.onConnectionFailed {
             show("Falha ao conectar")
@@ -85,16 +94,12 @@ class ConnectionActivity : AppCompatActivity() {
             .show()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        app.ropeFinder?.handleRequestEnableConnectionResult(requestCode, resultCode)
-    }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         app.ropeFinder?.handleRequestConnectionPermissionResult(requestCode)
     }
 

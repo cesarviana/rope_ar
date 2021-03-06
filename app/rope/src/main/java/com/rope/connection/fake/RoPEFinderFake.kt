@@ -18,10 +18,7 @@ class RoPEFinderFake(override var activity: Activity) : RoPEFinder {
     override fun onRequestEnableConnection(onRequestEnableConnection: (RoPEFinderBle.EnableBluetoothRequest) -> Unit) {
     }
 
-    override fun handleRequestEnableConnectionResult(requestCode: Int, resultCode: Int) {
-    }
-
-    override fun onEnableConnectionRefused(function: (resultCode: Int) -> Unit) {
+    override fun handleConnectionAllowed(connectionAllowed: Boolean) {
     }
 
     override fun onRoPEFound(function: (rope: RoPE) -> Unit) {

@@ -9,8 +9,7 @@ interface RoPEFinder {
 
     fun findRoPE()
     fun onRequestEnableConnection(onRequestEnableConnection: (RoPEFinderBle.EnableBluetoothRequest) -> Unit)
-    fun handleRequestEnableConnectionResult(requestCode: Int, resultCode: Int)
-    fun onEnableConnectionRefused(function: (resultCode: Int) -> Unit)
+    fun handleConnectionAllowed(connectionAllowed: Boolean)
     fun onRoPEFound(function: (rope: RoPE) -> Unit)
     fun handleRequestConnectionPermissionResult(requestCode: Int)
     fun onConnectionFailed(function: (errorCode: Int) -> Unit)

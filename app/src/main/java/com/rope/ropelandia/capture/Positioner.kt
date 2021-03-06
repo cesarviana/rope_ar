@@ -87,10 +87,10 @@ class ProjectorBlocksPositioner(
             val leftPoints = sortedPoints.subList(0, 2)
             val rightPoints = sortedPoints.subList(2, 4)
 
-            val topLeft = leftPoints.minBy { it.y }
-            val bottomLeft = leftPoints.maxBy { it.y }
-            val topRight = rightPoints.minBy { it.y }
-            val bottomRight = rightPoints.maxBy { it.y }
+            val topLeft = leftPoints.minByOrNull { it.y }
+            val bottomLeft = leftPoints.maxByOrNull { it.y }
+            val topRight = rightPoints.minByOrNull { it.y }
+            val bottomRight = rightPoints.maxByOrNull { it.y }
 
             Rectangle(topLeft!!, topRight!!, bottomRight!!, bottomLeft!!)
         }

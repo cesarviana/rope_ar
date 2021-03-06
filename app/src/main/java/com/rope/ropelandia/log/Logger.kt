@@ -20,7 +20,7 @@ interface LogDao {
     fun getAll(): List<Log>
 }
 
-@Database(entities = [Log::class], version = 1)
+@Database(entities = [Log::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun logDao(): LogDao
 }

@@ -11,7 +11,6 @@ import androidx.renderscript.*
 import com.rope.ropelandia.capture.BitmapToBlocksConverter
 import com.rope.ropelandia.model.Block
 import com.viana.soundprogramming.ScriptC_yuv4208888
-import kotlinx.coroutines.coroutineScope
 import java.util.concurrent.Executors
 
 typealias ImageAnalyserListener = (List<Block>) -> Unit
@@ -43,11 +42,11 @@ class MyImageAnalyser(
 
     @SuppressLint("UnsafeExperimentalUsageError")
     private fun findBlocks(image: ImageProxy): List<Block> {
-        val bitmap = image.image?.let { readImage(it) }
+        val bitmap = image.image?.let { convertToBitmap(it) }
         return bitmapToBlocksConverter.convertBitmapToBlocks(bitmap!!)
     }
 
-    private fun readImage(image: Image): Bitmap {
+    private fun convertToBitmap(image: Image): Bitmap {
         return yuv420888toRGB(image, image.width, image.height)
     }
 

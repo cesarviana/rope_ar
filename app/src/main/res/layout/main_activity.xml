@@ -6,12 +6,7 @@
     android:orientation="horizontal"
     android:textAlignment="center"
     tools:context=".game.GameActivity">
-
-    <androidx.camera.view.PreviewView
-        android:id="@+id/previewView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
-
+    
     <com.rope.ropelandia.game.MatView
         android:id="@+id/matView"
         android:layout_width="match_parent"
@@ -21,7 +16,6 @@
         android:id="@+id/gameView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/white"
-        android:onClick="toggleCameraPreview"/>
+        android:background="@android:color/white"/>
 
 </FrameLayout>

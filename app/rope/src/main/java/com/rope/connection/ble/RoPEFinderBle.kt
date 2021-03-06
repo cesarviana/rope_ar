@@ -10,10 +10,7 @@ import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.os.ParcelUuid
-import androidx.appcompat.app.AppCompatActivity
 import com.rope.connection.RoPE
 import com.rope.connection.RoPEFinder
 import java.util.*
@@ -49,20 +46,18 @@ class RoPEFinderBle(override var activity: Activity) : RoPEFinder {
         fun clear() {
             onRoPEFound.clear()
             onRequestEnableConnection.clear()
-            onEnableConnectionRefused.clear()
             onConnectionFailed.clear()
         }
 
         val onRoPEFound = mutableListOf<(rope: RoPEBle) -> Unit>()
         val onRequestEnableConnection = mutableListOf<(EnableBluetoothRequest) -> Unit>()
-        val onEnableConnectionRefused = mutableListOf<(resultCode: Int) -> Unit>()
         val onConnectionFailed = mutableListOf<(errorCode: Int) -> Unit>()
     }
 
-    private val bluetoothAdapter: BluetoothAdapter? by lazy(LazyThreadSafetyMode.NONE) {
+    private val bluetoothAdapter by lazy(LazyThreadSafetyMode.NONE) {
         val bluetoothManager =
             activity.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        bluetoothManager.adapter
+        bluetoothManager.getAdapter()
     }
 
     private val permissionChecker = com.rope.droideasy.PermissionChecker()
@@ -74,7 +69,7 @@ class RoPEFinderBle(override var activity: Activity) : RoPEFinder {
 
     private fun requestEnableBluetoothOrStartScan() {
         bluetoothAdapter?.let {
-            if (!it.isEnabled) {
+            if (!it.isEnabled()) {
                 requestEnableBluetooth()
             } else {
                 scan(myScanCallback)
@@ -103,9 +98,7 @@ class RoPEFinderBle(override var activity: Activity) : RoPEFinder {
             ) {
                 val filter = createScanFilter()
                 val settings = createScanSettings()
-                Handler(Looper.getMainLooper()).postDelayed({
-                    bluetoothAdapter?.bluetoothLeScanner?.startScan(filter, settings, scanCallback)
-                }, 10000)
+                bluetoothAdapter.getBluetoothLeScanner().startScan(filter, settings, scanCallback)
             }
         }
     }
@@ -116,36 +109,23 @@ class RoPEFinderBle(override var activity: Activity) : RoPEFinder {
             .build()
     }
 
-    private fun createScanFilter(): List<ScanFilter> {
+    private fun createScanFilter(): MutableList<ScanFilter> {
         val ropeUuid = ParcelUuid(UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb"))
         val scanFilter = ScanFilter.Builder()
             .setDeviceName("-['.']- RoPE")
             .setServiceUuid(ropeUuid)
             .build()
-        return listOf(scanFilter)
+        return mutableListOf(scanFilter)
     }
 
     override fun onRequestEnableConnection(onRequestEnableConnection: (EnableBluetoothRequest) -> Unit) {
         Listeners.onRequestEnableConnection.add(onRequestEnableConnection)
     }
 
-    override fun handleRequestEnableConnectionResult(requestCode: Int, resultCode: Int) {
-        val bluetoothRequest = requestCode == BleEnabling.requestCode
-
-        if (!bluetoothRequest)
-            return
-
-        val allowedBluetooth = resultCode == AppCompatActivity.RESULT_OK
-
-        if (allowedBluetooth) {
+    override fun handleConnectionAllowed(connectionAllowed: Boolean) {
+        if (connectionAllowed) {
             scan(myScanCallback)
-        } else {
-            Listeners.onEnableConnectionRefused.forEach { it(resultCode) }
         }
-    }
-
-    override fun onEnableConnectionRefused(function: (resultCode: Int) -> Unit) {
-        Listeners.onEnableConnectionRefused.add(function)
     }
 
     override fun onRoPEFound(function: (rope: RoPE) -> Unit) {
@@ -165,13 +145,13 @@ class RoPEFinderBle(override var activity: Activity) : RoPEFinder {
     }
 
     private fun createRoPE(scanResult: ScanResult): RoPEBle {
-        return RoPEBle(activity.applicationContext, scanResult.device)
+        return RoPEBle(activity.getApplicationContext(), scanResult.getDevice())
     }
 
     private inner class MyScanCallback : ScanCallback() {
         override fun onScanResult(callbackType: Int, scanResult: ScanResult?) {
 
-            bluetoothAdapter?.bluetoothLeScanner?.stopScan(myScanCallback)
+            bluetoothAdapter?.getBluetoothLeScanner()?.stopScan(myScanCallback)
 
             /**
              * There is an error that causes this method to be called multiple times, even
@@ -192,7 +172,7 @@ class RoPEFinderBle(override var activity: Activity) : RoPEFinder {
             super.onScanFailed(errorCode)
 
             if (errorCode == SCAN_FAILED_ALREADY_STARTED) {
-                bluetoothAdapter?.bluetoothLeScanner?.stopScan(myScanCallback)
+                bluetoothAdapter?.getBluetoothLeScanner()?.stopScan(myScanCallback)
             }
 
             Listeners.onConnectionFailed.forEach { it(errorCode) }

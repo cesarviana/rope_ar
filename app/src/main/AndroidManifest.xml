@@ -43,8 +43,7 @@
         </activity>
         <activity
             android:name=".game.GameActivity"
-            android:screenOrientation="reverseLandscape"
-            android:hardwareAccelerated="false"
+            android:screenOrientation="landscape"
             />
     </application>
 
