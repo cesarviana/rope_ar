@@ -1,4 +1,4 @@
-package com.rope.ropelandia.capture
+package com.rope.ropelandia.capture.imagetobitmap
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -6,12 +6,12 @@ import android.media.Image
 import androidx.renderscript.*
 import com.viana.soundprogramming.ScriptC_yuv4208888
 
-class ImageToBitmapConverter(context: Context) {
+class ImageToBitmapConverterYUV420_888(private val context: Context) : ImageToBitmapConverter {
 
     private val renderScript by lazy { RenderScript.create(context) }
     private val mYuv420 by lazy { ScriptC_yuv4208888(renderScript) }
 
-    fun convertToBitmap(image: Image): Bitmap {
+    override fun convert(image: Image): Bitmap {
         return yuv420888toRGB(image, image.width, image.height)
     }
 

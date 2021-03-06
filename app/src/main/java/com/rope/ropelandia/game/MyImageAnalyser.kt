@@ -5,14 +5,14 @@ import android.os.Handler
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import com.rope.ropelandia.capture.BitmapToBlocksConverter
-import com.rope.ropelandia.capture.ImageToBitmapConverter
+import com.rope.ropelandia.capture.imagetobitmap.ImageToBitmapConverterYUV420_888
 import com.rope.ropelandia.model.Block
 import java.util.concurrent.Executors
 
 typealias BlocksFoundListener = (List<Block>) -> Unit
 
 class MyImageAnalyser(
-    private val imageToBitmapConverter: ImageToBitmapConverter,
+    private val imageToBitmapConverter: ImageToBitmapConverterYUV420_888,
     private val bitmapToBlocksConverter: BitmapToBlocksConverter,
     private val handler: Handler,
     val listener: BlocksFoundListener
@@ -34,7 +34,7 @@ class MyImageAnalyser(
 
     @SuppressLint("UnsafeExperimentalUsageError")
     private fun findBlocks(image: ImageProxy): List<Block> {
-        val bitmap = image.image?.let { imageToBitmapConverter.convertToBitmap(it) }
+        val bitmap = image.image?.let { imageToBitmapConverter.convert(it) }
         return bitmapToBlocksConverter.convertBitmapToBlocks(bitmap!!)
     }
 
