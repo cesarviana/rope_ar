@@ -14,24 +14,24 @@ object LevelLoader {
         val apple = ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.apple, null)!!
 
         val floorLayer: MatLayer = arrayOf(
-            arrayOf(floor, floor, floor, floor, floor, floor),
-            arrayOf(floor, floor, floor, floor, floor, floor),
-            arrayOf(floor, floor, floor, floor, floor, floor),
-            arrayOf(floor, floor, floor, floor, floor, floor)
+            arrayOf(floor, floor, floor, floor, floor),
+            arrayOf(floor, floor, floor, floor, floor),
+            arrayOf(floor, floor, floor, floor, floor),
+            arrayOf(floor, floor, floor, floor, floor)
         )
 
         val pathLayer: MatLayer = arrayOf(
-            arrayOf(empty, empty, empty, empty, empty, empty),
-            arrayOf(empty, empty, path, path, path, empty),
-            arrayOf(empty, empty, path, empty, path, empty),
-            arrayOf(empty, empty, path, empty, path, empty)
+            arrayOf(empty, empty, empty, empty, empty),
+            arrayOf(empty, path, path, path, empty),
+            arrayOf(empty, path, empty, path, empty),
+            arrayOf(empty, path, empty, path, empty)
         )
 
         val applesLayer: MatLayer = arrayOf(
-            arrayOf(empty, empty, empty, empty, empty, empty),
-            arrayOf(empty, empty, empty, apple, empty, empty),
-            arrayOf(empty, empty, apple, empty, empty, empty),
-            arrayOf(empty, empty, empty, empty, apple, empty)
+            arrayOf(empty, empty, empty, empty, empty),
+            arrayOf(empty, empty, apple, empty, empty),
+            arrayOf(empty, apple, empty, empty, empty),
+            arrayOf(empty, empty, empty, apple, empty)
         )
 
         val mat: Mat = arrayListOf()

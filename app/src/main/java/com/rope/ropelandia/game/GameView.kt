@@ -1,9 +1,7 @@
 package com.rope.ropelandia.game
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.PorterDuff
+import android.graphics.*
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -15,21 +13,68 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
 
     var blocksViews: List<BlockView> = listOf()
 
+    private val centerX by lazy { (width / 2).toFloat() }
+    private val centerY by lazy { (height / 2).toFloat() }
+
     init {
         setWillNotDraw(false)
         setZOrderOnTop(true)
-        setBackgroundColor(Color.TRANSPARENT)
     }
 
     override fun draw(canvas: Canvas?) {
         super.draw(canvas)
         clear(canvas)
         canvas?.apply {
+            // rotate to image be up for the user
+            rotate(180f, centerX, centerY)
             matView.draw(canvas)
+            drawProgrammingArea()
+            // rotate back
+            rotate(-180f, centerX, centerY)
+            // the blocks must not be rotated
             blocksViews.forEach {
                 it.draw(canvas)
             }
+            drawPath()
         }
+    }
+
+    private val pathPaint = Paint().apply {
+        strokeWidth = 200f
+        color = Color.YELLOW
+        style = Paint.Style.FILL_AND_STROKE
+        strokeCap = Paint.Cap.ROUND
+    }
+
+    private fun Canvas.drawPath() {
+        if (blocksViews.isNotEmpty()) {
+            val path = Path()
+            val blockView = blocksViews[0]
+            path.moveTo(blockView.centerX().toFloat(), blockView.centerY().toFloat())
+            blocksViews.forEach {
+                path.lineTo(it.centerX().toFloat(), it.centerY().toFloat())
+            }
+            drawPath(path, pathPaint)
+        }
+    }
+
+    private val programmingAreaPaint = Paint().apply {
+        color = Color.WHITE
+    }
+    private val round = 40f
+
+    // rounded white rect on right
+    private val programmingArea by lazy {
+        val margin = width * 0.01f
+        val left = width * 0.65f
+        val top = margin
+        val right = right - margin
+        val bottom = bottom - margin
+        RectF(left, top, right, bottom)
+    }
+
+    private fun Canvas.drawProgrammingArea() {
+        drawRoundRect(programmingArea, round, round, programmingAreaPaint)
     }
 
     private fun clear(canvas: Canvas?) {

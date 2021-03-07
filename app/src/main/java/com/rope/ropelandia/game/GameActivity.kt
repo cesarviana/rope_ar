@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.Bundle
 import android.os.Looper
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -16,6 +17,7 @@ import com.rope.ropelandia.R
 import com.rope.ropelandia.app
 import com.rope.ropelandia.capture.BitmapToBlocksConverter
 import com.rope.ropelandia.capture.ProgramFactory
+import com.rope.ropelandia.game.bitmaptaker.BitmapTaker
 import com.rope.ropelandia.game.bitmaptaker.BitmapTakerFactory
 import com.rope.ropelandia.game.bitmaptaker.BitmapTookCallback
 import com.rope.ropelandia.model.*
@@ -29,6 +31,7 @@ class GameActivity : AppCompatActivity(),
     RoPEExecutionStartedListener,
     RoPEExecutionFinishedListener {
 
+    private lateinit var bitmapTaker: BitmapTaker
     private val permissionChecker by lazy { PermissionChecker() }
     private val levels: List<Level> by lazy { LevelLoader.load(applicationContext) }
     private var levelIndex = 0
@@ -44,6 +47,11 @@ class GameActivity : AppCompatActivity(),
 
     override fun onStop() {
         super.onStop()
+        try {
+            bitmapTaker.stop()
+        } catch (e: Exception) {
+            e.message?.let { Log.e(javaClass.simpleName, it) }
+        }
         app.rope?.removeDisconnectedListener(this)
         app.rope?.removeStartPressedListener(this)
         app.rope?.removeActionListener(this)
@@ -163,14 +171,16 @@ class GameActivity : AppCompatActivity(),
             val bitmapTookCallback: BitmapTookCallback = { bitmap: Bitmap ->
                 bitmapToBlocksExecutor.submit {
                     val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
-                    blocksFoundHandler.post {
-                        program = ProgramFactory.findSequence(blocks)
-                        updateViewWithProgram()
+                    if(blocks.isNotEmpty()){ // ignore if no block found
+                        blocksFoundHandler.post {
+                            program = ProgramFactory.findSequence(blocks)
+                            updateViewWithProgram()
+                        }
                     }
                 }
             }
 
-            val bitmapTaker = BitmapTakerFactory()
+            bitmapTaker = BitmapTakerFactory()
                 .createBitmapTaker(this, bitmapTookHandler, BitmapTakerFactory.Type.PICTURE, bitmapTookCallback)
 
             val useCase = bitmapTaker.getUseCase()

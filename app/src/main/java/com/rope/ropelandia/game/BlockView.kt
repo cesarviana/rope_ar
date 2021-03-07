@@ -54,12 +54,14 @@ class BlockView(context: Context) : View(context) {
     var angle = 0.0f
     var state = BlockState.PARSED
 
+    fun centerX() = bounds.centerX()
+    fun centerY() = bounds.centerY()
+
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
         canvas?.let {
             state.draw(this, canvas)
         }
-
     }
 }

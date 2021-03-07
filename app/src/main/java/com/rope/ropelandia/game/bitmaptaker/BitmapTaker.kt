@@ -24,4 +24,6 @@ abstract class BitmapTaker(context: Context, private val handler: Handler, priva
             imageProxy.close()
         }
     }
+
+    abstract fun stop()
 }
