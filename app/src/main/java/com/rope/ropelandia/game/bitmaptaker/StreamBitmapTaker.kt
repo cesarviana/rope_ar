@@ -28,4 +28,6 @@ class StreamBitmapTaker(context: Context, handler: Handler, bitmapTookCallback: 
     override fun startTakingImages() {}
 
     override fun getUseCase(): UseCase = myImageAnalyser
+
+    override fun stop() = executor.shutdown()
 }
