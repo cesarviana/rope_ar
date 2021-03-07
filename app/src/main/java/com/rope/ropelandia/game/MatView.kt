@@ -17,6 +17,10 @@ class MatView(context: Context, attributeSet: AttributeSet?) : View(context, att
 
     var mat: Mat = mutableListOf()
 
+    init {
+        setBackgroundColor(Color.YELLOW)
+    }
+
     private var squareSize = 100
 
     private val paint = Paint().apply {
@@ -48,15 +52,13 @@ class MatView(context: Context, attributeSet: AttributeSet?) : View(context, att
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.let {
-            it.rotate(180f, (width / 2).toFloat(), (height / 2).toFloat())
-            mat.forEach { layer ->
-                layer.forEachIndexed { lineIndex, line ->
+            mat.forEach { lines ->
+                lines.forEachIndexed { lineIndex, line ->
                     line.forEachIndexed { columnIndex, tile ->
                         drawTile(canvas, lineIndex, columnIndex, tile)
                     }
                 }
             }
-            it.rotate(-180f, (width / 2).toFloat(), (height / 2).toFloat())
         }
     }
 
