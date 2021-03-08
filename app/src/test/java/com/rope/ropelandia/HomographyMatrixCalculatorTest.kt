@@ -1,10 +1,10 @@
 package com.rope.ropelandia
 
-import com.rope.ropelandia.capture.HomographyMatrixCalculator
-import com.rope.ropelandia.capture.PerspectiveRectangle
-import com.rope.ropelandia.capture.Point
-import com.rope.ropelandia.capture.PointPositionCalculator
+import com.rope.ropelandia.capture.*
+import com.rope.ropelandia.model.PositionBlock
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.SoftAssertions
+import org.assertj.core.data.Offset
 import org.assertj.core.data.Percentage
 import org.junit.Test
 
@@ -60,6 +60,43 @@ class HomographyMatrixCalculatorTest {
             .withFailMessage("X is not equal")
         assertThat(projectedPoint.y).isCloseTo(targetPoint.y, percentage)
             .withFailMessage("Y is not equal")
+    }
+
+    @Test
+    fun testMapToScreenWidth() {
+        val positionBlocks = listOf(
+            PositionBlock(774f, 181f, 0f, 0f),
+            PositionBlock(2510f, 115f, 0f, 0f),
+            PositionBlock(2843.73f, 1176.42f, 0f, 0f),
+            PositionBlock(485.39f, 1125.1f, 0f, 0f),
+        )
+
+        val targetScreenHeight = 720
+        val targetScreenWidth = 1280
+
+        val blocksPositioner = ProjectorBlocksPositioner(targetScreenHeight, targetScreenWidth)
+        val resultBlocks = blocksPositioner.reposition(positionBlocks)
+
+        val resultRectangle = resultBlocks.map { Point(it.centerX.toDouble(), it.centerY.toDouble()) }.let {
+            PerspectiveRectangle.createFromPoints(it)
+        }
+
+        // assert error relative (width)
+        val expectedTopLeftX = 0.0
+        val error = resultRectangle.topLeft.x - expectedTopLeftX
+        val errorRelativeToWidth = error / targetScreenWidth
+
+        assertThat(errorRelativeToWidth).isLessThan(0.01).withFailMessage("To much difference")
+
+
+        // assert error in pixels
+        val closeness = Offset.offset(7.0)
+
+        val softAssertions = SoftAssertions()
+        softAssertions.assertThat(resultRectangle.topLeft.x).isCloseTo(0.0, closeness)
+        softAssertions.assertThat(resultRectangle.topLeft.y).isCloseTo(0.0, closeness)
+        softAssertions.assertAll()
+
     }
 
 }

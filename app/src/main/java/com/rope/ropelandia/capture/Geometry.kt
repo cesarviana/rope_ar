@@ -13,7 +13,7 @@ data class Rectangle(
     val right: Double,
     val bottom: Double
 ) {
-    fun height() = top - bottom
+    fun height() = bottom - top
     fun width() = right - left
 }
 
@@ -23,6 +23,14 @@ data class PerspectiveRectangle(
     val bottomLeft: Point,
     val bottomRight: Point
 ) {
+
+    init {
+        require(bottomRight.x >= bottomLeft.x) { "Bottom right is less than bottom left!" }
+        require(topRight.x >= topLeft.x) { "Top right is less than top left!" }
+        require(bottomRight.y >= topRight.y) { "Bottom right is less than top right!"}
+        require(bottomLeft.y >= topLeft.y) { "Bottom left is less than top left!"}
+    }
+
     fun toRectangle() : Rectangle {
         val top = min(topLeft.y, topRight.y)
         val left = min(topLeft.x, bottomLeft.x)
@@ -30,6 +38,20 @@ data class PerspectiveRectangle(
         val right = max(topRight.x, bottomRight.x)
         return Rectangle(left, top, right, bottom)
     }
+
+    fun bottomWidth() = bottomRight.x - bottomLeft.x
+    fun resize(proportion: Double): PerspectiveRectangle {
+
+        val topLeft = Point(this.topLeft.x * proportion, this.topLeft.y * proportion)
+        val topRight = Point(this.topRight.x * proportion, this.topRight.y * proportion)
+        val bottomLeft = Point(this.bottomLeft.x * proportion, this.bottomLeft.y * proportion)
+        val bottomRight = Point(this.bottomRight.x * proportion, this.bottomRight.y * proportion)
+
+        return PerspectiveRectangle(
+            topLeft, topRight, bottomLeft, bottomRight
+        )
+    }
+
     companion object {
         fun createFromPoints(points: List<Point>): PerspectiveRectangle {
             require(points.size == 4) {
@@ -45,7 +67,7 @@ data class PerspectiveRectangle(
                 val topRight = rightPoints.minByOrNull { it.y }
                 val bottomRight = rightPoints.maxByOrNull { it.y }
 
-                PerspectiveRectangle(topLeft!!, topRight!!, bottomRight!!, bottomLeft!!)
+                PerspectiveRectangle(topLeft!!, topRight!!, bottomLeft!!, bottomRight!!)
             }
         }
     }

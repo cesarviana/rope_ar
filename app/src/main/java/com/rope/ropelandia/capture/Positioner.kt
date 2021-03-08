@@ -9,71 +9,82 @@ interface BlocksPositioner {
 }
 
 class ProjectorBlocksPositioner(
-    private val targetScreenHeight: Int,
-    private val targetScreenWidth: Int
+    targetScreenHeight: Int,
+    targetScreenWidth: Int
 ) : BlocksPositioner {
 
+    init {
+        require(targetScreenHeight > 0 && targetScreenWidth > 0) {
+            "The screen size must be > 0"
+        }
+    }
+
+    private var proportion: Double = 1.0
+
+    private val targetRectangle by lazy {
+        Rectangle(0.0, 0.0, targetScreenWidth.toDouble(), targetScreenHeight.toDouble())
+    }
+
     private var homographyMatrix: HomographyMatrix? = null
-    private var adjustedRectangle: Rectangle? = null
-    private var proportionWidth: Float = 0.0f
-    private var proportionHeight: Float = 0.0f
+
 
     override fun reposition(blocks: List<Block>): List<Block> {
 
         val positionBlocks = blocks.filterIsInstance<PositionBlock>()
         calibrate(positionBlocks)
 
-        return moveBlocks(blocks)
+        if (homographyMatrix == null)
+            return blocks
+
+        return moveBlocks(blocks, proportion, homographyMatrix!!)
     }
 
     private fun calibrate(positionBlocks: List<PositionBlock>) {
 
-        if(positionBlocks.size < 4)
+        if (positionBlocks.size < 4)
             return
 
-        positionBlocks
+        val perspectiveRectangle = positionBlocks
             .map { Point(it.centerX.toDouble(), it.centerY.toDouble()) }
             .let { positionPoints ->
                 PerspectiveRectangle.createFromPoints(positionPoints)
-            }.let { perspectiveRectangle ->
-                val rectangle = perspectiveRectangle.toRectangle()
-                calibrateProportions(rectangle)
-                calcHomographyMatrix(perspectiveRectangle, rectangle)
-
-                if(adjustedRectangle == null) {
-                    adjustedRectangle = rectangle
-                }
             }
+
+        proportion = targetRectangle.width() / perspectiveRectangle.bottomWidth()
+        // the target rectangle is small than photo taken size, so the proportion must be < 1
+        check(proportion < 1) { "The proportion must be < 1." }
+        check(proportion > 0) { "The proportion must be > 0." }
+
+        // resize the perspective rectangle so its bottom becomes equals to the target rectangle
+        val resizedPerspectiveRectangle = perspectiveRectangle.resize(proportion)
+        check(resizedPerspectiveRectangle.bottomWidth() == targetRectangle.width())
+
+        homographyMatrix = calcHomographyMatrix(resizedPerspectiveRectangle, targetRectangle)
     }
 
     private fun calcHomographyMatrix(
         perspectiveRectangle: PerspectiveRectangle,
-        newAdjustedRectangle: Rectangle
-    ) {
-        homographyMatrix =
-            HomographyMatrixCalculator.calculate(perspectiveRectangle, newAdjustedRectangle)
-    }
+        targetRectangle: Rectangle
+    ): HomographyMatrix =
+        HomographyMatrixCalculator.calculate(perspectiveRectangle, targetRectangle)
 
-    private fun calibrateProportions(newAdjustedRectangle: Rectangle) {
-        proportionWidth = targetScreenWidth / newAdjustedRectangle.width().toFloat()
-        proportionHeight = targetScreenHeight / newAdjustedRectangle.height().toFloat()
-    }
 
-    private fun moveBlocks(blocks: List<Block>): List<Block> {
-
-        if(adjustedRectangle == null || homographyMatrix == null)
-            return blocks
-
-        return blocks.map {
-            val point = Point(it.centerX.toDouble(), it.centerY.toDouble())
-            val newPoint = PointPositionCalculator.calculatePoint(point, homographyMatrix!!)
+    private fun moveBlocks(
+        blocks: List<Block>,
+        proportion: Double,
+        homographyMatrix: HomographyMatrix
+    ) =
+        blocks.map {
+            val point =
+                Point(it.centerX.toDouble() * proportion, it.centerY.toDouble() * proportion)
+            val newPoint = PointPositionCalculator.calculatePoint(point, homographyMatrix)
             BlockFactory.createBlock(
                 it.javaClass,
-                (newPoint.x - adjustedRectangle!!.left).toFloat() * proportionWidth,
-                (newPoint.y - adjustedRectangle!!.top).toFloat() * proportionHeight,
+                newPoint.x.toFloat(),
+                newPoint.y.toFloat(),
                 it.diameter,
                 it.angle
             )
         }
-    }
+
 }
