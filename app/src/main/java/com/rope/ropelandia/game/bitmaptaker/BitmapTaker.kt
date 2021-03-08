@@ -7,23 +7,40 @@ import android.os.Handler
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.UseCase
 import com.rope.ropelandia.capture.imagetobitmap.ImageToBitmapConverterFactory
+import java.util.concurrent.ExecutorService
 
-typealias BitmapTookCallback = (Bitmap) -> Unit
-
-abstract class BitmapTaker(context: Context, private val handler: Handler, private val bitmapTookCallback: BitmapTookCallback) {
+abstract class BitmapTaker(
+    context: Context,
+    private val handler: Handler,
+    protected val executor: ExecutorService,
+    private val bitmapTookCallback: BitmapTookCallback
+) {
     abstract fun startTakingImages()
-    abstract fun getUseCase() : UseCase
+    abstract fun getUseCase(): UseCase
     private val toBitmapConverterFactory = ImageToBitmapConverterFactory(context)
+
     @SuppressLint("UnsafeExperimentalUsageError")
     protected fun imageTaken(imageProxy: ImageProxy) {
         handler.post {
             imageProxy.image?.let {
-                val bitmap = toBitmapConverterFactory.getConverter(it).convert(it)
-                bitmapTookCallback.invoke(bitmap)
+                try {
+                    val bitmap = toBitmapConverterFactory.getConverter(it).convert(it)
+                    bitmapTookCallback.onBitmap(bitmap)
+                } catch (e: Exception) {
+                    bitmapTookCallback.onError(e)
+                } finally {
+                    imageProxy.close()
+                }
             }
-            imageProxy.close()
         }
     }
 
-    abstract fun stop()
+    interface BitmapTookCallback {
+        fun onBitmap(bitmap: Bitmap)
+        fun onError(e: Exception)
+    }
+
+    protected fun onError(e: Exception) = bitmapTookCallback.onError(e)
+
+    fun stop() = executor.shutdown()
 }

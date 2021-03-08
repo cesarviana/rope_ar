@@ -5,12 +5,15 @@ import android.os.Handler
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.UseCase
-import java.util.concurrent.Executors
+import java.util.concurrent.ExecutorService
 
-class StreamBitmapTaker(context: Context, handler: Handler, bitmapTookCallback: BitmapTookCallback) :
-    BitmapTaker(context, handler, bitmapTookCallback) {
-
-    private val executor = Executors.newSingleThreadExecutor()
+class StreamBitmapTaker(
+    context: Context,
+    handler: Handler,
+    executor: ExecutorService,
+    bitmapTookCallback: BitmapTookCallback
+) :
+    BitmapTaker(context, handler, executor, bitmapTookCallback) {
 
     private val myImageAnalyser = ImageAnalysis.Builder()
         .setTargetAspectRatio(AspectRatio.RATIO_16_9)
@@ -18,7 +21,7 @@ class StreamBitmapTaker(context: Context, handler: Handler, bitmapTookCallback: 
         .build()
         .also {
             it.setAnalyzer(
-                executor
+                this.executor
             ) { image ->
                 imageTaken(image)
             }
@@ -28,6 +31,4 @@ class StreamBitmapTaker(context: Context, handler: Handler, bitmapTookCallback: 
     override fun startTakingImages() {}
 
     override fun getUseCase(): UseCase = myImageAnalyser
-
-    override fun stop() = executor.shutdown()
 }
