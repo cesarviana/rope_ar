@@ -7,8 +7,8 @@ import topcodes.TopCode
 import topcodes.TopCodesScanner
 
 class BitmapToBlocksConverter(
-    targetHeight: Int = 720,
-    targetWidth: Int = 1080
+    targetHeight: Int,
+    targetWidth: Int
 ) {
 
     private val topCodesScanner by lazy { TopCodesScanner() }
