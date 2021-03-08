@@ -6,40 +6,40 @@ import org.ejml.simple.SimpleMatrix
 
 object HomographyMatrixCalculator {
 
-    fun calculate(sourceRectangle: Rectangle, targetRectangle: Rectangle): HomographyMatrix {
+    fun calculate(perspectiveRectangle: PerspectiveRectangle, rectangle: Rectangle): HomographyMatrix {
 
         val pointsMatrix = SimpleMatrix(9, 9)
 
         feedMatrix(
             pointsMatrix,
             0,
-            sourceRectangle.topLeft.x, sourceRectangle.topLeft.y,
-            targetRectangle.topLeft.x, targetRectangle.topLeft.y
+            perspectiveRectangle.topLeft.x, perspectiveRectangle.topLeft.y,
+            rectangle.left, rectangle.top
         )
 
         feedMatrix(
             pointsMatrix,
             2,
-            sourceRectangle.topRight.x, sourceRectangle.topRight.y,
-            targetRectangle.topRight.x, targetRectangle.topRight.y
+            perspectiveRectangle.topRight.x, perspectiveRectangle.topRight.y,
+            rectangle.right, rectangle.top
         )
 
         feedMatrix(
             pointsMatrix,
             4,
-            sourceRectangle.bottomRight.x, sourceRectangle.bottomRight.y,
-            targetRectangle.bottomRight.x, targetRectangle.bottomRight.y
+            perspectiveRectangle.bottomRight.x, perspectiveRectangle.bottomRight.y,
+            rectangle.right, rectangle.bottom
         )
 
         feedMatrix(
             pointsMatrix,
             6,
-            sourceRectangle.bottomLeft.x, sourceRectangle.bottomLeft.y,
-            targetRectangle.bottomLeft.x, targetRectangle.bottomLeft.y
+            perspectiveRectangle.bottomLeft.x, perspectiveRectangle.bottomLeft.y,
+            rectangle.left, rectangle.bottom
         )
 
         val v = pointsMatrix.svd().v
-        val homography = v.cols(8, 9)
+        val homography = v.transpose().rows(8, 9)
 
         return HomographyMatrix(
             homography[0],
@@ -55,15 +55,15 @@ object HomographyMatrixCalculator {
     }
 
     private fun feedMatrix(
-        p: SimpleMatrix,
+        matrix: SimpleMatrix,
         row: Int,
         x1: Double,
         y1: Double,
         x2: Double,
         y2: Double
     ) {
-        p.setRow(row, 0, -x1, -y1, -1.0, 0.0, 0.0, 0.0, x1 * x2, y1 * x2, x2)
-        p.setRow(row + 1, 0, 0.0, 0.0, 0.0, -x1, -y1, -1.0, x1 * y2, y1 * y2, y2)
+        matrix.setRow(row, 0, -x1, -y1, -1.0, 0.0, 0.0, 0.0, (x1 * x2), (y1 * x2), x2)
+        matrix.setRow(row + 1, 0, 0.0, 0.0, 0.0, -x1, -y1, -1.0, (x1 * y2), (y1 * y2), y2)
     }
 
 }

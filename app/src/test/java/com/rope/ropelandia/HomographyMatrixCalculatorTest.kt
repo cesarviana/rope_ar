@@ -1,55 +1,65 @@
 package com.rope.ropelandia
 
-import com.rope.ropelandia.capture.*
+import com.rope.ropelandia.capture.HomographyMatrixCalculator
+import com.rope.ropelandia.capture.PerspectiveRectangle
+import com.rope.ropelandia.capture.Point
+import com.rope.ropelandia.capture.PointPositionCalculator
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.data.Percentage
 import org.junit.Test
 
 class HomographyMatrixCalculatorTest {
 
-    private val top = 5.0
-    private val right = 15.0
-    private val left = 5.0
-    private val bottom = 20.0
-
-    private val topLeft = Point(left, top)
-    private val topRight = Point(right, top)
-    private val bottomRight = Point(20.0, bottom)
-    private val bottomLeft = Point(0.0, 15.0)
-
-    private val observedRectangle = Rectangle(topLeft, topRight, bottomRight, bottomLeft)
-    private val targetRectangle = RectangleFinder().adjustRectangle(observedRectangle)
-
     @Test
     fun calcNewPoint() {
 
-        val nearRight = right - 3
-        val nearTop = top - 1
-        val nearLeft = left - 1
+        val topLeft = Point(2.0, 2.0)
+        val topRight = Point(4.0, 2.0)
+        val bottomLeft = Point(1.0, 4.0)
+        val bottomRight = Point(5.0, 4.0)
 
-        val originalPoint = Point(nearRight, nearTop)
+        val observedRectangle =
+            PerspectiveRectangle(topLeft, topRight, bottomLeft, bottomRight)
 
-        val homographyMatrix = HomographyMatrixCalculator.calculate(
-            observedRectangle, targetRectangle
-        )
+        val correctedPoint = Point(1.0, 2.0)
+        val perspectivePoint = Point(2.0, 2.0)
 
-        val projectedPoint = PointPositionCalculator.calculatePoint(originalPoint, homographyMatrix)
+        testPointPosition(observedRectangle, perspectivePoint, correctedPoint)
 
-        assertThat(projectedPoint.x).isGreaterThan(originalPoint.x)
-        assertThat(projectedPoint.y).isLessThan(originalPoint.y)
+    }
 
+    @Test
+    fun calcNewPointGreaterSize() {
 
-        val originalPointNearTopLeft = Point(nearLeft, nearTop)
-        val projectedPointTopLeft =
-            PointPositionCalculator.calculatePoint(originalPointNearTopLeft, homographyMatrix)
-        assertThat(projectedPointTopLeft.x).isLessThan(originalPointNearTopLeft.x)
+        val topLeft = Point(88.72, 34.0)
+        val topRight = Point(277.36, 31.88)
+        val bottomLeft = Point(16.88, 175.92)
+        val bottomRight = Point(331.15, 182.29)
 
-        val nearBottom = bottom - 7
-        val originalPointNearBottomLeft = Point(nearLeft, nearBottom)
+        val observedRectangle =
+            PerspectiveRectangle(topLeft, topRight, bottomLeft, bottomRight)
 
-        val projectedPointBottomLeft =
-            PointPositionCalculator.calculatePoint(originalPointNearBottomLeft, homographyMatrix)
-        assertThat(projectedPointBottomLeft.y).isGreaterThan(originalPointNearBottomLeft.y)
+        val perspectivePoint = Point(88.72, 34.0)
+        val correctedPoint = Point(16.88, 31.88)
+        testPointPosition(observedRectangle, perspectivePoint, correctedPoint)
 
+    }
+
+    private fun testPointPosition(
+        observedRectangle: PerspectiveRectangle,
+        testPoint: Point,
+        targetPoint: Point
+    ) {
+        val targetRectangle = observedRectangle.toRectangle()
+        val homographyMatrix =
+            HomographyMatrixCalculator.calculate(observedRectangle, targetRectangle)
+        val projectedPoint =
+            PointPositionCalculator.calculatePoint(testPoint, homographyMatrix)
+        val percentage = Percentage.withPercentage(99.999999)
+        assertThat(projectedPoint.x).isCloseTo(targetPoint.x, percentage)
+            .withFailMessage("X is not equal")
+        assertThat(projectedPoint.y).isCloseTo(targetPoint.y, percentage)
+            .withFailMessage("Y is not equal")
     }
 
 }

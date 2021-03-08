@@ -3,7 +3,6 @@ package com.rope.ropelandia.capture
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.BlockFactory
 import com.rope.ropelandia.model.PositionBlock
-import kotlin.math.abs
 
 interface BlocksPositioner {
     fun reposition(blocks: List<Block>): List<Block>
@@ -13,8 +12,6 @@ class ProjectorBlocksPositioner(
     private val targetScreenHeight: Int,
     private val targetScreenWidth: Int
 ) : BlocksPositioner {
-
-    private val rectangleFinder = RectangleFinder()
 
     private var homographyMatrix: HomographyMatrix? = null
     private var adjustedRectangle: Rectangle? = null
@@ -37,20 +34,20 @@ class ProjectorBlocksPositioner(
         positionBlocks
             .map { Point(it.centerX.toDouble(), it.centerY.toDouble()) }
             .let { positionPoints ->
-                createPerspectiveRectangle(positionPoints)
+                PerspectiveRectangle.createFromPoints(positionPoints)
             }.let { perspectiveRectangle ->
-                val newAdjustedRectangle = rectangleFinder.adjustRectangle(perspectiveRectangle)
-                calibrateProportions(newAdjustedRectangle)
-                calcHomographyMatrix(perspectiveRectangle, newAdjustedRectangle)
+                val rectangle = perspectiveRectangle.toRectangle()
+                calibrateProportions(rectangle)
+                calcHomographyMatrix(perspectiveRectangle, rectangle)
 
                 if(adjustedRectangle == null) {
-                    adjustedRectangle = newAdjustedRectangle
+                    adjustedRectangle = rectangle
                 }
             }
     }
 
     private fun calcHomographyMatrix(
-        perspectiveRectangle: Rectangle,
+        perspectiveRectangle: PerspectiveRectangle,
         newAdjustedRectangle: Rectangle
     ) {
         homographyMatrix =
@@ -72,27 +69,11 @@ class ProjectorBlocksPositioner(
             val newPoint = PointPositionCalculator.calculatePoint(point, homographyMatrix!!)
             BlockFactory.createBlock(
                 it.javaClass,
-                (newPoint.x - adjustedRectangle!!.topLeft.x).toFloat() * proportionWidth,
-                (newPoint.y - adjustedRectangle!!.topLeft.y).toFloat() * proportionHeight,
+                (newPoint.x - adjustedRectangle!!.left).toFloat() * proportionWidth,
+                (newPoint.y - adjustedRectangle!!.top).toFloat() * proportionHeight,
                 it.diameter,
                 it.angle
             )
-        }
-    }
-
-    private fun createPerspectiveRectangle(points: List<Point>): Rectangle {
-        require(points.size == 4) { "We need four location points" }
-
-        return points.sortedBy { it.x }.let { sortedPoints ->
-            val leftPoints = sortedPoints.subList(0, 2)
-            val rightPoints = sortedPoints.subList(2, 4)
-
-            val topLeft = leftPoints.minByOrNull { it.y }
-            val bottomLeft = leftPoints.maxByOrNull { it.y }
-            val topRight = rightPoints.minByOrNull { it.y }
-            val bottomRight = rightPoints.maxByOrNull { it.y }
-
-            Rectangle(topLeft!!, topRight!!, bottomRight!!, bottomLeft!!)
         }
     }
 }
