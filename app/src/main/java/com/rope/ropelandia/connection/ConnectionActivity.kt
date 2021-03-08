@@ -18,6 +18,8 @@ class ConnectionActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityConnectionBinding
 
+    private val connectedSound by lazy { MediaPlayer.create(this, R.raw.audio_rope_conectado) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityConnectionBinding.inflate(layoutInflater)
@@ -112,9 +114,8 @@ class ConnectionActivity : AppCompatActivity() {
     }
 
     private fun playConnectedSound(onPlayed: () -> Unit) {
-        val mediaPlayer = MediaPlayer.create(this, R.raw.audio_rope_conectado)
-        mediaPlayer.start()
-        mediaPlayer.setOnCompletionListener {
+        connectedSound.start()
+        connectedSound.setOnCompletionListener {
             onPlayed()
         }
     }
