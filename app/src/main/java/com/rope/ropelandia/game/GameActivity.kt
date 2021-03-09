@@ -1,7 +1,6 @@
 package com.rope.ropelandia.game
 
 import android.graphics.Bitmap
-import android.graphics.Rect
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
@@ -56,15 +55,7 @@ class GameActivity : AppCompatActivity(),
 
     private fun updateViewWithProgram() {
         val programBlocksViews = program.blocks.map { block ->
-            BlockView(this).apply {
-                bounds = Rect(
-                    block.left.toInt(),
-                    block.top.toInt(),
-                    block.right.toInt(),
-                    block.bottom.toInt()
-                )
-                angle = block.angle
-            }
+            BlockToBlockView.convert(this, block)
         }
         gameView.blocksViews = programBlocksViews
         gameView.invalidate()
