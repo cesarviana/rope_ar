@@ -15,6 +15,7 @@ class TopCodesScanner {
         val imageHeight = bitmap.height
         val imageData = IntArray(imageWidth * imageHeight)
         bitmap.getPixels(imageData, 0, imageWidth, 0, 0, imageWidth, imageHeight)
+        bitmap.recycle()
         return searchTopCodesNative(imageWidth, imageHeight, imageData).toList()
     }
 

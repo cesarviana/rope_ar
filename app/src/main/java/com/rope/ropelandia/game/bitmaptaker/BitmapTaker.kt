@@ -21,16 +21,19 @@ abstract class BitmapTaker(
 
     @SuppressLint("UnsafeExperimentalUsageError")
     protected fun imageTaken(imageProxy: ImageProxy) {
-        handler.post {
-            imageProxy.image?.let {
-                try {
-                    val bitmap = toBitmapConverterFactory.getConverter(it).convert(it)
+        imageProxy.image?.let {
+            try {
+                val bitmap = toBitmapConverterFactory.getConverter(it).convert(it)
+                imageProxy.close()
+                handler.post {
                     bitmapTookCallback.onBitmap(bitmap)
-                } catch (e: Exception) {
-                    bitmapTookCallback.onError(e)
-                } finally {
-                    imageProxy.close()
                 }
+            } catch (e: Exception) {
+                handler.post {
+                    bitmapTookCallback.onError(e)
+                }
+            } finally {
+                imageProxy.close()
             }
         }
     }

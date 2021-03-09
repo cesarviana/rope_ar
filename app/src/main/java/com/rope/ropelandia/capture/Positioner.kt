@@ -57,7 +57,10 @@ class ProjectorBlocksPositioner(
 
         // resize the perspective rectangle so its bottom becomes equals to the target rectangle
         val resizedPerspectiveRectangle = perspectiveRectangle.resize(proportion)
-        check(resizedPerspectiveRectangle.bottomWidth() == targetRectangle.width())
+        check(resizedPerspectiveRectangle.bottomWidth() == targetRectangle.width()) {
+            "Resized perspective rectangle bottom width: ${resizedPerspectiveRectangle.bottomWidth()} is different from" +
+                    "target rectangle width: ${targetRectangle.width()}"
+        }
 
         homographyMatrix = calcHomographyMatrix(resizedPerspectiveRectangle, targetRectangle)
     }

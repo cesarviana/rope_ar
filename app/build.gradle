@@ -72,8 +72,11 @@ dependencies {
     implementation "androidx.activity:activity-ktx:1.2.0"
     kapt 'androidx.room:room-compiler:2.2.6'
 
+    implementation "androidx.camera:camera-core:1.1.0-alpha02"
     implementation "androidx.camera:camera-camera2:1.1.0-alpha02"
     implementation "androidx.camera:camera-lifecycle:1.1.0-alpha02"
+    implementation "androidx.camera:camera-view:1.0.0-alpha22"
+
 
     implementation 'org.ejml:ejml-all:0.40'
     testImplementation 'org.assertj:assertj-core:3.18.1'

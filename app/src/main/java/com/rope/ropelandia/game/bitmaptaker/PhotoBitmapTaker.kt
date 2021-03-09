@@ -18,11 +18,11 @@ class PhotoBitmapTaker(context: Context, handler: Handler, executor: ExecutorSer
     ) {
 
     private val imageCapture by lazy {
-        val width = context.resources.displayMetrics.widthPixels * 2
-        val height = context.resources.displayMetrics.heightPixels * 2
+        val width = context.resources.displayMetrics.widthPixels * 1.7
+        val height = context.resources.displayMetrics.heightPixels * 1.7
         ImageCapture.Builder()
-            .setTargetResolution(Size(width, height))
-            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .setTargetResolution(Size(width.toInt(), height.toInt()))
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
             .build()
     }
 

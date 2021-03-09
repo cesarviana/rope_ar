@@ -19,10 +19,10 @@ open class Block(
         const val HEIGHT = 150
     }
 
-    val left = centerX - (WIDTH / 2)
-    val top = centerY - (HEIGHT / 2)
-    val right = centerX + (WIDTH / 2)
-    val bottom = centerY + (HEIGHT / 2)
+    val left = centerX - (WIDTH shr 1)
+    val top = centerY - (HEIGHT shr 1)
+    val right = centerX + (WIDTH shr 1)
+    val bottom = centerY + (HEIGHT shr 1)
 }
 
 object BlockFactory {
@@ -64,7 +64,7 @@ open class ManipulableBlock(centerX: Float, centerY: Float, diameter: Float, ang
 
         val cos = cos(anglePointingUpTopCode)
         val sin = sin(anglePointingUpTopCode)
-        val correction = 20
+        val correction = 60
         this.centerX = (cos * correction + centerX).toFloat()
         this.centerY = (sin * correction + centerY).toFloat()
     }

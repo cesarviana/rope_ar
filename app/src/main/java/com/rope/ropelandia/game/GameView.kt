@@ -40,7 +40,7 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     }
 
     private val pathPaint = Paint().apply {
-        strokeWidth = 200f
+        strokeWidth = 150f
         color = Color.YELLOW
         style = Paint.Style.FILL_AND_STROKE
         strokeCap = Paint.Cap.ROUND

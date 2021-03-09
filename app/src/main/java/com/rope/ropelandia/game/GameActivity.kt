@@ -19,7 +19,6 @@ import com.rope.ropelandia.capture.BitmapToBlocksConverter
 import com.rope.ropelandia.capture.ProgramFactory
 import com.rope.ropelandia.game.bitmaptaker.BitmapTaker
 import com.rope.ropelandia.game.bitmaptaker.BitmapTakerFactory
-import com.rope.ropelandia.game.bitmaptaker.BitmapTookCallback
 import com.rope.ropelandia.model.*
 import kotlinx.android.synthetic.main.main_activity.*
 import java.util.concurrent.Executors
@@ -47,11 +46,7 @@ class GameActivity : AppCompatActivity(),
 
     override fun onStop() {
         super.onStop()
-        try {
-            bitmapTaker.stop()
-        } catch (e: Exception) {
-            e.message?.let { Log.e(javaClass.simpleName, it) }
-        }
+        bitmapTaker.stop()
         app.rope?.removeDisconnectedListener(this)
         app.rope?.removeStartPressedListener(this)
         app.rope?.removeActionListener(this)
@@ -166,22 +161,52 @@ class GameActivity : AppCompatActivity(),
             val bitmapTookHandler = HandlerCompat.createAsync(Looper.getMainLooper())
             val bitmapToBlocksExecutor = Executors.newFixedThreadPool(4)
             val blocksFoundHandler = HandlerCompat.createAsync(Looper.getMainLooper())
-            val bitmapToBlocksConverter = BitmapToBlocksConverter()
 
-            val bitmapTookCallback: BitmapTookCallback = { bitmap: Bitmap ->
-                bitmapToBlocksExecutor.submit {
-                    val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
-                    if(blocks.isNotEmpty()){ // ignore if no block found
-                        blocksFoundHandler.post {
-                            program = ProgramFactory.findSequence(blocks)
-                            updateViewWithProgram()
+            val width = resources.displayMetrics.widthPixels
+            val height = resources.displayMetrics.heightPixels
+
+            val bitmapToBlocksConverter = BitmapToBlocksConverter(height, width)
+            val bitmapTakerExecutor = Executors.newFixedThreadPool(2)
+
+//            var convertingToBlocks = false
+
+            val bitmapTookCallback = object: BitmapTaker.BitmapTookCallback {
+                override fun onBitmap(bitmap: Bitmap) {
+                    Log.d(
+                        "GAME_ACTIVITY",
+                        "Bitmap took. Width: ${bitmap.width}, Height: ${bitmap.height}"
+                    )
+
+                    bitmapToBlocksExecutor.submit {
+                        try {
+                            val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
+                            if (blocks.isNotEmpty()) { // ignore if no block found
+                                blocksFoundHandler.post {
+                                    program = ProgramFactory.findSequence(blocks)
+                                    updateViewWithProgram()
+                                }
+                            }
+                        } catch (e: java.lang.Exception) {
+                            e.message?.let { Log.e("GAME_ACTIVITY", it) }
                         }
-                    }
+
+                    }.get()
+                }
+
+                override fun onError(e: Exception) {
+                    Log.e(javaClass.simpleName, "Error when getting bitmap")
+                    e.printStackTrace()
                 }
             }
 
             bitmapTaker = BitmapTakerFactory()
-                .createBitmapTaker(this, bitmapTookHandler, BitmapTakerFactory.Type.PICTURE, bitmapTookCallback)
+                .createBitmapTaker(
+                    this,
+                    bitmapTookHandler,
+                    bitmapTakerExecutor,
+                    BitmapTakerFactory.Type.PICTURE,
+                    bitmapTookCallback
+                )
 
             val useCase = bitmapTaker.getUseCase()
 
