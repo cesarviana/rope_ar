@@ -13,9 +13,8 @@ interface RoPE {
     fun isStopped(): Boolean
 
     fun send(command: String)
-    fun execute(vararg actions: Action)
 
-    fun execute(actionList: List<Action>)
+    fun execute(program: Program)
 
     fun onMessage(function: (message: String) -> Unit)
 
@@ -63,5 +62,9 @@ interface RoPE {
         };
 
         abstract val stringSequence: String
+    }
+
+    interface Program {
+        val actionList: List<Action>
     }
 }

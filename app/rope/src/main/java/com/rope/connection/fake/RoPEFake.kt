@@ -42,11 +42,7 @@ class RoPEFake : RoPE {
         TODO("Not yet implemented")
     }
 
-    override fun execute(vararg actions: RoPE.Action) {
-        TODO("Not yet implemented")
-    }
-
-    override fun execute(actionList: List<RoPE.Action>) {
+    override fun execute(program: RoPE.Program) {
         TODO("Not yet implemented")
     }
 

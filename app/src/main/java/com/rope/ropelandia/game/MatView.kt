@@ -21,7 +21,8 @@ class MatView(context: Context, attributeSet: AttributeSet?) : View(context, att
         setBackgroundColor(Color.YELLOW)
     }
 
-    private var squareSize = 100
+    private val numberOfSquares = 4
+    private var squareSize = resources.displayMetrics.heightPixels / numberOfSquares
 
     private val paint = Paint().apply {
         style = Paint.Style.STROKE

@@ -1,6 +1,6 @@
 package com.rope.ropelandia.capture
 
-import android.util.Log
+import com.rope.connection.RoPE
 import com.rope.ropelandia.model.*
 import kotlin.math.cos
 import kotlin.math.sin
@@ -9,9 +9,7 @@ object ProgramFactory {
 
     private const val SNAP_DISTANCE = 100
 
-    fun findSequence(blocks: List<Block>): Program {
-
-        Log.d("PROGRAM_FACTORY", blocks.map { it.toString() }.joinToString { "," })
+    fun createFromBlocks(blocks: List<Block>): RoPE.Program {
 
         val remainingBlocks = mutableListOf<Block>().apply { addAll(blocks) }
         val programBlocks = mutableListOf<Block>()
@@ -26,7 +24,9 @@ object ProgramFactory {
 
         removeStartBlock(programBlocks)
 
-        return Program(programBlocks)
+        val ropeActions = convert(blocks)
+
+        return SequentialProgram(ropeActions)
     }
 
     private fun removeStartBlock(program: MutableList<Block>) {
@@ -67,5 +67,21 @@ object ProgramFactory {
 
         val nextBlockExpectedPoint = Point(snapAreaX.toDouble(), snapAreaY.toDouble())
         return Circle(nextBlockExpectedPoint, SNAP_DISTANCE.toDouble())
+    }
+
+    private fun convert(blocks: List<Block>): List<RoPE.Action> {
+        val ropeActions = mutableListOf<RoPE.Action>()
+
+        blocks.map {
+            when (it) {
+                is ForwardBlock -> RoPE.Action.FORWARD
+                is BackwardBlock -> RoPE.Action.BACKWARD
+                is LeftBlock -> RoPE.Action.LEFT
+                is RightBlock -> RoPE.Action.RIGHT
+                else -> RoPE.Action.NULL
+            }
+        }.toCollection(ropeActions)
+
+        return ropeActions
     }
 }

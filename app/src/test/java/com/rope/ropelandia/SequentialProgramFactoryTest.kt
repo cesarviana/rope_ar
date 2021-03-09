@@ -7,7 +7,7 @@ import com.rope.ropelandia.model.StartBlock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
-class ProgramFactoryTest {
+class SequentialProgramFactoryTest {
 
     @Test
     fun testHorizontalProgram() {
@@ -16,7 +16,7 @@ class ProgramFactoryTest {
 
         val blocks = listOf(startBlock, forwardBlock)
 
-        val program = ProgramFactory.findSequence(blocks)
+        val program = ProgramFactory.createFromBlocks(blocks)
 
         assertThat(program.blocks)
             .hasSize(1)
@@ -31,7 +31,7 @@ class ProgramFactoryTest {
 
         val blocks = listOf(startBlock, forwardBlock, leftBlock)
 
-        val program = ProgramFactory.findSequence(blocks)
+        val program = ProgramFactory.createFromBlocks(blocks)
 
         assertThat(program.blocks)
             .hasSize(1)
@@ -46,7 +46,7 @@ class ProgramFactoryTest {
 
         val blocks = listOf(startBlock, forwardBlock)
 
-        val program = ProgramFactory.findSequence(blocks)
+        val program = ProgramFactory.createFromBlocks(blocks)
 
         assertThat(program.blocks)
             .hasSize(1)
@@ -60,7 +60,7 @@ class ProgramFactoryTest {
 
         val blocks = listOf(startBlock, forwardBlock)
 
-        val program = ProgramFactory.findSequence(blocks)
+        val program = ProgramFactory.createFromBlocks(blocks)
 
         assertThat(program.blocks)
             .hasSize(1)

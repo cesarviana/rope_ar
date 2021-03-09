@@ -110,11 +110,9 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice)
         Listeners.onActionExecution.add(ropeActionListener)
     }
 
-    override fun execute(vararg actions: RoPE.Action) = execute(actions.asList())
-
-    override fun execute(actionList: List<RoPE.Action>) {
+    override fun execute(program: RoPE.Program) {
         if (isStopped()) {
-            val actions = actionList.joinToString("") { it.stringSequence }
+            val actions = program.actionList.joinToString("") { it.stringSequence }
             val executeSuffix = RoPE.Action.EXECUTE.stringSequence
             val command = "$commandsPrefix$actions$executeSuffix"
             send(command)

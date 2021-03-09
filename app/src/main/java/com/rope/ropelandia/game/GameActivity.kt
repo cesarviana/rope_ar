@@ -18,7 +18,8 @@ import com.rope.ropelandia.capture.BitmapToBlocksConverter
 import com.rope.ropelandia.capture.ProgramFactory
 import com.rope.ropelandia.game.bitmaptaker.BitmapTaker
 import com.rope.ropelandia.game.bitmaptaker.BitmapTakerFactory
-import com.rope.ropelandia.model.*
+import com.rope.ropelandia.model.Block
+import com.rope.ropelandia.model.SequentialProgram
 import kotlinx.android.synthetic.main.main_activity.*
 import java.util.concurrent.Executors
 
@@ -33,7 +34,7 @@ class GameActivity : AppCompatActivity(),
     private val permissionChecker by lazy { PermissionChecker() }
     private val levels: List<Level> by lazy { LevelLoader.load(applicationContext) }
     private var levelIndex = 0
-    private var program: Program = Program(listOf())
+    private var program: RoPE.Program = SequentialProgram(listOf())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,8 +54,8 @@ class GameActivity : AppCompatActivity(),
         app.rope?.removeExecutionFinishedListener(this)
     }
 
-    private fun updateViewWithProgram() {
-        val programBlocksViews = program.blocks.map { block ->
+    private fun updateViewWithBlocks(blocks: List<Block>) {
+        val programBlocksViews = blocks.map { block ->
             BlockToBlockView.convert(this, block)
         }
         gameView.blocksViews = programBlocksViews
@@ -104,25 +105,8 @@ class GameActivity : AppCompatActivity(),
         }
     }
 
-    private fun ropeExecute(program: Program) {
-        val ropeActions = convertToRoPEActions(program)
-        app.rope?.execute(ropeActions)
-    }
-
-    private fun convertToRoPEActions(program: Program): List<RoPE.Action> {
-        val ropeActions = mutableListOf<RoPE.Action>()
-
-        program.blocks.map {
-            when (it) {
-                is ForwardBlock -> RoPE.Action.FORWARD
-                is BackwardBlock -> RoPE.Action.BACKWARD
-                is LeftBlock -> RoPE.Action.LEFT
-                is RightBlock -> RoPE.Action.RIGHT
-                else -> RoPE.Action.NULL
-            }
-        }.toCollection(ropeActions)
-
-        return ropeActions
+    private fun ropeExecute(program: RoPE.Program) {
+        app.rope?.execute(program)
     }
 
     private fun returnToPreviousActivity() {
@@ -173,8 +157,8 @@ class GameActivity : AppCompatActivity(),
                             val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
                             if (blocks.isNotEmpty()) { // ignore if no block found
                                 blocksFoundHandler.post {
-                                    program = ProgramFactory.findSequence(blocks)
-                                    updateViewWithProgram()
+                                    program = ProgramFactory.createFromBlocks(blocks)
+                                    updateViewWithBlocks(blocks)
                                 }
                             }
                         } catch (e: java.lang.Exception) {
