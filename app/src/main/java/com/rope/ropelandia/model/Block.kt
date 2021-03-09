@@ -10,11 +10,11 @@ open class Block(
     val angle: Float
 ) {
     init {
-        require(centerX >= 0)
-        require(centerY >= 0)
+        require(centerX >= 0) {"Block center X must be > 0"}
+        require(centerY >= 0) {"Block center Y must be > 0"}
     }
 
-    private companion object {
+    companion object {
         const val WIDTH = 180
         const val HEIGHT = 150
     }
