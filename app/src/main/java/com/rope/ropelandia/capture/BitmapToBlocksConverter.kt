@@ -1,18 +1,16 @@
 package com.rope.ropelandia.capture
 
 import android.graphics.Bitmap
+import android.util.Size
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.BlockFactory
 import topcodes.TopCode
 import topcodes.TopCodesScanner
 
-class BitmapToBlocksConverter(
-    targetHeight: Int,
-    targetWidth: Int
-) {
+class BitmapToBlocksConverter(screenSize: Size) {
 
     private val topCodesScanner by lazy { TopCodesScanner() }
-    private val positioner by lazy { ProjectorBlocksPositioner(targetHeight, targetWidth) }
+    private val positioner by lazy { ProjectorBlocksPositioner(screenSize.height, screenSize.width) }
 
     fun convertBitmapToBlocks(bitmap: Bitmap): List<Block> {
         return bitmap.let {

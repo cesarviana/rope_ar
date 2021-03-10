@@ -20,6 +20,9 @@ import com.rope.ropelandia.app
 import com.rope.ropelandia.capture.BitmapToBlocksConverter
 import com.rope.ropelandia.game.bitmaptaker.BitmapTaker
 import com.rope.ropelandia.game.bitmaptaker.BitmapTakerFactory
+import com.rope.ropelandia.game.blocksanalyser.BlocksAnalyzerComposite
+import com.rope.ropelandia.game.blocksanalyser.ProgramDetector
+import com.rope.ropelandia.game.blocksanalyser.RoPEMovementsDetector
 import com.rope.ropelandia.model.Block
 import kotlinx.android.synthetic.main.main_activity.*
 import java.util.concurrent.Executors
@@ -142,42 +145,21 @@ class GameActivity : AppCompatActivity(),
 
             val width = resources.displayMetrics.widthPixels
             val height = resources.displayMetrics.heightPixels
+            val screenSize = Size(width, height)
 
-            val bitmapToBlocksConverter = BitmapToBlocksConverter(height, width)
+            val bitmapToBlocksConverter = BitmapToBlocksConverter(screenSize)
             val bitmapTakerExecutor = Executors.newFixedThreadPool(2)
 
             val blocksAnalyser = BlocksAnalyzerComposite()
-
-            blocksAnalyser.addBlocksAnalyzer(object : ProgramDetector(app.rope!!) {
-
-                private val blocksFoundHandler = HandlerCompat.createAsync(Looper.getMainLooper())
-
-                override fun onFoundProgramBlocks(blocks: List<Block>, program: RoPE.Program) {
-                    blocksFoundHandler.post {
-                        this@GameActivity.program = program
-                        updateViewWithBlocks(blocks)
-                    }
-                }
-            })
-
-            val screenSize = Size(width, height)
-
-            blocksAnalyser.addBlocksAnalyzer(object : RoPEMovementsDetector(game, screenSize) {
-                override fun changedSquare(squareX: Int, squareY: Int) {
-                    Thread {
-                        jumpSound.start()
-                    }.start()
-                }
-            })
+            blocksAnalyser.addBlocksAnalyzer(createProgramDetector())
+            blocksAnalyser.addBlocksAnalyzer(createMovementsDetector(screenSize))
 
             val bitmapTookCallback = object : BitmapTaker.BitmapTookCallback {
                 override fun onBitmap(bitmap: Bitmap) {
                     bitmapToBlocksExecutor.submit {
                         try {
                             val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
-                            if (blocks.isNotEmpty()) { // ignore if no block found
-                                blocksAnalyser.analyze(blocks)
-                            }
+                            blocksAnalyser.analyze(blocks)
                         } catch (e: java.lang.Exception) {
                             e.message?.let { Log.e("GAME_ACTIVITY", it) }
                         }
@@ -218,6 +200,26 @@ class GameActivity : AppCompatActivity(),
             ContextCompat.getMainExecutor(this)
         )
     }
+
+    private fun createProgramDetector() = object : ProgramDetector(app.rope!!) {
+        private val blocksFoundHandler = HandlerCompat.createAsync(Looper.getMainLooper())
+
+        override fun onFoundProgramBlocks(blocks: List<Block>, program: RoPE.Program) {
+            blocksFoundHandler.post {
+                this@GameActivity.program = program
+                updateViewWithBlocks(blocks)
+            }
+        }
+    }
+
+    private fun createMovementsDetector(screenSize: Size) =
+        object : RoPEMovementsDetector(game, screenSize) {
+            override fun changedSquare(squareX: Int, squareY: Int) {
+                Thread {
+                    jumpSound.start()
+                }.start()
+            }
+        }
 
     private fun startGame() {
         gameView.matView.mat = game.currentMat()
