@@ -20,6 +20,7 @@ import com.rope.ropelandia.game.bitmaptaker.BitmapTaker
 import com.rope.ropelandia.game.bitmaptaker.BitmapTakerFactory
 import com.rope.ropelandia.model.Block
 import com.rope.program.SequentialProgram
+import com.rope.ropelandia.capture.BlocksToProgramConverter
 import kotlinx.android.synthetic.main.main_activity.*
 import java.util.concurrent.Executors
 
@@ -143,8 +144,6 @@ class GameActivity : AppCompatActivity(),
             val bitmapToBlocksConverter = BitmapToBlocksConverter(height, width)
             val bitmapTakerExecutor = Executors.newFixedThreadPool(2)
 
-//            var convertingToBlocks = false
-
             val bitmapTookCallback = object: BitmapTaker.BitmapTookCallback {
                 override fun onBitmap(bitmap: Bitmap) {
                     Log.d(
@@ -157,8 +156,9 @@ class GameActivity : AppCompatActivity(),
                             val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
                             if (blocks.isNotEmpty()) { // ignore if no block found
                                 blocksFoundHandler.post {
-                                    program = ProgramFactory.createFromBlocks(blocks)
-                                    updateViewWithBlocks(blocks)
+                                    val blockSequence = ProgramFactory.findSequence(blocks)
+                                    updateViewWithBlocks(blockSequence)
+                                    program = BlocksToProgramConverter.convert(blockSequence)
                                 }
                             }
                         } catch (e: java.lang.Exception) {

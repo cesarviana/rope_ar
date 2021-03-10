@@ -6,11 +6,30 @@ import com.rope.ropelandia.model.*
 import kotlin.math.cos
 import kotlin.math.sin
 
+object BlocksToProgramConverter {
+    fun convert(blocks: List<Block>) : RoPE.Program {
+
+        val ropeActions = mutableListOf<RoPE.Action>()
+
+        blocks.map {
+            when (it) {
+                is ForwardBlock -> RoPE.Action.FORWARD
+                is BackwardBlock -> RoPE.Action.BACKWARD
+                is LeftBlock -> RoPE.Action.LEFT
+                is RightBlock -> RoPE.Action.RIGHT
+                else -> RoPE.Action.NULL
+            }
+        }.toCollection(ropeActions)
+
+        return SequentialProgram(ropeActions)
+    }
+}
+
 object ProgramFactory {
 
     private const val SNAP_DISTANCE = 100
 
-    fun createFromBlocks(blocks: List<Block>): RoPE.Program {
+    fun findSequence(blocks: List<Block>): List<Block> {
 
         val remainingBlocks = mutableListOf<Block>().apply { addAll(blocks) }
         val programBlocks = mutableListOf<Block>()
@@ -25,9 +44,7 @@ object ProgramFactory {
 
         removeStartBlock(programBlocks)
 
-        val ropeActions = convert(blocks)
-
-        return SequentialProgram(ropeActions)
+        return programBlocks
     }
 
     private fun removeStartBlock(program: MutableList<Block>) {
@@ -70,19 +87,4 @@ object ProgramFactory {
         return Circle(nextBlockExpectedPoint, SNAP_DISTANCE.toDouble())
     }
 
-    private fun convert(blocks: List<Block>): List<RoPE.Action> {
-        val ropeActions = mutableListOf<RoPE.Action>()
-
-        blocks.map {
-            when (it) {
-                is ForwardBlock -> RoPE.Action.FORWARD
-                is BackwardBlock -> RoPE.Action.BACKWARD
-                is LeftBlock -> RoPE.Action.LEFT
-                is RightBlock -> RoPE.Action.RIGHT
-                else -> RoPE.Action.NULL
-            }
-        }.toCollection(ropeActions)
-
-        return ropeActions
-    }
 }

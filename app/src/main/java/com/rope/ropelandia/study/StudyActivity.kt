@@ -11,6 +11,7 @@ import com.rope.connection.ble.RoPEActionListener
 import com.rope.connection.ble.RoPEExecutionStartedListener
 import com.rope.connection.fake.RoPEFinderFake
 import com.rope.ropelandia.R
+import com.rope.ropelandia.capture.BlocksToProgramConverter
 import com.rope.ropelandia.capture.ProgramFactory
 import com.rope.ropelandia.game.BlockToBlockView
 import com.rope.ropelandia.game.GameView
@@ -57,7 +58,8 @@ class StudyActivity : AppCompatActivity() {
         event?.let {
             if(it.action == MotionEvent.ACTION_DOWN){
                 val blocks = retrieveBlocks()
-                val program = ProgramFactory.createFromBlocks(blocks)
+                val blocksSequence = ProgramFactory.findSequence(blocks)
+                val program = BlocksToProgramConverter.convert(blocksSequence)
                 rope?.execute(program)
             }
         }
