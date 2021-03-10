@@ -5,6 +5,7 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.widget.LinearLayout
 
 class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs),
     SurfaceHolder.Callback {
@@ -13,17 +14,21 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
 
     var blocksViews: List<BlockView> = listOf()
 
-    private val centerX by lazy { (width / 2).toFloat() }
-    private val centerY by lazy { (height / 2).toFloat() }
+    private val centerX by lazy { (width shr 1).toFloat() }
+    private val centerY by lazy { (height shr 1).toFloat() }
 
     init {
         setWillNotDraw(false)
         setZOrderOnTop(true)
+        val width = resources.displayMetrics.widthPixels
+        val height = resources.displayMetrics.heightPixels
+        layoutParams = LinearLayout.LayoutParams(width, height)
+        matView.layoutParams = LinearLayout.LayoutParams(width, height)
     }
 
-    override fun draw(canvas: Canvas?) {
-        super.draw(canvas)
-        clear(canvas)
+    override fun onDraw(canvas: Canvas?) {
+        super.onDraw(canvas)
+        //clear(canvas)
         canvas?.apply {
             // rotate to image be up for the user
             rotate(180f, centerX, centerY)
@@ -32,29 +37,32 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
             // rotate back
             rotate(-180f, centerX, centerY)
             // the blocks must not be rotated
+            drawPath()
             blocksViews.forEach {
                 it.draw(canvas)
             }
-            drawPath()
         }
     }
 
     private val pathPaint = Paint().apply {
-        strokeWidth = 150f
-        color = Color.YELLOW
-        style = Paint.Style.FILL_AND_STROKE
+        color = Color.RED
+        style = Paint.Style.FILL
+        strokeCap = Paint.Cap.ROUND
+    }
+    private val internalPath = Paint().apply {
+        color = Color.WHITE
+        style = Paint.Style.FILL
         strokeCap = Paint.Cap.ROUND
     }
 
     private fun Canvas.drawPath() {
         if (blocksViews.isNotEmpty()) {
-            val path = Path()
-            val blockView = blocksViews[0]
-            path.moveTo(blockView.centerX().toFloat(), blockView.centerY().toFloat())
             blocksViews.forEach {
-                path.lineTo(it.centerX().toFloat(), it.centerY().toFloat())
+                drawCircle(it.centerX().toFloat(), it.centerY().toFloat(), 100f, pathPaint)
             }
-            drawPath(path, pathPaint)
+            blocksViews.forEach {
+                drawCircle(it.centerX().toFloat(), it.centerY().toFloat(), 90f, internalPath)
+            }
         }
     }
 
@@ -89,14 +97,16 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
                 BlockView.BlockState.PARSED
             }
         }
-        updateDraw()
+        invalidate()
+        //updateDraw()
     }
 
     fun hideHighlight() {
         blocksViews.forEach {
             it.state = BlockView.BlockState.PARSED
         }
-        updateDraw()
+        invalidate()
+        //updateDraw()
     }
 
     private fun updateDraw() {
@@ -115,6 +125,17 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {}
+
+    fun setMat(mat: Mat) {
+        matView.mat = mat
+    }
+
+    fun highlight(index: Int) {
+        if(blocksViews.size > index) {
+            blocksViews[index].state = BlockView.BlockState.EXECUTING
+        }
+        invalidate()
+    }
 
 }
 

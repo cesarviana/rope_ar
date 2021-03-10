@@ -2,25 +2,15 @@ package com.rope.connection.ble
 
 import android.bluetooth.*
 import android.content.Context
+import android.os.Handler
 import android.util.Log
 import android.util.Log.d
 import com.rope.connection.RoPE
 import com.rope.connection.ble.*
 import java.util.*
 
-class RoPEBle(private val context: Context, private val device: BluetoothDevice) : RoPE {
+class RoPEBle(private val context: Context, private val device: BluetoothDevice, handler: Handler) : RoPE(handler) {
 
-    private object Listeners {
-        val onExecutionFinished: MutableList<RoPEExecutionFinishedListener> = mutableListOf()
-        val onExecutionStarted: MutableList<RoPEExecutionStartedListener> = mutableListOf()
-        val onActionExecution: MutableList<RoPEActionListener> = mutableListOf()
-        val onStartPressed: MutableList<RoPEStartPressedListener> = mutableListOf()
-        val onMessage: MutableList<(message: String) -> Unit> = mutableListOf()
-        var onConnected: (() -> Unit)? = null
-        val onDisconnected: MutableList<RoPEDisconnectedListener> = mutableListOf()
-    }
-
-    override var actionIndex = 0
     private val callback = MyGattCallback()
 
     private lateinit var bluetoothGatt: BluetoothGatt
@@ -48,7 +38,7 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice)
             val canStart = isStartMessage && isStopped()
             if (canStart) {
                 state = State.EXECUTING
-                Listeners.onExecutionStarted.forEach { it.executionStarted(this) }
+                notifyExecutionStarted()
             }
         }
         this.onMessage { message ->
@@ -60,14 +50,14 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice)
                 val actionIndex = matches!!.groups[numberGroup]!!.value
                 actionIndex.toIntOrNull()?.let { index ->
                     this.actionIndex = index
-                    Listeners.onActionExecution.forEach { it.actionFinished(this) }
+                    notifyActionExecuted()
                 }
             }
         }
         this.onMessage { message ->
             if (message.contains("terminated")) {
                 state = State.STOPPED
-                Listeners.onExecutionFinished.forEach { it.executionEnded(this) }
+                notifyExecutionEnded()
             }
         }
     }
@@ -106,11 +96,11 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice)
         Listeners.onStartPressed.add(ropeStartPressedListener)
     }
 
-    override fun onActionFinished(ropeActionListener: RoPEActionListener) {
+    override fun onActionExecuted(ropeActionListener: RoPEActionListener) {
         Listeners.onActionExecution.add(ropeActionListener)
     }
 
-    override fun execute(program: RoPE.Program) {
+    override fun execute(program: Program) {
         if (isStopped()) {
             val actions = program.actionList.joinToString("") { it.stringSequence }
             val executeSuffix = RoPE.Action.EXECUTE.stringSequence
@@ -151,6 +141,10 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice)
 
     override fun removeExecutionFinishedListener(listener: RoPEExecutionFinishedListener) {
         Listeners.onExecutionFinished.remove(listener)
+    }
+
+    override fun stop() {
+        // TODO implement stop. RoPE firmware must listen
     }
 
     private inner class MyGattCallback : BluetoothGattCallback() {

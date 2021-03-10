@@ -1,6 +1,7 @@
 package com.rope.ropelandia.capture
 
 import com.rope.connection.RoPE
+import com.rope.program.SequentialProgram
 import com.rope.ropelandia.model.*
 import kotlin.math.cos
 import kotlin.math.sin

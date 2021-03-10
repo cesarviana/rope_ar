@@ -19,7 +19,7 @@ import com.rope.ropelandia.capture.ProgramFactory
 import com.rope.ropelandia.game.bitmaptaker.BitmapTaker
 import com.rope.ropelandia.game.bitmaptaker.BitmapTakerFactory
 import com.rope.ropelandia.model.Block
-import com.rope.ropelandia.model.SequentialProgram
+import com.rope.program.SequentialProgram
 import kotlinx.android.synthetic.main.main_activity.*
 import java.util.concurrent.Executors
 
@@ -65,7 +65,7 @@ class GameActivity : AppCompatActivity(),
     private fun setupRopeListeners() {
         app.rope?.onDisconnected(this)
         app.rope?.onStartedPressed(this)
-        app.rope?.onActionFinished(this)
+        app.rope?.onActionExecuted(this)
         app.rope?.onExecutionStarted(this)
         app.rope?.onExecutionFinished(this)
     }
@@ -78,7 +78,7 @@ class GameActivity : AppCompatActivity(),
         ropeExecute(program)
     }
 
-    override fun actionFinished(rope: RoPE) {
+    override fun actionExecuted(rope: RoPE) {
         val nextAction = rope.actionIndex + 1
         runOnUiThread {
             gameView.hideHighlight()

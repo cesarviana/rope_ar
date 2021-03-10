@@ -9,10 +9,6 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
 
-typealias Tile = Drawable
-typealias MatLayer = Array<Array<Tile>>
-typealias Mat = MutableList<MatLayer>
-
 class MatView(context: Context, attributeSet: AttributeSet?) : View(context, attributeSet) {
 
     var mat: Mat = mutableListOf()

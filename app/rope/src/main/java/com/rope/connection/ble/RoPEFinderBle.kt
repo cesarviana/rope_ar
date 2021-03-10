@@ -10,6 +10,7 @@ import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
 import android.os.ParcelUuid
 import com.rope.connection.RoPE
 import com.rope.connection.RoPEFinder
@@ -20,7 +21,7 @@ import java.util.*
  * This implementation uses Bluetooth connection, but the interface don't exposes
  * Bluetooth.
  */
-class RoPEFinderBle(override var activity: Activity) : RoPEFinder {
+class RoPEFinderBle(override var activity: Activity, private val handler: Handler) : RoPEFinder {
 
     init {
         Listeners.clear()
@@ -145,7 +146,7 @@ class RoPEFinderBle(override var activity: Activity) : RoPEFinder {
     }
 
     private fun createRoPE(scanResult: ScanResult): RoPEBle {
-        return RoPEBle(activity.getApplicationContext(), scanResult.getDevice())
+        return RoPEBle(activity.applicationContext, scanResult.device, handler)
     }
 
     private inner class MyScanCallback : ScanCallback() {

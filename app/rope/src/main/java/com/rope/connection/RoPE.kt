@@ -1,35 +1,78 @@
 package com.rope.connection
 
+import android.os.Handler
 import com.rope.connection.ble.*
+import com.rope.program.SequentialProgram
 
-interface RoPE {
-    val actionIndex: Int
+abstract class RoPE(val handler: Handler) {
 
-    fun connect()
-    fun disconnect()
+    object Listeners {
+        val onExecutionFinished: MutableList<RoPEExecutionFinishedListener> = mutableListOf()
+        val onExecutionStarted: MutableList<RoPEExecutionStartedListener> = mutableListOf()
+        val onActionExecution: MutableList<RoPEActionListener> = mutableListOf()
+        val onStartPressed: MutableList<RoPEStartPressedListener> = mutableListOf()
+        val onMessage: MutableList<(message: String) -> Unit> = mutableListOf()
+        var onConnected: (() -> Unit)? = null
+        val onDisconnected: MutableList<RoPEDisconnectedListener> = mutableListOf()
+    }
 
-    fun isConnected(): Boolean
-    fun isConnecting(): Boolean
-    fun isStopped(): Boolean
+    var actionIndex: Int = 0
+    var program: Program = SequentialProgram(listOf())
 
-    fun send(command: String)
+    abstract fun connect()
+    abstract fun disconnect()
 
-    fun execute(program: Program)
+    abstract fun isConnected(): Boolean
+    abstract fun isConnecting(): Boolean
+    abstract fun isStopped(): Boolean
 
-    fun onMessage(function: (message: String) -> Unit)
+    abstract fun send(command: String)
 
-    fun onConnected(function: () -> Unit)
-    fun onDisconnected(ropeDisconnectListener: RoPEDisconnectedListener)
-    fun onExecutionStarted(executionStartedListener: RoPEExecutionStartedListener)
-    fun onExecutionFinished(executionFinishedListener: RoPEExecutionFinishedListener)
-    fun onStartedPressed(ropeStartPressedListener: RoPEStartPressedListener)
-    fun onActionFinished(ropeActionListener: RoPEActionListener)
+    abstract fun execute(program: Program)
 
-    fun removeDisconnectedListener(listener: RoPEDisconnectedListener)
-    fun removeStartPressedListener(listener: RoPEStartPressedListener)
-    fun removeActionListener(listener: RoPEActionListener)
-    fun removeExecutionStartedListener(listener: RoPEExecutionStartedListener)
-    fun removeExecutionFinishedListener(listener: RoPEExecutionFinishedListener)
+    abstract fun onMessage(function: (message: String) -> Unit)
+
+    abstract fun onConnected(function: () -> Unit)
+    abstract fun onDisconnected(ropeDisconnectListener: RoPEDisconnectedListener)
+    abstract fun onExecutionStarted(executionStartedListener: RoPEExecutionStartedListener)
+    abstract fun onExecutionFinished(executionFinishedListener: RoPEExecutionFinishedListener)
+    abstract fun onStartedPressed(ropeStartPressedListener: RoPEStartPressedListener)
+    abstract fun onActionExecuted(ropeActionListener: RoPEActionListener)
+
+    abstract fun removeDisconnectedListener(listener: RoPEDisconnectedListener)
+    abstract fun removeStartPressedListener(listener: RoPEStartPressedListener)
+    abstract fun removeActionListener(listener: RoPEActionListener)
+    abstract fun removeExecutionStartedListener(listener: RoPEExecutionStartedListener)
+    abstract fun removeExecutionFinishedListener(listener: RoPEExecutionFinishedListener)
+    abstract fun stop()
+
+    protected fun notifyActionExecuted() {
+        Listeners.onActionExecution.forEach {
+            it.actionExecuted(this)
+        }
+    }
+
+    fun nextActionIs(action: Action): Boolean {
+        val nextActionIndex = actionIndex + 1
+        val hasNextAction = program.actionList.size > nextActionIndex
+        if(hasNextAction){
+            val nextAction = program.actionList[nextActionIndex]
+            return nextAction == action
+        }
+        return false
+    }
+
+    protected fun notifyExecutionEnded() {
+        Listeners.onExecutionFinished.forEach {
+            it.executionEnded(this)
+        }
+    }
+
+    protected fun notifyExecutionStarted() {
+        Listeners.onExecutionStarted.forEach {
+            it.executionStarted(this)
+        }
+    }
 
     enum class Action {
         BACKWARD {
@@ -67,4 +110,5 @@ interface RoPE {
     interface Program {
         val actionList: List<Action>
     }
+
 }

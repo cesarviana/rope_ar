@@ -4,9 +4,11 @@ import android.app.Activity
 import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.os.Looper
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.os.HandlerCompat
 import com.rope.connection.fake.RoPEFinderFake
 import com.rope.ropelandia.R
 import com.rope.ropelandia.app
@@ -36,7 +38,8 @@ class ConnectionActivity : AppCompatActivity() {
         if (app.ropeFinder != null) {
             app.ropeFinder?.activity = this
         } else {
-            app.ropeFinder = RoPEFinderFake(this)
+            val handler = HandlerCompat.createAsync(Looper.getMainLooper())
+            app.ropeFinder = RoPEFinderFake(this, handler)
             addRoPEFinderListeners()
         }
     }

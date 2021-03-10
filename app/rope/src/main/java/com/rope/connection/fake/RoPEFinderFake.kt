@@ -1,15 +1,16 @@
 package com.rope.connection.fake
 
 import android.app.Activity
+import android.os.Handler
 import com.rope.connection.RoPE
 import com.rope.connection.RoPEFinder
 import com.rope.connection.ble.RoPEFinderBle
 
-class RoPEFinderFake(override var activity: Activity) : RoPEFinder {
+class RoPEFinderFake(override var activity: Activity, handler: Handler) : RoPEFinder {
 
     private lateinit var onConnectionFailedListener: (errorCode: Int) -> Unit
     private lateinit var onRoPEFoundListener: (rope: RoPE) -> Unit
-    private val rope = RoPEFake()
+    private val rope = RoPEFake(handler)
 
     override fun findRoPE() {
         onRoPEFoundListener(rope)

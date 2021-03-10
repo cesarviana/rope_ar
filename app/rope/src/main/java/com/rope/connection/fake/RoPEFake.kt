@@ -1,23 +1,14 @@
 package com.rope.connection.fake
 
+import android.os.Handler
+import android.util.Log
 import com.rope.connection.RoPE
 import com.rope.connection.ble.*
+import java.util.concurrent.Executors
 
-class RoPEFake : RoPE {
+class RoPEFake(handler: Handler) : RoPE(handler) {
 
     private var connected = false
-
-    private object Listeners {
-        val onExecutionFinished: MutableList<RoPEExecutionFinishedListener> = mutableListOf()
-        val onExecutionStarted: MutableList<RoPEExecutionStartedListener> = mutableListOf()
-        val onActionExecution: MutableList<RoPEActionListener> = mutableListOf()
-        val onStartPressed: MutableList<RoPEStartPressedListener> = mutableListOf()
-        val onMessage: MutableList<(message: String) -> Unit> = mutableListOf()
-        var onConnected: (() -> Unit)? = null
-        val onDisconnected: MutableList<RoPEDisconnectedListener> = mutableListOf()
-    }
-
-    override var actionIndex: Int = 0
 
     override fun connect() {
         connected = true
@@ -42,8 +33,34 @@ class RoPEFake : RoPE {
         TODO("Not yet implemented")
     }
 
-    override fun execute(program: RoPE.Program) {
-        TODO("Not yet implemented")
+    private var executor = Executors.newSingleThreadExecutor()
+
+    override fun execute(program: Program) {
+        this.program = program
+
+        if(executor.isShutdown)
+            executor = Executors.newSingleThreadExecutor()
+
+        actionIndex = 0
+
+        executor.execute {
+            try {
+                handler.post {
+                    notifyExecutionStarted()
+                }
+                program.actionList.forEach { _ ->
+                    Thread.sleep(1000)
+                    handler.post {
+                        notifyActionExecuted()
+                        actionIndex++
+                    }
+                }
+                notifyExecutionEnded()
+            } catch (e: InterruptedException) {
+                Log.d("ROPE_FAKE","execution canceled")
+            }
+        }
+
     }
 
     override fun onMessage(function: (message: String) -> Unit) {
@@ -70,7 +87,7 @@ class RoPEFake : RoPE {
         Listeners.onStartPressed.add(ropeStartPressedListener)
     }
 
-    override fun onActionFinished(ropeActionListener: RoPEActionListener) {
+    override fun onActionExecuted(ropeActionListener: RoPEActionListener) {
         Listeners.onActionExecution.add(ropeActionListener)
     }
 
@@ -92,5 +109,9 @@ class RoPEFake : RoPE {
 
     override fun removeExecutionFinishedListener(listener: RoPEExecutionFinishedListener) {
         Listeners.onExecutionFinished.remove(listener)
+    }
+
+    override fun stop() {
+        //executor.shutdownNow()
     }
 }

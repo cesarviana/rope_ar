@@ -13,8 +13,8 @@ class BlockView(context: Context) : View(context) {
     enum class BlockState {
         EXECUTING {
             private val paint: Paint = Paint().apply {
-                this.color = Color.WHITE
-                this.style = Paint.Style.FILL_AND_STROKE
+                this.color = Color.YELLOW
+                this.style = Paint.Style.STROKE
                 this.strokeWidth = 10f
             }
 
@@ -24,7 +24,7 @@ class BlockView(context: Context) : View(context) {
                 val angle = Math.toDegrees(block.angle.toDouble()).toFloat()
                 canvas.apply {
                     rotate(angle, centerX, centerY)
-                    drawOval(block.bounds.toRectF(), paint)
+                    drawCircle(centerX, centerY, 85f, paint)
                     rotate(-angle, centerX, centerY)
                 }
             }
