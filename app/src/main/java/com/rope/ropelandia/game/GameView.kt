@@ -1,7 +1,10 @@
 package com.rope.ropelandia.game
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -118,6 +121,8 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
         }
         invalidate()
     }
+
+    fun squareSize() = matView.squareSize
 
 }
 

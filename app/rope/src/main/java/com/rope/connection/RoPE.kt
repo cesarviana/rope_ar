@@ -74,6 +74,8 @@ abstract class RoPE(val handler: Handler) {
         }
     }
 
+    fun isExecuting() = !isStopped()
+
     enum class Action {
         BACKWARD {
             override val stringSequence: String

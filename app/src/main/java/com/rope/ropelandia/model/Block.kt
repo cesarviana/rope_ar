@@ -10,8 +10,8 @@ open class Block(
     val angle: Float
 ) {
     init {
-        require(centerX >= 0) {"Block center X must be > 0"}
-        require(centerY >= 0) {"Block center Y must be > 0"}
+        require(centerX >= 0) { "Block center X must be > 0" }
+        require(centerY >= 0) { "Block center Y must be > 0" }
     }
 
     companion object {
@@ -49,6 +49,22 @@ object BlockFactory {
 }
 
 class PositionBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :
+    Block(centerX, centerY, diameter, angle) {
+    init {
+        /**
+         * Subtract 270º from top code angle to point to center of rope head.
+         */
+        val anglePointingToyHead = angle - Math.toRadians(270.0)
+
+        val cos = cos(anglePointingToyHead)
+        val sin = sin(anglePointingToyHead)
+        val correction = 40
+        this.centerX = (cos * correction + centerX).toFloat()
+        this.centerY = (sin * correction + centerY).toFloat()
+    }
+}
+
+class RoPEBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :
     Block(centerX, centerY, diameter, angle)
 
 open class ManipulableBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :

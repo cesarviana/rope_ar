@@ -28,7 +28,7 @@ class MatView(context: Context, attributeSet: AttributeSet?) : View(context, att
         )
     }
 
-    private var squareSize = DEFAULT_SQUARE_SIZE
+    var squareSize = DEFAULT_SQUARE_SIZE
 
     private fun calcSquareSize(): Int {
         val numberOfLines = mat.numberOfLines()

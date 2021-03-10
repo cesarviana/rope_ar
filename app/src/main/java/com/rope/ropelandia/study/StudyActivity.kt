@@ -14,8 +14,8 @@ import com.rope.ropelandia.R
 import com.rope.ropelandia.capture.BlocksToProgramConverter
 import com.rope.ropelandia.capture.ProgramFactory
 import com.rope.ropelandia.game.BlockToBlockView
+import com.rope.ropelandia.game.GameLoader
 import com.rope.ropelandia.game.GameView
-import com.rope.ropelandia.game.LevelLoader
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.ForwardBlock
 import kotlinx.android.synthetic.main.activity_study.*
@@ -40,8 +40,8 @@ class StudyActivity : AppCompatActivity() {
         gameView.blocksViews = blocks.map {
             BlockToBlockView.convert(this, it)
         }
-        val levels = LevelLoader.load(this)
-        gameView.setMat(levels[0].mat)
+        val game = GameLoader.load(this)
+        gameView.setMat(game.currentMat())
 
         val ropeFinder = RoPEFinderFake(this, handler)
         val ropeSensors = RoPESensors()
@@ -91,19 +91,6 @@ class StudyActivity : AppCompatActivity() {
                 }
             }
         })
-    }
-
-    private fun createTestProgram(): List<Block> {
-
-        val startY = 600f
-
-        return listOf(
-            ForwardBlock(600f, startY, 10f, 0f),
-            ForwardBlock(600f, startY - Block.HEIGHT, 10f, 0f),
-            ForwardBlock(600f, startY - Block.HEIGHT * 2, 10f, 0f),
-            ForwardBlock(600f, startY - Block.HEIGHT * 3, 10f, 0f),
-            ForwardBlock(600f, startY - Block.HEIGHT * 4, 10f, 0f)
-        )
     }
 
     private fun retrieveBlocks(): List<Block> {

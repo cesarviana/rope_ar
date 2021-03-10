@@ -4,9 +4,9 @@ import android.content.Context
 import androidx.core.content.res.ResourcesCompat
 import com.rope.ropelandia.R
 
-object LevelLoader {
+object GameLoader {
 
-    fun load(applicationContext: Context): List<Level> {
+    fun load(applicationContext: Context): Game {
 
         val floor = ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.floor, null)!!
         val empty = ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.empty, null)!!
@@ -40,9 +40,9 @@ object LevelLoader {
         mat.add(pathLayer)
         mat.add(applesLayer)
 
-        val task = Level(mat)
+        val level = Level(mat)
 
-        return listOf(task)
+        return Game(listOf(level))
     }
 
 }
