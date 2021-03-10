@@ -28,7 +28,6 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        //clear(canvas)
         canvas?.apply {
             // rotate to image be up for the user
             rotate(180f, centerX, centerY)
@@ -85,10 +84,6 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
         drawRoundRect(programmingArea, round, round, programmingAreaPaint)
     }
 
-    private fun clear(canvas: Canvas?) {
-        canvas?.drawColor(0, PorterDuff.Mode.CLEAR)
-    }
-
     fun setExecuting(actionIndex: Int) {
         blocksViews.forEachIndexed { index, blockView ->
             blockView.state = if (index == actionIndex) {
@@ -98,7 +93,6 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
             }
         }
         invalidate()
-        //updateDraw()
     }
 
     fun hideHighlight() {
@@ -106,18 +100,6 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
             it.state = BlockView.BlockState.PARSED
         }
         invalidate()
-        //updateDraw()
-    }
-
-    private fun updateDraw() {
-        val canvas = holder.lockCanvas()
-        try {
-            draw(canvas)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            holder.unlockCanvasAndPost(canvas)
-        }
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {}

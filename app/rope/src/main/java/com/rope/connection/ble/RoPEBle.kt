@@ -3,8 +3,8 @@ package com.rope.connection.ble
 import android.bluetooth.*
 import android.content.Context
 import android.os.Handler
-import android.util.Log
 import android.util.Log.d
+import android.util.Log.w
 import com.rope.connection.RoPE
 import com.rope.connection.ble.*
 import java.util.*
@@ -28,6 +28,9 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice,
     }
 
     private fun setupSelfListeners() {
+        this.onMessage {
+            d("ROPE", "Message $it")
+        }
         this.onMessage { message ->
             if (message.contains("memory is")) { // TODO update firmware to send something like <required:start> message
                 Listeners.onStartPressed.forEach { it.startPressed(this) }
@@ -66,7 +69,7 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice,
 
     override fun connect() {
         if (isConnected())
-            Log.w("ROPE", "Device is already connected, not connecting again")
+            w("ROPE", "Device is already connected, not connecting again")
         else
             device.connectGatt(context, false, callback)
     }
@@ -103,7 +106,7 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice,
     override fun execute(program: Program) {
         if (isStopped()) {
             val actions = program.actionList.joinToString("") { it.stringSequence }
-            val executeSuffix = RoPE.Action.EXECUTE.stringSequence
+            val executeSuffix = Action.EXECUTE.stringSequence
             val command = "$commandsPrefix$actions$executeSuffix"
             send(command)
         }

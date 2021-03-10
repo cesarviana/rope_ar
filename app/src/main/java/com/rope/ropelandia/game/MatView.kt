@@ -8,17 +8,34 @@ import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup
+
+private const val DEFAULT_SQUARE_SIZE = 300
 
 class MatView(context: Context, attributeSet: AttributeSet?) : View(context, attributeSet) {
 
     var mat: Mat = mutableListOf()
+        set(value) {
+            field = value
+            this.squareSize = calcSquareSize()
+        }
 
     init {
         setBackgroundColor(Color.YELLOW)
+        layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
     }
 
-    private val numberOfSquares = 4
-    private var squareSize = resources.displayMetrics.heightPixels / numberOfSquares
+    private var squareSize = DEFAULT_SQUARE_SIZE
+
+    private fun calcSquareSize(): Int {
+        val numberOfLines = mat.numberOfLines()
+        if (numberOfLines == 0)
+            return DEFAULT_SQUARE_SIZE
+        return resources.displayMetrics.heightPixels / numberOfLines
+    }
 
     private val paint = Paint().apply {
         style = Paint.Style.STROKE

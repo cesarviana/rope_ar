@@ -6,7 +6,6 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.view.View
-import androidx.core.graphics.toRectF
 
 class BlockView(context: Context) : View(context) {
 
@@ -15,7 +14,7 @@ class BlockView(context: Context) : View(context) {
             private val paint: Paint = Paint().apply {
                 this.color = Color.YELLOW
                 this.style = Paint.Style.STROKE
-                this.strokeWidth = 10f
+                this.strokeWidth = 30f
             }
 
             override fun draw(block: BlockView, canvas: Canvas) {
@@ -30,21 +29,7 @@ class BlockView(context: Context) : View(context) {
             }
         },
         PARSED {
-//            private val paint: Paint = Paint().apply {
-//                this.color = Color.YELLOW
-//                this.style = Paint.Style.FILL_AND_STROKE
-//                this.strokeWidth = 10f
-//            }
-            override fun draw(block: BlockView, canvas: Canvas) {
-//                val centerX = block.bounds.centerX().toFloat()
-//                val centerY = block.bounds.centerY().toFloat()
-//                val angle = Math.toDegrees(block.angle.toDouble()).toFloat()
-//                canvas.apply {
-//                    rotate(angle, centerX, centerY)
-//                    drawOval(block.bounds.toRectF(), paint)
-//                    rotate(-angle, centerX, centerY)
-//                }
-            }
+            override fun draw(block: BlockView, canvas: Canvas) {}
         };
 
         abstract fun draw(block: BlockView, canvas: Canvas)

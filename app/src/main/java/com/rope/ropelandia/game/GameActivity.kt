@@ -12,15 +12,15 @@ import androidx.core.os.HandlerCompat
 import com.rope.connection.RoPE
 import com.rope.connection.ble.*
 import com.rope.droideasy.PermissionChecker
+import com.rope.program.SequentialProgram
 import com.rope.ropelandia.R
 import com.rope.ropelandia.app
 import com.rope.ropelandia.capture.BitmapToBlocksConverter
+import com.rope.ropelandia.capture.BlocksToProgramConverter
 import com.rope.ropelandia.capture.ProgramFactory
 import com.rope.ropelandia.game.bitmaptaker.BitmapTaker
 import com.rope.ropelandia.game.bitmaptaker.BitmapTakerFactory
 import com.rope.ropelandia.model.Block
-import com.rope.program.SequentialProgram
-import com.rope.ropelandia.capture.BlocksToProgramConverter
 import kotlinx.android.synthetic.main.main_activity.*
 import java.util.concurrent.Executors
 
@@ -79,21 +79,24 @@ class GameActivity : AppCompatActivity(),
         ropeExecute(program)
     }
 
-    override fun actionExecuted(rope: RoPE) {
-        val nextAction = rope.actionIndex + 1
-        runOnUiThread {
-            gameView.hideHighlight()
-            gameView.setExecuting(nextAction)
-            matView.invalidate()
+    override fun executionStarted(rope: RoPE) {
+        rope.handler.postAtFrontOfQueue {
+            gameView.setExecuting(0)
         }
     }
 
-    override fun executionStarted(rope: RoPE) {
-        gameView.setExecuting(0)
+    override fun actionExecuted(rope: RoPE) {
+        val nextAction = rope.actionIndex + 1
+        rope.handler.postAtFrontOfQueue {
+            gameView.hideHighlight()
+            gameView.setExecuting(nextAction)
+        }
     }
 
     override fun executionEnded(rope: RoPE) {
-        gameView.hideHighlight()
+        rope.handler.post {
+            gameView.hideHighlight()
+        }
     }
 
     private fun startCameraOrRequestPermission() {
@@ -146,11 +149,9 @@ class GameActivity : AppCompatActivity(),
 
             val bitmapTookCallback = object: BitmapTaker.BitmapTookCallback {
                 override fun onBitmap(bitmap: Bitmap) {
-                    Log.d(
-                        "GAME_ACTIVITY",
-                        "Bitmap took. Width: ${bitmap.width}, Height: ${bitmap.height}"
-                    )
-
+                    val ropeExecuting = app.rope?.isStopped() == false
+                    if(ropeExecuting)
+                        return
                     bitmapToBlocksExecutor.submit {
                         try {
                             val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
@@ -206,8 +207,7 @@ class GameActivity : AppCompatActivity(),
         if (levels.size > taskIndex) levels[taskIndex] else Level()
 
     private fun startLevel(level: Level) {
-        matView.mat = level.mat
-        gameView.matView = matView
+        gameView.matView.mat = level.mat
     }
 
     companion object {
