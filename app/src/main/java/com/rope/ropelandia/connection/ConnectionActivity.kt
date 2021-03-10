@@ -12,7 +12,6 @@ import androidx.core.os.HandlerCompat
 import com.rope.connection.fake.RoPEFinderFake
 import com.rope.ropelandia.R
 import com.rope.ropelandia.app
-import com.rope.ropelandia.config.ConfigActivity
 import com.rope.ropelandia.databinding.ActivityConnectionBinding
 import com.rope.ropelandia.game.GameActivity
 
@@ -31,7 +30,7 @@ class ConnectionActivity : AppCompatActivity() {
 
         setupRopeFinder()
         setupActivityListeners()
-//        findAndConnectRoPE()
+        findAndConnectRoPE()
     }
 
     private fun setupRopeFinder() {
@@ -75,10 +74,6 @@ class ConnectionActivity : AppCompatActivity() {
     private fun setupActivityListeners() {
         binding.connectButton.setOnClickListener {
             findAndConnectRoPE()
-        }
-        binding.configButton.setOnClickListener {
-            val intent = Intent(this, ConfigActivity::class.java)
-            startActivity(intent)
         }
     }
 
