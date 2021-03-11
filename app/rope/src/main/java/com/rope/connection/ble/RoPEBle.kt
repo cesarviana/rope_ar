@@ -45,7 +45,7 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice,
             }
         }
         this.onMessage { message ->
-            val regex = "<executed:(?<actionIndex>\\d+)>\r\n".toRegex()
+            val regex = "<executed:(?<actionIndex>\\d+)>\r\n.*".toRegex()
             if (regex.containsMatchIn(message)) {
                 val matches = regex.matchEntire(message)
                 val numberGroup =

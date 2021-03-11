@@ -23,37 +23,40 @@ data class Game(val levels: List<Level>, val ropePosition: Position) {
     }
 
     fun updateRoPESquare(squareX: Int, squareY: Int) {
-        this.ropePosition.squareX = squareX
-        this.ropePosition.squareY = squareY
+        this.ropePosition.square = Square(squareX, squareY)
     }
 
-    fun nextPosition(): Mat {
-        val x = ropePosition.squareX
-        val y = ropePosition.squareY
+    private fun nextSquare() : Square {
+        val square = ropePosition.square
 
         return when {
             goingForward() -> {
-                when (ropePosition.face) {
-                    Position.Face.NORTH -> currentMat().subMat(x, y - 1)
-                    Position.Face.SOUTH -> currentMat().subMat(x, y + 1)
-                    Position.Face.WEST -> currentMat().subMat(x - 1, y)
-                    Position.Face.EAST -> currentMat().subMat(x + 1, y)
+                when (ropePosition.direction) {
+                    Position.Direction.NORTH -> square.north()
+                    Position.Direction.SOUTH -> square.south()
+                    Position.Direction.WEST -> square.west()
+                    Position.Direction.EAST -> square.east()
                     else -> throw IllegalStateException("The toy face is undefined")
                 }
             }
             goingBackward() -> {
-                when (ropePosition.face) {
-                    Position.Face.NORTH -> currentMat().subMat(x, y + 1)
-                    Position.Face.SOUTH -> currentMat().subMat(x, y - 1)
-                    Position.Face.WEST -> currentMat().subMat(x + 1, y)
-                    Position.Face.EAST -> currentMat().subMat(x - 1, y)
+                when (ropePosition.direction) {
+                    Position.Direction.NORTH -> square.south()
+                    Position.Direction.SOUTH -> square.north()
+                    Position.Direction.WEST -> square.east()
+                    Position.Direction.EAST -> square.west()
                     else -> throw IllegalStateException("The toy face is undefined")
                 }
             }
             else -> {
-                currentMat().subMat(x, y)
+                square
             }
         }
+    }
+
+    fun nextPosition(): Mat {
+        val nextSquare = this.nextSquare()
+        return currentMat().subMat(nextSquare.x, nextSquare.y)
     }
 
     private fun goingForward() = hasBlockToExecute() && nextBlockToExecute() is ForwardBlock
@@ -69,15 +72,31 @@ data class Game(val levels: List<Level>, val ropePosition: Position) {
     fun endExecution() {
         executionIndex = NO_EXECUTION
     }
+
+    fun executeAction() {
+        val nextSquare = this.nextSquare()
+        this.ropePosition.square = nextSquare
+        executionIndex++
+    }
+}
+
+data class Square(val x: Int, val y: Int) {
+    fun north() = Square(x, y - 1)
+    fun south() = Square(x, y + 1)
+    fun west() = Square(x + 1, y)
+    fun east() = Square(x - 1, y)
 }
 
 data class Level(val mat: Mat = mutableListOf())
+
 data class Tile(val drawable: Drawable, val type: TileType) {
     enum class TileType {
         OBSTACLE, COLLECTABLE, PATH, OFF_ROAD
     }
 }
+
 typealias MatLayer = Array<Array<Tile>>
+
 typealias Mat = MutableList<MatLayer>
 
 fun Mat.numberOfLines(): Int {
@@ -131,9 +150,8 @@ fun Mat.hasTile(tileType: Tile.TileType): Boolean {
 }
 
 data class Position(
-    var squareX: Int,
-    var squareY: Int,
-    var face: Face,
+    var square: Square,
+    var direction: Direction,
     var x: Float = 0f,
     var y: Float = 0f
 ) {
@@ -143,7 +161,7 @@ data class Position(
         this.y = y
     }
 
-    enum class Face {
+    enum class Direction {
         NORTH, SOUTH, EAST, WEST, UNDEFINED
     }
 }

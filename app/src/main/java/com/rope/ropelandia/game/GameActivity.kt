@@ -77,21 +77,24 @@ class GameActivity : AppCompatActivity(),
 
     override fun executionStarted(rope: RoPE) {
         game.startExecution()
-        rope.handler.postAtFrontOfQueue {
-            updateView(game, gameView)
-        }
+        updateViewForRoPEEvent(rope)
     }
 
     override fun actionExecuted(rope: RoPE, action: RoPE.Action) {
-        val nextAction = rope.actionIndex + 1
-        game.executionIndex = nextAction
-        rope.handler.postAtFrontOfQueue {
-            updateView(game, gameView)
+        game.executeAction()
+        if(game.nextPosition().hasTile(Tile.TileType.OBSTACLE)){
+            Thread { errorSound.start() }.start()
+        } else {
+            updateViewForRoPEEvent(rope)
         }
     }
 
     override fun executionEnded(rope: RoPE) {
         game.endExecution()
+        updateViewForRoPEEvent(rope)
+    }
+
+    private fun updateViewForRoPEEvent(rope: RoPE) {
         rope.handler.postAtFrontOfQueue {
             updateView(game, gameView)
         }
@@ -220,20 +223,16 @@ class GameActivity : AppCompatActivity(),
     private fun createMovementsDetector(screenSize: Size) =
         object : RoPESquareDetector(game, screenSize) {
             override fun changedSquare(squareX: Int, squareY: Int) {
-                game.updateRoPESquare(squareX, squareY)
-
-                Thread { jumpSound.start() }.start()
-
-                if (game.nextPosition().hasTile(Tile.TileType.OBSTACLE)) {
-                    Thread { errorSound.start() }.start()
+                if(rope.isStopped()) { // if running update squares from rope messages
+                    game.updateRoPESquare(squareX, squareY)
+//                    Thread { jumpSound.start() }.start()
                 }
-
             }
         }
 
-    private fun createFaceDetector() = object : RoPEFaceDetector() {
-        override fun changedFace(face: Position.Face) {
-            game.ropePosition.face = face
+    private fun createFaceDetector() = object : RoPEDirectionDetector() {
+        override fun changedFace(direction: Position.Direction) {
+            game.ropePosition.direction = direction
         }
     }
 

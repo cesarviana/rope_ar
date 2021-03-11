@@ -8,7 +8,6 @@ import android.view.SurfaceView
 import android.widget.LinearLayout
 import com.rope.ropelandia.game.views.BlockView
 import com.rope.ropelandia.game.views.RoPEView
-import kotlinx.android.synthetic.main.main_activity.view.*
 
 class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs),
     SurfaceHolder.Callback {
@@ -122,8 +121,8 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
         }
         ropeView.x = game.ropePosition.x
         ropeView.y = game.ropePosition.y
-        val squareX = game.ropePosition.squareX
-        val squareY = game.ropePosition.squareY
+        val squareX = game.ropePosition.square.x
+        val squareY = game.ropePosition.square.y
         ropeView.bounds = createRect(matView.squareSize, squareY, squareX)
         invalidate()
     }

@@ -42,7 +42,7 @@ object GameLoader {
 
         val level = Level(mat)
 
-        val ropePosition = Position(-1, -1, Position.Face.UNDEFINED)
+        val ropePosition = Position(Square(-1,-1), Position.Direction.UNDEFINED)
 
         return Game(listOf(level), ropePosition)
     }
