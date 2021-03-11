@@ -8,10 +8,10 @@ object GameLoader {
 
     fun load(applicationContext: Context): Game {
 
-        val floor = ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.floor, null)!!
-        val empty = ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.empty, null)!!
-        val path = ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.path, null)!!
-        val apple = ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.apple, null)!!
+        val floor = Tile(ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.floor, null)!!,Tile.TileType.OFF_ROAD)
+        val empty = Tile(ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.empty, null)!!,Tile.TileType.OFF_ROAD)
+        val path = Tile(ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.path, null)!!,Tile.TileType.PATH)
+        val apple = Tile(ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.apple, null)!!,Tile.TileType.OBSTACLE)
 
         val floorLayer: MatLayer = arrayOf(
             arrayOf(floor, floor, floor, floor, floor),
@@ -42,7 +42,9 @@ object GameLoader {
 
         val level = Level(mat)
 
-        return Game(listOf(level))
+        val ropePosition = Position(-1, -1, Position.Face.UNDEFINED)
+
+        return Game(listOf(level), ropePosition)
     }
 
 }

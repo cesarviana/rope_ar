@@ -46,9 +46,9 @@ abstract class RoPE(val handler: Handler) {
     abstract fun removeExecutionFinishedListener(listener: RoPEExecutionFinishedListener)
     abstract fun stop()
 
-    protected fun notifyActionExecuted() {
+    protected fun notifyActionExecuted(action: Action) {
         Listeners.onActionExecution.forEach {
-            it.actionExecuted(this)
+            it.actionExecuted(this, action)
         }
     }
 

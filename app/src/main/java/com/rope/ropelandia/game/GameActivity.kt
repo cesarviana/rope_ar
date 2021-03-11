@@ -20,10 +20,9 @@ import com.rope.ropelandia.app
 import com.rope.ropelandia.capture.BitmapToBlocksConverter
 import com.rope.ropelandia.game.bitmaptaker.BitmapTaker
 import com.rope.ropelandia.game.bitmaptaker.BitmapTakerFactory
-import com.rope.ropelandia.game.blocksanalyser.BlocksAnalyzerComposite
-import com.rope.ropelandia.game.blocksanalyser.ProgramDetector
-import com.rope.ropelandia.game.blocksanalyser.RoPEMovementsDetector
+import com.rope.ropelandia.game.blocksanalyser.*
 import com.rope.ropelandia.model.Block
+import com.rope.ropelandia.model.RoPEBlock
 import kotlinx.android.synthetic.main.main_activity.*
 import java.util.concurrent.Executors
 
@@ -35,10 +34,12 @@ class GameActivity : AppCompatActivity(),
     RoPEExecutionFinishedListener {
 
     private val jumpSound by lazy { MediaPlayer.create(applicationContext, R.raw.jump_sound) }
+    private val errorSound by lazy { MediaPlayer.create(applicationContext, R.raw.error_sound) }
     private lateinit var bitmapTaker: BitmapTaker
     private val permissionChecker by lazy { PermissionChecker() }
     private val game by lazy { GameLoader.load(applicationContext) }
     private var program: RoPE.Program = SequentialProgram(listOf())
+    private val rope by lazy { app.rope!! }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,27 +52,27 @@ class GameActivity : AppCompatActivity(),
     override fun onStop() {
         super.onStop()
         bitmapTaker.stop()
-        app.rope?.removeDisconnectedListener(this)
-        app.rope?.removeStartPressedListener(this)
-        app.rope?.removeActionListener(this)
-        app.rope?.removeExecutionStartedListener(this)
-        app.rope?.removeExecutionFinishedListener(this)
+        rope.removeDisconnectedListener(this)
+        rope.removeStartPressedListener(this)
+        rope.removeActionListener(this)
+        rope.removeExecutionStartedListener(this)
+        rope.removeExecutionFinishedListener(this)
     }
 
     private fun updateViewWithBlocks(blocks: List<Block>) {
         val programBlocksViews = blocks.map { block ->
             BlockToBlockView.convert(this, block)
         }
-        gameView.blocksViews = programBlocksViews
+        gameView.programBlocks = programBlocksViews
         gameView.invalidate()
     }
 
     private fun setupRopeListeners() {
-        app.rope?.onDisconnected(this)
-        app.rope?.onStartedPressed(this)
-        app.rope?.onActionExecuted(this)
-        app.rope?.onExecutionStarted(this)
-        app.rope?.onExecutionFinished(this)
+        rope.onDisconnected(this)
+        rope.onStartedPressed(this)
+        rope.onActionExecuted(this)
+        rope.onExecutionStarted(this)
+        rope.onExecutionFinished(this)
     }
 
     override fun disconnected(rope: RoPE) {
@@ -88,12 +89,13 @@ class GameActivity : AppCompatActivity(),
         }
     }
 
-    override fun actionExecuted(rope: RoPE) {
+    override fun actionExecuted(rope: RoPE, action: RoPE.Action) {
         val nextAction = rope.actionIndex + 1
         rope.handler.postAtFrontOfQueue {
             gameView.hideHighlight()
             gameView.setExecuting(nextAction)
         }
+
     }
 
     override fun executionEnded(rope: RoPE) {
@@ -113,7 +115,7 @@ class GameActivity : AppCompatActivity(),
     }
 
     private fun ropeExecute(program: RoPE.Program) {
-        app.rope?.execute(program)
+        rope.execute(program)
     }
 
     private fun returnToPreviousActivity() {
@@ -153,6 +155,18 @@ class GameActivity : AppCompatActivity(),
             val blocksAnalyser = BlocksAnalyzerComposite()
             blocksAnalyser.addBlocksAnalyzer(createProgramDetector())
             blocksAnalyser.addBlocksAnalyzer(createMovementsDetector(screenSize))
+            blocksAnalyser.addBlocksAnalyzer(createFaceDetector())
+            blocksAnalyser.addBlocksAnalyzer(object : BlocksAnalyzer {
+                override fun analyze(blocks: List<Block>) {
+                    blocks.filterIsInstance<RoPEBlock>().forEach {
+                        runOnUiThread {
+                            gameView.ropeView.x = it.centerX
+                            gameView.ropeView.y = it.centerY
+                            gameView.invalidate()
+                        }
+                    }
+                }
+            })
 
             val bitmapTookCallback = object : BitmapTaker.BitmapTookCallback {
                 override fun onBitmap(bitmap: Bitmap) {
@@ -163,7 +177,6 @@ class GameActivity : AppCompatActivity(),
                         } catch (e: java.lang.Exception) {
                             e.message?.let { Log.e("GAME_ACTIVITY", it) }
                         }
-
                     }.get()
                 }
 
@@ -191,7 +204,6 @@ class GameActivity : AppCompatActivity(),
                 CameraSelector.DEFAULT_BACK_CAMERA,
                 useCase
             )
-
             bitmapTaker.startTakingImages()
         }
 
@@ -213,13 +225,37 @@ class GameActivity : AppCompatActivity(),
     }
 
     private fun createMovementsDetector(screenSize: Size) =
-        object : RoPEMovementsDetector(game, screenSize) {
+        object : RoPESquareDetector(game, screenSize) {
             override fun changedSquare(squareX: Int, squareY: Int) {
+                game.ropePosition.squareX = squareX
+                game.ropePosition.squareY = squareY
                 Thread {
                     jumpSound.start()
                 }.start()
+
+                rope.let {
+                    val goingForward = it.nextActionIs(RoPE.Action.FORWARD)
+                    val ropeX = game.ropePosition.squareX
+                    val ropeY = game.ropePosition.squareY
+                    val nextPosition = when (game.ropePosition.face) {
+                        Position.Face.NORTH -> game.currentMat().subMat(ropeX, ropeY - 1)
+                        Position.Face.SOUTH -> game.currentMat().subMat(ropeX, ropeY + 1)
+                        Position.Face.WEST -> game.currentMat().subMat(ropeX - 1, ropeY)
+                        Position.Face.EAST -> game.currentMat().subMat(ropeX + 1, ropeY)
+                        else -> throw IllegalStateException("The toy face is undefined")
+                    }
+                    if (goingForward && nextPosition.hasTile(Tile.TileType.OBSTACLE)) {
+                        Thread { errorSound.start() }.start()
+                    }
+                }
             }
         }
+
+    private fun createFaceDetector() = object : RoPEFaceDetector() {
+        override fun changedFace(face: Position.Face) {
+            game.ropePosition.face = face
+        }
+    }
 
     private fun startGame() {
         gameView.matView.mat = game.currentMat()

@@ -1,4 +1,4 @@
-package com.rope.ropelandia.game
+package com.rope.ropelandia.game.views
 
 import android.content.Context
 import android.graphics.Canvas

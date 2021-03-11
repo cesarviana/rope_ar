@@ -37,7 +37,7 @@ class StudyActivity : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
         val blocks = retrieveBlocks()
-        gameView.blocksViews = blocks.map {
+        gameView.programBlocks = blocks.map {
             BlockToBlockView.convert(this, it)
         }
         val game = GameLoader.load(this)
@@ -68,7 +68,7 @@ class StudyActivity : AppCompatActivity() {
 
     private fun setupScreenBehaviour(rope: RoPE, ropeSensors: RoPESensors, gameView: GameView) {
         rope.onActionExecuted(object : RoPEActionListener {
-            override fun actionExecuted(rope: RoPE) {
+            override fun actionExecuted(rope: RoPE, action: RoPE.Action) {
                 gameView.hideHighlight()
                 gameView.highlight(rope.actionIndex + 1)
             }
@@ -85,7 +85,7 @@ class StudyActivity : AppCompatActivity() {
         ropeSensors: RoPESensors
     ) {
         rope.onActionExecuted(object : RoPEActionListener {
-            override fun actionExecuted(rope: RoPE) {
+            override fun actionExecuted(rope: RoPE, action: RoPE.Action) {
                 if (rope.nextActionIs(RoPE.Action.FORWARD) && ropeSensors.obstacleAhead()) {
                     rope.stop()
                 }

@@ -48,10 +48,10 @@ class RoPEFake(handler: Handler) : RoPE(handler) {
                 handler.post {
                     notifyExecutionStarted()
                 }
-                program.actionList.forEach { _ ->
+                program.actionList.forEach { action ->
                     Thread.sleep(1000)
                     handler.post {
-                        notifyActionExecuted()
+                        notifyActionExecuted(action)
                         actionIndex++
                     }
                 }

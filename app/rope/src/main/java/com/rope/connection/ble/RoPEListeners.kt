@@ -11,7 +11,7 @@ interface RoPEStartPressedListener {
 }
 
 interface RoPEActionListener {
-    fun actionExecuted(rope: RoPE)
+    fun actionExecuted(rope: RoPE, action: RoPE.Action)
 }
 
 interface RoPEExecutionStartedListener {

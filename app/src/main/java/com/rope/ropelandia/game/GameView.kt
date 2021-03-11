@@ -9,13 +9,17 @@ import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.widget.LinearLayout
+import com.rope.ropelandia.game.views.BlockView
+import com.rope.ropelandia.game.views.RoPEView
 
 class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs),
     SurfaceHolder.Callback {
 
     var matView: MatView = MatView(context, null)
 
-    var blocksViews: List<BlockView> = listOf()
+    var programBlocks: List<BlockView> = listOf()
+
+    var ropeView: RoPEView = RoPEView(context)
 
     private val centerX by lazy { (width shr 1).toFloat() }
     private val centerY by lazy { (height shr 1).toFloat() }
@@ -40,9 +44,10 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
             rotate(-180f, centerX, centerY)
             // the blocks must not be rotated
             drawPath()
-            blocksViews.forEach {
+            programBlocks.forEach {
                 it.draw(canvas)
             }
+            ropeView.draw(canvas)
         }
     }
 
@@ -58,11 +63,11 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     }
 
     private fun Canvas.drawPath() {
-        if (blocksViews.isNotEmpty()) {
-            blocksViews.forEach {
+        if (programBlocks.isNotEmpty()) {
+            programBlocks.forEach {
                 drawCircle(it.centerX().toFloat(), it.centerY().toFloat(), 100f, pathPaint)
             }
-            blocksViews.forEach {
+            programBlocks.forEach {
                 drawCircle(it.centerX().toFloat(), it.centerY().toFloat(), 90f, internalPath)
             }
         }
@@ -88,7 +93,7 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     }
 
     fun setExecuting(actionIndex: Int) {
-        blocksViews.forEachIndexed { index, blockView ->
+        programBlocks.forEachIndexed { index, blockView ->
             blockView.state = if (index == actionIndex) {
                 BlockView.BlockState.EXECUTING
             } else {
@@ -99,7 +104,7 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     }
 
     fun hideHighlight() {
-        blocksViews.forEach {
+        programBlocks.forEach {
             it.state = BlockView.BlockState.PARSED
         }
         invalidate()
@@ -116,13 +121,11 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     }
 
     fun highlight(index: Int) {
-        if(blocksViews.size > index) {
-            blocksViews[index].state = BlockView.BlockState.EXECUTING
+        if(programBlocks.size > index) {
+            programBlocks[index].state = BlockView.BlockState.EXECUTING
         }
         invalidate()
     }
-
-    fun squareSize() = matView.squareSize
 
 }
 

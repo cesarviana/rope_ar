@@ -69,7 +69,7 @@ class MatView(context: Context, attributeSet: AttributeSet?) : View(context, att
             mat.forEach { lines ->
                 lines.forEachIndexed { lineIndex, line ->
                     line.forEachIndexed { columnIndex, tile ->
-                        drawTile(canvas, lineIndex, columnIndex, tile)
+                        drawTile(canvas, lineIndex, columnIndex, tile.drawable)
                     }
                 }
             }

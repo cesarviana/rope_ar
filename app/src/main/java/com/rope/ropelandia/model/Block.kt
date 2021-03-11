@@ -49,23 +49,23 @@ object BlockFactory {
 }
 
 class PositionBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :
+    Block(centerX, centerY, diameter, angle)
+
+class RoPEBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :
     Block(centerX, centerY, diameter, angle) {
     init {
         /**
-         * Subtract 270º from top code angle to point to center of rope head.
+         * Subtract grades from top code angle to point to center of rope head.
          */
-        val anglePointingToyHead = angle - Math.toRadians(270.0)
+        val anglePointingToyHead = angle - Math.toRadians(225.0)
 
         val cos = cos(anglePointingToyHead)
         val sin = sin(anglePointingToyHead)
-        val correction = 40
+        val correction = 30
         this.centerX = (cos * correction + centerX).toFloat()
         this.centerY = (sin * correction + centerY).toFloat()
     }
 }
-
-class RoPEBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :
-    Block(centerX, centerY, diameter, angle)
 
 open class ManipulableBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :
     Block(centerX, centerY, diameter, angle) {

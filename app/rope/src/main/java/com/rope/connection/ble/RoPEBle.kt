@@ -53,7 +53,9 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice,
                 val actionIndex = matches!!.groups[numberGroup]!!.value
                 actionIndex.toIntOrNull()?.let { index ->
                     this.actionIndex = index
-                    notifyActionExecuted()
+                    program.actionList.getOrNull(index)?.let {
+                        notifyActionExecuted(it)
+                    }
                 }
             }
         }
