@@ -58,7 +58,7 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
     private val bluetoothAdapter by lazy(LazyThreadSafetyMode.NONE) {
         val bluetoothManager =
             activity.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        bluetoothManager.getAdapter()
+        bluetoothManager.adapter
     }
 
     private val permissionChecker = com.rope.droideasy.PermissionChecker()
@@ -70,7 +70,7 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
 
     private fun requestEnableBluetoothOrStartScan() {
         bluetoothAdapter?.let {
-            if (!it.isEnabled()) {
+            if (!it.isEnabled) {
                 requestEnableBluetooth()
             } else {
                 scan(myScanCallback)
@@ -99,7 +99,7 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
             ) {
                 val filter = createScanFilter()
                 val settings = createScanSettings()
-                bluetoothAdapter.getBluetoothLeScanner().startScan(filter, settings, scanCallback)
+                bluetoothAdapter.bluetoothLeScanner.startScan(filter, settings, scanCallback)
             }
         }
     }
@@ -152,12 +152,8 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
     private inner class MyScanCallback : ScanCallback() {
         override fun onScanResult(callbackType: Int, scanResult: ScanResult?) {
 
-            bluetoothAdapter?.getBluetoothLeScanner()?.stopScan(myScanCallback)
+            bluetoothAdapter?.bluetoothLeScanner?.stopScan(myScanCallback)
 
-            /**
-             * There is an error that causes this method to be called multiple times, even
-             * the rope already being found. So, if rope is connected, we ignore further results.
-             */
             if (rope != null) {
                 Listeners.onRoPEFound.forEach { it(rope!!) }
             } else {

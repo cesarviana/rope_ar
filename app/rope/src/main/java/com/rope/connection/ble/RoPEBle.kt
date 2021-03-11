@@ -107,6 +107,7 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice,
 
     override fun execute(program: Program) {
         if (isStopped()) {
+            this.program = program
             val actions = program.actionList.joinToString("") { it.stringSequence }
             val executeSuffix = Action.EXECUTE.stringSequence
             val command = "$commandsPrefix$actions$executeSuffix"

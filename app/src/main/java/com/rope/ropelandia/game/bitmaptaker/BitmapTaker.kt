@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.Handler
+import android.util.Log
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.UseCase
 import com.rope.ropelandia.capture.imagetobitmap.ImageToBitmapConverterFactory
@@ -45,5 +46,11 @@ abstract class BitmapTaker(
 
     protected fun onError(e: Exception) = bitmapTookCallback.onError(e)
 
-    fun stop() = executor.shutdown()
+    fun stop() {
+        try {
+            executor.shutdown()
+        } catch (e: java.lang.Exception) {
+            e.message?.let { Log.e("BITMAP_TAKER", it) }
+        }
+    }
 }

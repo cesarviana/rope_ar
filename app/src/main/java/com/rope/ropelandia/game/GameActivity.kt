@@ -46,7 +46,7 @@ class GameActivity : AppCompatActivity(),
         setContentView(R.layout.main_activity)
         setupRopeListeners()
         startCameraOrRequestPermission()
-        startGame()
+        updateView(game, gameView)
     }
 
     override fun onStop() {
@@ -57,14 +57,6 @@ class GameActivity : AppCompatActivity(),
         rope.removeActionListener(this)
         rope.removeExecutionStartedListener(this)
         rope.removeExecutionFinishedListener(this)
-    }
-
-    private fun updateViewWithBlocks(blocks: List<Block>) {
-        val programBlocksViews = blocks.map { block ->
-            BlockToBlockView.convert(this, block)
-        }
-        gameView.programBlocks = programBlocksViews
-        gameView.invalidate()
     }
 
     private fun setupRopeListeners() {
@@ -84,23 +76,24 @@ class GameActivity : AppCompatActivity(),
     }
 
     override fun executionStarted(rope: RoPE) {
+        game.startExecution()
         rope.handler.postAtFrontOfQueue {
-            gameView.setExecuting(0)
+            updateView(game, gameView)
         }
     }
 
     override fun actionExecuted(rope: RoPE, action: RoPE.Action) {
         val nextAction = rope.actionIndex + 1
+        game.executionIndex = nextAction
         rope.handler.postAtFrontOfQueue {
-            gameView.hideHighlight()
-            gameView.setExecuting(nextAction)
+            updateView(game, gameView)
         }
-
     }
 
     override fun executionEnded(rope: RoPE) {
-        rope.handler.post {
-            gameView.hideHighlight()
+        game.endExecution()
+        rope.handler.postAtFrontOfQueue {
+            updateView(game, gameView)
         }
     }
 
@@ -159,10 +152,9 @@ class GameActivity : AppCompatActivity(),
             blocksAnalyser.addBlocksAnalyzer(object : BlocksAnalyzer {
                 override fun analyze(blocks: List<Block>) {
                     blocks.filterIsInstance<RoPEBlock>().forEach {
+                        game.ropePosition.setExactPosition(it.centerX, it.centerY)
                         runOnUiThread {
-                            gameView.ropeView.x = it.centerX
-                            gameView.ropeView.y = it.centerY
-                            gameView.invalidate()
+                            updateView(game, gameView)
                         }
                     }
                 }
@@ -219,7 +211,8 @@ class GameActivity : AppCompatActivity(),
         override fun onFoundProgramBlocks(blocks: List<Block>, program: RoPE.Program) {
             blocksFoundHandler.post {
                 this@GameActivity.program = program
-                updateViewWithBlocks(blocks)
+                game.updateProgramBlocks(blocks)
+                updateView(game, gameView)
             }
         }
     }
@@ -227,27 +220,14 @@ class GameActivity : AppCompatActivity(),
     private fun createMovementsDetector(screenSize: Size) =
         object : RoPESquareDetector(game, screenSize) {
             override fun changedSquare(squareX: Int, squareY: Int) {
-                game.ropePosition.squareX = squareX
-                game.ropePosition.squareY = squareY
-                Thread {
-                    jumpSound.start()
-                }.start()
+                game.updateRoPESquare(squareX, squareY)
 
-                rope.let {
-                    val goingForward = it.nextActionIs(RoPE.Action.FORWARD)
-                    val ropeX = game.ropePosition.squareX
-                    val ropeY = game.ropePosition.squareY
-                    val nextPosition = when (game.ropePosition.face) {
-                        Position.Face.NORTH -> game.currentMat().subMat(ropeX, ropeY - 1)
-                        Position.Face.SOUTH -> game.currentMat().subMat(ropeX, ropeY + 1)
-                        Position.Face.WEST -> game.currentMat().subMat(ropeX - 1, ropeY)
-                        Position.Face.EAST -> game.currentMat().subMat(ropeX + 1, ropeY)
-                        else -> throw IllegalStateException("The toy face is undefined")
-                    }
-                    if (goingForward && nextPosition.hasTile(Tile.TileType.OBSTACLE)) {
-                        Thread { errorSound.start() }.start()
-                    }
+                Thread { jumpSound.start() }.start()
+
+                if (game.nextPosition().hasTile(Tile.TileType.OBSTACLE)) {
+                    Thread { errorSound.start() }.start()
                 }
+
             }
         }
 
@@ -257,8 +237,8 @@ class GameActivity : AppCompatActivity(),
         }
     }
 
-    private fun startGame() {
-        gameView.matView.mat = game.currentMat()
+    private fun updateView(game: Game, gameView: GameView) {
+        gameView.update(game)
     }
 
     companion object {

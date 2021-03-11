@@ -1,25 +1,21 @@
 package com.rope.ropelandia.game
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.RectF
+import android.graphics.*
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.widget.LinearLayout
 import com.rope.ropelandia.game.views.BlockView
 import com.rope.ropelandia.game.views.RoPEView
+import kotlinx.android.synthetic.main.main_activity.view.*
 
 class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs),
     SurfaceHolder.Callback {
 
-    var matView: MatView = MatView(context, null)
-
-    var programBlocks: List<BlockView> = listOf()
-
-    var ropeView: RoPEView = RoPEView(context)
+    private val matView: MatView = MatView(context, null)
+    private var programBlocks: List<BlockView> = listOf()
+    private val ropeView: RoPEView = RoPEView(context)
 
     private val centerX by lazy { (width shr 1).toFloat() }
     private val centerY by lazy { (height shr 1).toFloat() }
@@ -92,7 +88,13 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
         drawRoundRect(programmingArea, round, round, programmingAreaPaint)
     }
 
-    fun setExecuting(actionIndex: Int) {
+    override fun surfaceCreated(holder: SurfaceHolder) {}
+
+    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
+
+    override fun surfaceDestroyed(holder: SurfaceHolder) {}
+
+    private fun highlight(actionIndex: Int) {
         programBlocks.forEachIndexed { index, blockView ->
             blockView.state = if (index == actionIndex) {
                 BlockView.BlockState.EXECUTING
@@ -100,31 +102,38 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
                 BlockView.BlockState.PARSED
             }
         }
-        invalidate()
     }
 
-    fun hideHighlight() {
+    private fun hideHighlight() {
         programBlocks.forEach {
             it.state = BlockView.BlockState.PARSED
         }
-        invalidate()
     }
 
-    override fun surfaceCreated(holder: SurfaceHolder) {}
-
-    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
-
-    override fun surfaceDestroyed(holder: SurfaceHolder) {}
-
-    fun setMat(mat: Mat) {
-        matView.mat = mat
-    }
-
-    fun highlight(index: Int) {
-        if(programBlocks.size > index) {
-            programBlocks[index].state = BlockView.BlockState.EXECUTING
+    fun update(game: Game) {
+        matView.mat = game.currentMat()
+        programBlocks = game.programBlocks.map { block ->
+            BlockToBlockView.convert(context, block)
         }
+        if(game.programIsExecuting){
+            highlight(game.executionIndex)
+        } else {
+            hideHighlight()
+        }
+        ropeView.x = game.ropePosition.x
+        ropeView.y = game.ropePosition.y
+        val squareX = game.ropePosition.squareX
+        val squareY = game.ropePosition.squareY
+        ropeView.bounds = createRect(matView.squareSize, squareY, squareX)
         invalidate()
+    }
+
+    private fun createRect(squareSize: Int, matLine: Int, matColumn: Int): Rect {
+        val left = matColumn * squareSize
+        val top = matLine * squareSize
+        val right = left + squareSize
+        val bottom = top + squareSize
+        return Rect(left, top, right, bottom)
     }
 
 }

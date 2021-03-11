@@ -13,8 +13,6 @@ import com.rope.connection.fake.RoPEFinderFake
 import com.rope.ropelandia.R
 import com.rope.ropelandia.capture.BlocksToProgramConverter
 import com.rope.ropelandia.capture.ProgramFactory
-import com.rope.ropelandia.game.BlockToBlockView
-import com.rope.ropelandia.game.GameLoader
 import com.rope.ropelandia.game.GameView
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.ForwardBlock
@@ -37,11 +35,11 @@ class StudyActivity : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
         val blocks = retrieveBlocks()
-        gameView.programBlocks = blocks.map {
-            BlockToBlockView.convert(this, it)
-        }
-        val game = GameLoader.load(this)
-        gameView.setMat(game.currentMat())
+//        gameView.programBlocks = blocks.map {
+//            BlockToBlockView.convert(this, it)
+//        }
+//        val game = GameLoader.load(this)
+//        gameView.setMat(game.currentMat())
 
         val ropeFinder = RoPEFinderFake(this, handler)
         val ropeSensors = RoPESensors()
@@ -67,17 +65,17 @@ class StudyActivity : AppCompatActivity() {
     }
 
     private fun setupScreenBehaviour(rope: RoPE, ropeSensors: RoPESensors, gameView: GameView) {
-        rope.onActionExecuted(object : RoPEActionListener {
-            override fun actionExecuted(rope: RoPE, action: RoPE.Action) {
-                gameView.hideHighlight()
-                gameView.highlight(rope.actionIndex + 1)
-            }
-        })
-        rope.onExecutionStarted(object : RoPEExecutionStartedListener {
-            override fun executionStarted(rope: RoPE) {
-                gameView.highlight(0)
-            }
-        })
+//        rope.onActionExecuted(object : RoPEActionListener {
+//            override fun actionExecuted(rope: RoPE, action: RoPE.Action) {
+//                gameView.hideHighlight()
+//                gameView.highlight(rope.actionIndex + 1)
+//            }
+//        })
+//        rope.onExecutionStarted(object : RoPEExecutionStartedListener {
+//            override fun executionStarted(rope: RoPE) {
+//                gameView.highlight(0)
+//            }
+//        })
     }
 
     private fun setupBehaviour(

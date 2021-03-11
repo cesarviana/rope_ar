@@ -51,8 +51,6 @@ class ProjectorBlocksPositioner(
             }
 
         proportion = targetRectangle.width() / perspectiveRectangle.bottomWidth()
-        // the target rectangle is small than photo taken size, so the proportion must be < 1
-        check(proportion < 1) { "The proportion must be < 1." }
         check(proportion > 0) { "The proportion must be > 0." }
 
         // resize the perspective rectangle so its bottom becomes equals to the target rectangle
