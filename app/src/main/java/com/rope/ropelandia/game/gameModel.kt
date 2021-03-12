@@ -1,16 +1,18 @@
 package com.rope.ropelandia.game
 
-import android.graphics.drawable.Drawable
 import com.rope.ropelandia.model.BackwardBlock
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.ForwardBlock
+import com.rope.ropelandia.model.NULL_BLOCK
 
 private const val NO_EXECUTION = -1
 
-data class Game(val levels: List<Level>, val ropePosition: Position) {
+data class Game(val levels: List<Level>) {
+
+    val ropePosition = Position(Square(-1, -1), Position.Direction.UNDEFINED)
     var programBlocks = mutableListOf<Block>()
+
     private var levelIndex = 0
-    fun currentMat(): Mat = levels[levelIndex].mat
 
     val programIsExecuting: Boolean
         get() = executionIndex != NO_EXECUTION
@@ -22,11 +24,11 @@ data class Game(val levels: List<Level>, val ropePosition: Position) {
         programBlocks.addAll(blocks)
     }
 
-    fun updateRoPESquare(squareX: Int, squareY: Int) {
+    fun updateRoPEPosition(squareX: Int, squareY: Int) {
         this.ropePosition.square = Square(squareX, squareY)
     }
 
-    private fun nextSquare() : Square {
+    private fun nextSquare(): Square {
         val square = ropePosition.square
 
         return when {
@@ -54,16 +56,14 @@ data class Game(val levels: List<Level>, val ropePosition: Position) {
         }
     }
 
-    fun nextPosition(): Mat {
-        val nextSquare = this.nextSquare()
-        return currentMat().subMat(nextSquare.x, nextSquare.y)
+    private fun goingForward() = nextBlockToExecute() is ForwardBlock
+    private fun goingBackward() = nextBlockToExecute() is BackwardBlock
+
+    private fun nextBlockToExecute(): Block {
+        val nextIndex = executionIndex + 1
+        val noMoreBlocks = programBlocks.size >= nextIndex
+        return if (noMoreBlocks) NULL_BLOCK else programBlocks[nextIndex]
     }
-
-    private fun goingForward() = hasBlockToExecute() && nextBlockToExecute() is ForwardBlock
-    private fun goingBackward() = hasBlockToExecute() && nextBlockToExecute() is BackwardBlock
-
-    private fun nextBlockToExecute() = programBlocks[executionIndex + 1]
-    private fun hasBlockToExecute() = programBlocks.size > executionIndex + 1
 
     fun startExecution() {
         executionIndex = 0
@@ -74,10 +74,20 @@ data class Game(val levels: List<Level>, val ropePosition: Position) {
     }
 
     fun executeAction() {
-        val nextSquare = this.nextSquare()
-        this.ropePosition.square = nextSquare
+        this.ropePosition.square = this.nextSquare()
         executionIndex++
     }
+
+    fun numberOfLines(): Int {
+        return currentLevel().collectable.size
+    }
+
+    private fun currentLevel() = levels[levelIndex]
+
+    fun currentMat() = arrayOf(
+        currentLevel().path,
+        currentLevel().collectable
+    )
 }
 
 data class Square(val x: Int, val y: Int) {
@@ -87,67 +97,11 @@ data class Square(val x: Int, val y: Int) {
     fun east() = Square(x - 1, y)
 }
 
-data class Level(val mat: Mat = mutableListOf())
-
-data class Tile(val drawable: Drawable, val type: TileType) {
-    enum class TileType {
-        OBSTACLE, COLLECTABLE, PATH, OFF_ROAD
-    }
-}
-
-typealias MatLayer = Array<Array<Tile>>
-
-typealias Mat = MutableList<MatLayer>
-
-fun Mat.numberOfLines(): Int {
-    val noLayer = this.size == 0
-    return if (noLayer) {
-        0
-    } else {
-        val layer = this[0]
-        layer.size
-    }
-}
-
-fun Mat.numberOfColumns(): Int {
-    val noLayer = this.isEmpty()
-    return if (noLayer) {
-        0
-    } else {
-        val layer = this[0]
-        val noLines = layer[0].isEmpty()
-        if (noLines)
-            0
-        else
-            layer[0].size
-    }
-}
-
-fun Mat.subMat(x: Int, y: Int): Mat {
-    val subMat = mutableListOf<MatLayer>()
-    this.forEach { layer: MatLayer ->
-        val subMatLayer: MatLayer = arrayOf(
-            arrayOf(
-                layer[x][y]
-            )
-        )
-        subMat.add(subMatLayer)
-    }
-    return subMat
-}
-
-fun Mat.hasTile(tileType: Tile.TileType): Boolean {
-    for (matLayer in this) {
-        for (matLine in matLayer) {
-            for (tile: Tile in matLine) {
-                if (tile.type == tileType) {
-                    return true
-                }
-            }
-        }
-    }
-    return false
-}
+class Level(
+    val path: Array<Array<String>>,
+    val collectable: Array<Array<String>>,
+    val startPosition: Position
+)
 
 data class Position(
     var square: Square,
@@ -156,7 +110,7 @@ data class Position(
     var y: Float = 0f
 ) {
 
-    fun setExactPosition(x: Float, y: Float) {
+    fun setCoordinate(x: Float, y: Float) {
         this.x = x
         this.y = y
     }

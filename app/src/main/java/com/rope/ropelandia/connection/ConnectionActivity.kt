@@ -5,6 +5,7 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +18,7 @@ import com.rope.ropelandia.game.GameActivity
 
 class ConnectionActivity : AppCompatActivity() {
 
+    private var dataUrl: String? = null
     private lateinit var binding: ActivityConnectionBinding
 
     private val connectedSound by lazy { MediaPlayer.create(this, R.raw.audio_rope_conectado) }
@@ -31,6 +33,7 @@ class ConnectionActivity : AppCompatActivity() {
         setupRopeFinder()
         setupActivityListeners()
         findAndConnectRoPE()
+        getDataFromDeepLink()
     }
 
     private fun setupRopeFinder() {
@@ -120,7 +123,17 @@ class ConnectionActivity : AppCompatActivity() {
 
     private fun goToGameActivity() {
         val intent = Intent(this, GameActivity::class.java)
+        intent.putExtra("dataUrl", dataUrl)
         startActivity(intent)
+    }
+
+    private fun getDataFromDeepLink() {
+        intent?.let {
+            it.data?.let { uri ->
+                uri.path?.let { path -> Log.d("CONNECTION_ACTIVITY", path) }
+                dataUrl = uri.getQueryParameter("dataUrl")
+            }
+        }
     }
 
 }

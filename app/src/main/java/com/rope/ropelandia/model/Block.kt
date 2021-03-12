@@ -3,6 +3,8 @@ package com.rope.ropelandia.model
 import kotlin.math.cos
 import kotlin.math.sin
 
+val NULL_BLOCK = Block(0f, 0f, 0f, 0f)
+
 open class Block(
     var centerX: Float,
     var centerY: Float,

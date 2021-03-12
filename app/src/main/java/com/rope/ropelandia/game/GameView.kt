@@ -2,6 +2,7 @@ package com.rope.ropelandia.game
 
 import android.content.Context
 import android.graphics.*
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -22,10 +23,6 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     init {
         setWillNotDraw(false)
         setZOrderOnTop(true)
-        val width = resources.displayMetrics.widthPixels
-        val height = resources.displayMetrics.heightPixels
-        layoutParams = LinearLayout.LayoutParams(width, height)
-        matView.layoutParams = LinearLayout.LayoutParams(width, height)
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -110,7 +107,7 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     }
 
     fun update(game: Game) {
-        matView.mat = game.currentMat()
+        matView.updateMat(game.currentMat())
         programBlocks = game.programBlocks.map { block ->
             BlockToBlockView.convert(context, block)
         }

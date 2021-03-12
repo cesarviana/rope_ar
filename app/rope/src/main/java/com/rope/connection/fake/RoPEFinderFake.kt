@@ -10,7 +10,7 @@ class RoPEFinderFake(override var activity: Activity, handler: Handler) : RoPEFi
 
     private lateinit var onConnectionFailedListener: (errorCode: Int) -> Unit
     private lateinit var onRoPEFoundListener: (rope: RoPE) -> Unit
-    private val rope = RoPEFake(handler)
+    private val rope = RoPEFake(handler,)
 
     override fun findRoPE() {
         onRoPEFoundListener(rope)

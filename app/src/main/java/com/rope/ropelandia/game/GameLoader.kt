@@ -1,50 +1,29 @@
 package com.rope.ropelandia.game
 
-import android.content.Context
-import androidx.core.content.res.ResourcesCompat
-import com.rope.ropelandia.R
-
 object GameLoader {
 
-    fun load(applicationContext: Context): Game {
+    fun load(dataUrl: Any?): Game {
 
-        val floor = Tile(ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.floor, null)!!,Tile.TileType.OFF_ROAD)
-        val empty = Tile(ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.empty, null)!!,Tile.TileType.OFF_ROAD)
-        val path = Tile(ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.path, null)!!,Tile.TileType.PATH)
-        val apple = Tile(ResourcesCompat.getDrawable(applicationContext.resources, R.drawable.apple, null)!!,Tile.TileType.OBSTACLE)
-
-        val floorLayer: MatLayer = arrayOf(
-            arrayOf(floor, floor, floor, floor, floor),
-            arrayOf(floor, floor, floor, floor, floor),
-            arrayOf(floor, floor, floor, floor, floor),
-            arrayOf(floor, floor, floor, floor, floor)
+        val level = Level(
+            path = arrayOf(
+                arrayOf("null","null","null","null","null"),
+                arrayOf("null","path","path","null","null"),
+                arrayOf("null","path","null","null","null"),
+                arrayOf("null","path","null","null","null")
+            ),
+            collectable = arrayOf(
+                arrayOf("null","null","null","null","null"),
+                arrayOf("null","null","apple","null","null"),
+                arrayOf("null","null","null","null","null"),
+                arrayOf("null","null","null","null","null")
+            ),
+            startPosition = Position(
+                Square(1,3),
+                direction = Position.Direction.NORTH
+            )
         )
 
-        val pathLayer: MatLayer = arrayOf(
-            arrayOf(empty, empty, empty, empty, empty),
-            arrayOf(empty, path, path, path, empty),
-            arrayOf(empty, path, empty, path, empty),
-            arrayOf(empty, path, empty, path, empty)
-        )
-
-        val applesLayer: MatLayer = arrayOf(
-            arrayOf(empty, empty, empty, empty, empty),
-            arrayOf(empty, empty, apple, empty, empty),
-            arrayOf(empty, apple, empty, empty, empty),
-            arrayOf(empty, empty, empty, apple, empty)
-        )
-
-        val mat: Mat = arrayListOf()
-
-        mat.add(floorLayer)
-        mat.add(pathLayer)
-        mat.add(applesLayer)
-
-        val level = Level(mat)
-
-        val ropePosition = Position(Square(-1,-1), Position.Direction.UNDEFINED)
-
-        return Game(listOf(level), ropePosition)
+        return Game(listOf(level))
     }
 
 }

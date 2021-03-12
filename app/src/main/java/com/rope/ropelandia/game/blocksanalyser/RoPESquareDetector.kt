@@ -2,7 +2,6 @@ package com.rope.ropelandia.game.blocksanalyser
 
 import android.util.Size
 import com.rope.ropelandia.game.Game
-import com.rope.ropelandia.game.numberOfLines
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.RoPEBlock
 import kotlin.math.abs
@@ -22,7 +21,7 @@ abstract class RoPESquareDetector(private val game: Game, private val screenSize
     }
 
     private fun detectSquare(it: RoPEBlock) {
-        val numberOfLines = game.currentMat().numberOfLines()
+        val numberOfLines = game.numberOfLines()
 
         val squareSize = screenSize.height / numberOfLines
 

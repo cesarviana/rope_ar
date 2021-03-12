@@ -6,7 +6,7 @@ import com.rope.connection.RoPE
 import com.rope.connection.ble.*
 import java.util.concurrent.Executors
 
-class RoPEFake(handler: Handler) : RoPE(handler) {
+class RoPEFake(handler: Handler, var running: Boolean) : RoPE(handler) {
 
     private var connected = false
 
@@ -21,13 +21,9 @@ class RoPEFake(handler: Handler) : RoPE(handler) {
 
     override fun isConnected() = connected
 
-    override fun isConnecting(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun isConnecting() = false
 
-    override fun isStopped(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun isStopped() = !this.running
 
     override fun send(command: String) {
         TODO("Not yet implemented")
@@ -38,13 +34,14 @@ class RoPEFake(handler: Handler) : RoPE(handler) {
     override fun execute(program: Program) {
         this.program = program
 
-        if(executor.isShutdown)
+        if (executor.isShutdown)
             executor = Executors.newSingleThreadExecutor()
 
         actionIndex = 0
 
         executor.execute {
             try {
+                this.running = true
                 handler.post {
                     notifyExecutionStarted()
                 }
@@ -57,7 +54,9 @@ class RoPEFake(handler: Handler) : RoPE(handler) {
                 }
                 notifyExecutionEnded()
             } catch (e: InterruptedException) {
-                Log.d("ROPE_FAKE","execution canceled")
+                Log.d("ROPE_FAKE", "execution canceled")
+            } finally {
+                this.running = false
             }
         }
 

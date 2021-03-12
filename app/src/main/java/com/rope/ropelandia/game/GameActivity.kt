@@ -37,7 +37,7 @@ class GameActivity : AppCompatActivity(),
     private val errorSound by lazy { MediaPlayer.create(applicationContext, R.raw.error_sound) }
     private lateinit var bitmapTaker: BitmapTaker
     private val permissionChecker by lazy { PermissionChecker() }
-    private val game by lazy { GameLoader.load(applicationContext) }
+    private lateinit var game: Game
     private var program: RoPE.Program = SequentialProgram(listOf())
     private val rope by lazy { app.rope!! }
 
@@ -46,6 +46,7 @@ class GameActivity : AppCompatActivity(),
         setContentView(R.layout.main_activity)
         setupRopeListeners()
         startCameraOrRequestPermission()
+        loadGame()
         updateView(game, gameView)
     }
 
@@ -67,6 +68,11 @@ class GameActivity : AppCompatActivity(),
         rope.onExecutionFinished(this)
     }
 
+    private fun loadGame() {
+        val dataUrl = intent.extras?.getString("dataUrl")
+        game = GameLoader.load(dataUrl)
+    }
+
     override fun disconnected(rope: RoPE) {
         returnToPreviousActivity()
     }
@@ -82,11 +88,11 @@ class GameActivity : AppCompatActivity(),
 
     override fun actionExecuted(rope: RoPE, action: RoPE.Action) {
         game.executeAction()
-        if(game.nextPosition().hasTile(Tile.TileType.OBSTACLE)){
-            Thread { errorSound.start() }.start()
-        } else {
-            updateViewForRoPEEvent(rope)
-        }
+//        if(game.nextMatPosition().hasTile(Tile.TileType.OBSTACLE)){
+//            Thread { errorSound.start() }.start()
+//        } else {
+//            updateViewForRoPEEvent(rope)
+//        }
     }
 
     override fun executionEnded(rope: RoPE) {
@@ -155,7 +161,7 @@ class GameActivity : AppCompatActivity(),
             blocksAnalyser.addBlocksAnalyzer(object : BlocksAnalyzer {
                 override fun analyze(blocks: List<Block>) {
                     blocks.filterIsInstance<RoPEBlock>().forEach {
-                        game.ropePosition.setExactPosition(it.centerX, it.centerY)
+                        game.ropePosition.setCoordinate(it.centerX, it.centerY)
                         runOnUiThread {
                             updateView(game, gameView)
                         }
@@ -224,7 +230,7 @@ class GameActivity : AppCompatActivity(),
         object : RoPESquareDetector(game, screenSize) {
             override fun changedSquare(squareX: Int, squareY: Int) {
                 if(rope.isStopped()) { // if running update squares from rope messages
-                    game.updateRoPESquare(squareX, squareY)
+                    game.updateRoPEPosition(squareX, squareY)
 //                    Thread { jumpSound.start() }.start()
                 }
             }
