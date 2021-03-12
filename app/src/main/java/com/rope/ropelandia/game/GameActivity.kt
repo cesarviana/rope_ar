@@ -34,7 +34,7 @@ class GameActivity : AppCompatActivity(),
     RoPEExecutionFinishedListener {
 
     private val jumpSound by lazy { MediaPlayer.create(applicationContext, R.raw.jump_sound) }
-    private val errorSound by lazy { MediaPlayer.create(applicationContext, R.raw.error_sound) }
+    private val biteSound by lazy { MediaPlayer.create(applicationContext, R.raw.bite_sound) }
     private lateinit var bitmapTaker: BitmapTaker
     private val permissionChecker by lazy { PermissionChecker() }
     private lateinit var game: Game
@@ -84,15 +84,22 @@ class GameActivity : AppCompatActivity(),
     override fun executionStarted(rope: RoPE) {
         game.startExecution()
         updateViewForRoPEEvent(rope)
+        if (game.nextSquareIs("apple")) {
+            Thread { biteSound.start() }.start()
+        }
     }
 
     override fun actionExecuted(rope: RoPE, action: RoPE.Action) {
+        /*
+         * When rope robot notifies executed action like goForward, the game
+         * state is updated to store this movement.
+         */
         game.executeAction()
-//        if(game.nextMatPosition().hasTile(Tile.TileType.OBSTACLE)){
-//            Thread { errorSound.start() }.start()
-//        } else {
-//            updateViewForRoPEEvent(rope)
-//        }
+        if (game.nextSquareIs("apple")) {
+            Thread { biteSound.start() }.start()
+        } else {
+            updateViewForRoPEEvent(rope)
+        }
     }
 
     override fun executionEnded(rope: RoPE) {
@@ -196,6 +203,10 @@ class GameActivity : AppCompatActivity(),
                     bitmapTookCallback
                 )
 
+            bitmapTaker.onStopping {
+                cameraProvider.unbindAll()
+            }
+
             val useCase = bitmapTaker.getUseCase()
 
             cameraProvider.unbindAll()
@@ -229,7 +240,7 @@ class GameActivity : AppCompatActivity(),
     private fun createMovementsDetector(screenSize: Size) =
         object : RoPESquareDetector(game, screenSize) {
             override fun changedSquare(squareX: Int, squareY: Int) {
-                if(rope.isStopped()) { // if running update squares from rope messages
+                if (rope.isStopped()) { // if running update squares from rope messages
                     game.updateRoPEPosition(squareX, squareY)
 //                    Thread { jumpSound.start() }.start()
                 }
@@ -238,7 +249,9 @@ class GameActivity : AppCompatActivity(),
 
     private fun createFaceDetector() = object : RoPEDirectionDetector() {
         override fun changedFace(direction: Position.Direction) {
-            game.ropePosition.direction = direction
+            if(rope.isStopped()){
+                game.ropePosition.direction = direction
+            }
         }
     }
 

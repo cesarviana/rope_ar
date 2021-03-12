@@ -2,11 +2,9 @@ package com.rope.ropelandia.game
 
 import android.content.Context
 import android.graphics.*
-import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import android.widget.LinearLayout
 import com.rope.ropelandia.game.views.BlockView
 import com.rope.ropelandia.game.views.RoPEView
 
@@ -112,15 +110,15 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
             BlockToBlockView.convert(context, block)
         }
         if(game.programIsExecuting){
-            highlight(game.executionIndex)
+            highlight(game.startedActionIndex)
         } else {
             hideHighlight()
         }
         ropeView.x = game.ropePosition.x
         ropeView.y = game.ropePosition.y
-        val squareX = game.ropePosition.square.x
-        val squareY = game.ropePosition.square.y
-        ropeView.bounds = createRect(matView.squareSize, squareY, squareX)
+//        val squareX = game.ropePosition.square.column
+//        val squareY = game.ropePosition.square.line
+//        ropeView.bounds = createRect(matView.squareSize, squareY, squareX)
         invalidate()
     }
 

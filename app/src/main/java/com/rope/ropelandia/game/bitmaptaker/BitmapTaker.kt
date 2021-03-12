@@ -19,6 +19,7 @@ abstract class BitmapTaker(
     abstract fun startTakingImages()
     abstract fun getUseCase(): UseCase
     private val toBitmapConverterFactory = ImageToBitmapConverterFactory(context)
+    private var onStopCallback: (() -> Unit)? = null
 
     @SuppressLint("UnsafeExperimentalUsageError")
     protected fun imageTaken(imageProxy: ImageProxy) {
@@ -51,6 +52,12 @@ abstract class BitmapTaker(
             executor.shutdown()
         } catch (e: java.lang.Exception) {
             e.message?.let { Log.e("BITMAP_TAKER", it) }
+        } finally {
+            onStopCallback?.invoke()
         }
+    }
+
+    fun onStopping(function: () -> Unit) {
+        this.onStopCallback = function
     }
 }

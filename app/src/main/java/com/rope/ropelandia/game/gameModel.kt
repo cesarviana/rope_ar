@@ -1,23 +1,22 @@
 package com.rope.ropelandia.game
 
-import com.rope.ropelandia.model.BackwardBlock
-import com.rope.ropelandia.model.Block
-import com.rope.ropelandia.model.ForwardBlock
-import com.rope.ropelandia.model.NULL_BLOCK
+import com.rope.ropelandia.model.*
 
-private const val NO_EXECUTION = -1
+private const val NO_EXECUTION = -2
+private const val PRE_EXECUTION = -1
 
 data class Game(val levels: List<Level>) {
 
     val ropePosition = Position(Square(-1, -1), Position.Direction.UNDEFINED)
     var programBlocks = mutableListOf<Block>()
-
     private var levelIndex = 0
 
     val programIsExecuting: Boolean
-        get() = executionIndex != NO_EXECUTION
+        get() = executedActionIndex != NO_EXECUTION
 
-    var executionIndex = NO_EXECUTION
+    var executedActionIndex = NO_EXECUTION
+    val startedActionIndex: Int
+        get() = executedActionIndex + 1
 
     fun updateProgramBlocks(blocks: List<Block>) {
         programBlocks.clear()
@@ -26,6 +25,21 @@ data class Game(val levels: List<Level>) {
 
     fun updateRoPEPosition(squareX: Int, squareY: Int) {
         this.ropePosition.square = Square(squareX, squareY)
+    }
+
+    fun nextSquareIs(type: String): Boolean {
+        if (!hasBlocksToExecute()) {
+            return false
+        }
+        return try {
+            val square = nextSquare()
+            val level = currentLevel()
+            val collectable = level.collectable[square.line][square.column]
+            val path = level.path[square.line][square.column]
+            collectable == type || path == type
+        } catch (e: Exception) {
+            false
+        }
     }
 
     private fun nextSquare(): Square {
@@ -58,24 +72,53 @@ data class Game(val levels: List<Level>) {
 
     private fun goingForward() = nextBlockToExecute() is ForwardBlock
     private fun goingBackward() = nextBlockToExecute() is BackwardBlock
+    private fun turningLeft() = nextBlockToExecute() is LeftBlock
+    private fun turningRight() = nextBlockToExecute() is RightBlock
 
     private fun nextBlockToExecute(): Block {
-        val nextIndex = executionIndex + 1
-        val noMoreBlocks = programBlocks.size >= nextIndex
-        return if (noMoreBlocks) NULL_BLOCK else programBlocks[nextIndex]
+        val nextIndex = executedActionIndex + 1
+        return if (hasBlocksToExecute()) programBlocks[nextIndex] else NULL_BLOCK
     }
 
+    private fun hasBlocksToExecute() = executedActionIndex + 1 < programBlocks.size
+
     fun startExecution() {
-        executionIndex = 0
+        executedActionIndex = PRE_EXECUTION
     }
 
     fun endExecution() {
-        executionIndex = NO_EXECUTION
+        executedActionIndex = NO_EXECUTION
     }
 
     fun executeAction() {
         this.ropePosition.square = this.nextSquare()
-        executionIndex++
+        this.ropePosition.direction = this.nextDirection()
+        executedActionIndex++
+    }
+
+    private fun nextDirection(): Position.Direction {
+        val direction = this.ropePosition.direction
+        return when {
+            turningLeft() -> {
+                when(direction) {
+                    Position.Direction.NORTH -> Position.Direction.WEST
+                    Position.Direction.WEST -> Position.Direction.SOUTH
+                    Position.Direction.SOUTH -> Position.Direction.EAST
+                    Position.Direction.EAST -> Position.Direction.NORTH
+                    else -> throw IllegalStateException("The toy face is undefined")
+                }
+            }
+            turningRight() -> {
+                when(direction) {
+                    Position.Direction.NORTH -> Position.Direction.EAST
+                    Position.Direction.WEST -> Position.Direction.NORTH
+                    Position.Direction.SOUTH -> Position.Direction.WEST
+                    Position.Direction.EAST -> Position.Direction.SOUTH
+                    else -> throw IllegalStateException("The toy face is undefined")
+                }
+            }
+            else -> direction
+        }
     }
 
     fun numberOfLines(): Int {
@@ -90,11 +133,11 @@ data class Game(val levels: List<Level>) {
     )
 }
 
-data class Square(val x: Int, val y: Int) {
-    fun north() = Square(x, y - 1)
-    fun south() = Square(x, y + 1)
-    fun west() = Square(x + 1, y)
-    fun east() = Square(x - 1, y)
+data class Square(val column: Int, val line: Int) {
+    fun north() = Square(column, line - 1)
+    fun south() = Square(column, line + 1)
+    fun west() = Square(column - 1, line)
+    fun east() = Square(column + 1, line)
 }
 
 class Level(
@@ -116,6 +159,18 @@ data class Position(
     }
 
     enum class Direction {
-        NORTH, SOUTH, EAST, WEST, UNDEFINED
+        NORTH, SOUTH, EAST, WEST, UNDEFINED;
+        companion object {
+            fun fromDegrees(angleDegrees: Double): Direction {
+                return when {
+                    angleDegrees > 45 && angleDegrees <= 135 -> NORTH
+                    angleDegrees > 135 && angleDegrees <= 225 -> WEST
+                    angleDegrees > 225 && angleDegrees <= 275 -> SOUTH
+                    angleDegrees > 275 && angleDegrees <= 360 -> EAST
+                    angleDegrees > 0 && angleDegrees <= 45 -> EAST
+                    else -> UNDEFINED
+                }
+            }
+        }
     }
 }

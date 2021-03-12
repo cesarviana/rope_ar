@@ -12,17 +12,17 @@ abstract class RoPEDirectionDetector : BlocksAnalyzer {
 
         blocks.filterIsInstance<RoPEBlock>().forEach {
 
-            val angleDegrees = Math.toDegrees(it.angle.toDouble()).let { angle ->
-                if( angle < 0 ) angle + 360 else angle
-            }
+            val angleDegrees = getAngleDegrees(it)
 
-            val currentDirection: Position.Direction = when {
-                angleDegrees > 45 && angleDegrees <= 135 -> Position.Direction.NORTH
-                angleDegrees > 135 && angleDegrees <= 225 -> Position.Direction.WEST
-                angleDegrees > 225 && angleDegrees <= 275 -> Position.Direction.SOUTH
-                angleDegrees > 275 && angleDegrees <= 360 -> Position.Direction.EAST
-                angleDegrees > 0 && angleDegrees <= 45 -> Position.Direction.EAST
-                else -> Position.Direction.UNDEFINED
+            /**
+             * As the map is rotated 180º, the west and east directions must also be inverted.
+             */
+            var currentDirection = Position.Direction.fromDegrees(angleDegrees)
+
+            currentDirection = when (currentDirection) {
+                Position.Direction.EAST -> Position.Direction.WEST
+                Position.Direction.WEST -> Position.Direction.EAST
+                else -> currentDirection
             }
 
             if (currentDirection != direction) {
@@ -32,6 +32,11 @@ abstract class RoPEDirectionDetector : BlocksAnalyzer {
         }
 
     }
+
+    private fun getAngleDegrees(it: RoPEBlock) = Math.toDegrees(it.angle.toDouble()).let { angle ->
+        if (angle < 0) angle + 360 else angle
+    }
+
 
     abstract fun changedFace(direction: Position.Direction)
 }

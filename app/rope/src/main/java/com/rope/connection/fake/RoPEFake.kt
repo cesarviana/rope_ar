@@ -6,9 +6,10 @@ import com.rope.connection.RoPE
 import com.rope.connection.ble.*
 import java.util.concurrent.Executors
 
-class RoPEFake(handler: Handler, var running: Boolean) : RoPE(handler) {
+class RoPEFake(handler: Handler) : RoPE(handler) {
 
     private var connected = false
+    private var running = false
 
     override fun connect() {
         connected = true
