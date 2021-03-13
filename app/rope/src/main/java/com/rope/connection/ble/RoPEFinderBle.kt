@@ -106,7 +106,7 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
 
     private fun createScanSettings(): ScanSettings? {
         return ScanSettings.Builder()
-            .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
+            .setScanMode(ScanSettings.SCAN_MODE_BALANCED)
             .build()
     }
 
@@ -169,7 +169,7 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
             super.onScanFailed(errorCode)
 
             if (errorCode == SCAN_FAILED_ALREADY_STARTED) {
-                bluetoothAdapter?.getBluetoothLeScanner()?.stopScan(myScanCallback)
+                bluetoothAdapter?.bluetoothLeScanner?.stopScan(myScanCallback)
             }
 
             Listeners.onConnectionFailed.forEach { it(errorCode) }

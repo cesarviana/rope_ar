@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutorService
 class BitmapTakerFactory {
 
     enum class Type {
-        STREAM, PICTURE
+        VIDEO, PHOTO
     }
 
     fun createBitmapTaker(
@@ -18,8 +18,8 @@ class BitmapTakerFactory {
         bitmapTookCallback: BitmapTaker.BitmapTookCallback
     ): BitmapTaker {
         return when (type) {
-            Type.STREAM -> StreamBitmapTaker(context, handler, executor, bitmapTookCallback)
-            Type.PICTURE -> PhotoBitmapTaker(context, handler, executor, bitmapTookCallback)
+            Type.VIDEO -> VideoBitmapTaker(context, handler, executor, bitmapTookCallback)
+            Type.PHOTO -> PhotoBitmapTaker(context, handler, executor, bitmapTookCallback)
         }
     }
 }

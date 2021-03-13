@@ -3,7 +3,6 @@ package com.rope.ropelandia.game
 object GameLoader {
 
     fun load(dataUrl: Any?): Game {
-
         val level = Level(
             path = arrayOf(
                 arrayOf("null","null","null","null","null"),
@@ -22,8 +21,6 @@ object GameLoader {
                 direction = Position.Direction.NORTH
             )
         )
-
         return Game(listOf(level))
     }
-
 }

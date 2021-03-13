@@ -18,8 +18,9 @@ class BlocksAnalyzerComposite : BlocksAnalyzer {
         }
     }
 
-    fun addBlocksAnalyzer(analyser: BlocksAnalyzer) {
+    fun addBlocksAnalyzer(analyser: BlocksAnalyzer): BlocksAnalyzerComposite {
         analyzers.add(analyser)
+        return this
     }
 
 }

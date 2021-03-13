@@ -7,7 +7,7 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.UseCase
 import java.util.concurrent.ExecutorService
 
-class StreamBitmapTaker(
+class VideoBitmapTaker(
     context: Context,
     handler: Handler,
     executor: ExecutorService,

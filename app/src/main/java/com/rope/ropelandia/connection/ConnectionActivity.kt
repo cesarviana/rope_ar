@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.HandlerCompat
 import com.rope.connection.ble.RoPEFinderBle
+import com.rope.connection.fake.RoPEFinderFake
 import com.rope.ropelandia.R
 import com.rope.ropelandia.app
 import com.rope.ropelandia.databinding.ActivityConnectionBinding
@@ -41,7 +42,7 @@ class ConnectionActivity : AppCompatActivity() {
             app.ropeFinder?.activity = this
         } else {
             val handler = HandlerCompat.createAsync(Looper.getMainLooper())
-            app.ropeFinder = RoPEFinderBle(this, handler)
+            app.ropeFinder = RoPEFinderFake(this, handler)
             addRoPEFinderListeners()
         }
     }

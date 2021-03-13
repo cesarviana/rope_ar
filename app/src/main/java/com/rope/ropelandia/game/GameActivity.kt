@@ -1,6 +1,8 @@
 package com.rope.ropelandia.game
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.media.CamcorderProfile
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Looper
@@ -25,6 +27,7 @@ import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.RoPEBlock
 import kotlinx.android.synthetic.main.main_activity.*
 import java.util.concurrent.Executors
+
 
 class GameActivity : AppCompatActivity(),
     RoPEDisconnectedListener,
@@ -95,11 +98,11 @@ class GameActivity : AppCompatActivity(),
          * state is updated to store this movement.
          */
         game.executeAction()
+        updateViewForRoPEEvent(rope)
         if (game.nextSquareIs("apple")) {
             Thread { biteSound.start() }.start()
-        } else {
-            updateViewForRoPEEvent(rope)
         }
+
     }
 
     override fun executionEnded(rope: RoPE) {
@@ -144,6 +147,7 @@ class GameActivity : AppCompatActivity(),
         }
     }
 
+    @SuppressLint("RestrictedApi", "UnsafeExperimentalUsageError")
     private fun startCamera() {
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
@@ -151,70 +155,16 @@ class GameActivity : AppCompatActivity(),
         val cameraProviderFutureListener = Runnable {
             val cameraProvider = cameraProviderFuture.get()
 
-            val bitmapTookHandler = HandlerCompat.createAsync(Looper.getMainLooper())
-            val bitmapToBlocksExecutor = Executors.newFixedThreadPool(4)
+            val bitmapTookCallback = createBitmapTakerCallback()
 
-            val width = resources.displayMetrics.widthPixels
-            val height = resources.displayMetrics.heightPixels
-            val screenSize = Size(width, height)
-
-            val bitmapToBlocksConverter = BitmapToBlocksConverter(screenSize)
-            val bitmapTakerExecutor = Executors.newFixedThreadPool(2)
-
-            val blocksAnalyser = BlocksAnalyzerComposite()
-            blocksAnalyser.addBlocksAnalyzer(createProgramDetector())
-            blocksAnalyser.addBlocksAnalyzer(createMovementsDetector(screenSize))
-            blocksAnalyser.addBlocksAnalyzer(createFaceDetector())
-            blocksAnalyser.addBlocksAnalyzer(object : BlocksAnalyzer {
-                override fun analyze(blocks: List<Block>) {
-                    blocks.filterIsInstance<RoPEBlock>().forEach {
-                        game.ropePosition.setCoordinate(it.centerX, it.centerY)
-                        runOnUiThread {
-                            updateView(game, gameView)
-                        }
-                    }
-                }
-            })
-
-            val bitmapTookCallback = object : BitmapTaker.BitmapTookCallback {
-                override fun onBitmap(bitmap: Bitmap) {
-                    bitmapToBlocksExecutor.submit {
-                        try {
-                            val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
-                            blocksAnalyser.analyze(blocks)
-                        } catch (e: java.lang.Exception) {
-                            e.message?.let { Log.e("GAME_ACTIVITY", it) }
-                        }
-                    }.get()
-                }
-
-                override fun onError(e: Exception) {
-                    Log.e(javaClass.simpleName, "Error when getting bitmap")
-                    e.printStackTrace()
-                }
-            }
-
-            bitmapTaker = BitmapTakerFactory()
-                .createBitmapTaker(
-                    this,
-                    bitmapTookHandler,
-                    bitmapTakerExecutor,
-                    BitmapTakerFactory.Type.PICTURE,
-                    bitmapTookCallback
-                )
-
-            bitmapTaker.onStopping {
-                cameraProvider.unbindAll()
-            }
-
-            val useCase = bitmapTaker.getUseCase()
+            bitmapTaker = createBitmapTaker(bitmapTookCallback, cameraProvider)
 
             cameraProvider.unbindAll()
 
             cameraProvider.bindToLifecycle(
                 this,
                 CameraSelector.DEFAULT_BACK_CAMERA,
-                useCase
+                bitmapTaker.getUseCase()
             )
             bitmapTaker.startTakingImages()
         }
@@ -225,6 +175,68 @@ class GameActivity : AppCompatActivity(),
         )
     }
 
+    private fun createBitmapTakerCallback() = object : BitmapTaker.BitmapTookCallback {
+
+        private val screenSize by lazy {
+            val width = resources.displayMetrics.widthPixels
+            val height = resources.displayMetrics.heightPixels
+            Size(width, height)
+        }
+
+        private val blocksAnalyser = BlocksAnalyzerComposite()
+            .addBlocksAnalyzer(createProgramDetector())
+            .addBlocksAnalyzer(createMovementsDetector(screenSize))
+            .addBlocksAnalyzer(createDirectionDetector())
+            .addBlocksAnalyzer(createCoordinateDetector())
+
+        private val bitmapToBlocksExecutor = Executors.newFixedThreadPool(4)
+        private val bitmapToBlocksConverter = BitmapToBlocksConverter(screenSize)
+
+        override fun onBitmap(bitmap: Bitmap) {
+            bitmapToBlocksExecutor.submit {
+                try {
+                    val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
+                    blocksAnalyser.analyze(blocks)
+                } catch (e: java.lang.Exception) {
+                    e.message?.let { Log.e("GAME_ACTIVITY", it) }
+                }
+            }.get()
+        }
+
+        override fun onError(e: Exception) {
+            Log.e(javaClass.simpleName, "Error when getting bitmap")
+        }
+    }
+
+    private fun createBitmapTaker(
+        bitmapTookCallback: BitmapTaker.BitmapTookCallback,
+        cameraProvider: ProcessCameraProvider
+    ): BitmapTaker {
+        val bitmapTakerType = decideBitmapTakerType()
+        val bitmapTookHandler = HandlerCompat.createAsync(Looper.getMainLooper())
+        val bitmapTakerExecutor = Executors.newFixedThreadPool(2)
+
+        val bitmapTaker = BitmapTakerFactory()
+            .createBitmapTaker(
+                this,
+                bitmapTookHandler,
+                bitmapTakerExecutor,
+                bitmapTakerType,
+                bitmapTookCallback
+            )
+
+        bitmapTaker.onStopping {
+            cameraProvider.unbindAll()
+        }
+
+        return bitmapTaker
+    }
+
+    private fun decideBitmapTakerType(): BitmapTakerFactory.Type {
+        val profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH)
+        return if (profile.videoFrameHeight > 720) BitmapTakerFactory.Type.VIDEO else BitmapTakerFactory.Type.PHOTO
+    }
+
     private fun createProgramDetector() = object : ProgramDetector(app.rope!!) {
         private val blocksFoundHandler = HandlerCompat.createAsync(Looper.getMainLooper())
 
@@ -232,7 +244,8 @@ class GameActivity : AppCompatActivity(),
             blocksFoundHandler.post {
                 this@GameActivity.program = program
                 game.updateProgramBlocks(blocks)
-                updateView(game, gameView)
+                if (rope.isStopped())
+                    updateView(game, gameView)
             }
         }
     }
@@ -240,17 +253,24 @@ class GameActivity : AppCompatActivity(),
     private fun createMovementsDetector(screenSize: Size) =
         object : RoPESquareDetector(game, screenSize) {
             override fun changedSquare(squareX: Int, squareY: Int) {
-                if (rope.isStopped()) { // if running update squares from rope messages
+                if (rope.isStopped()) { // if running, update squares from rope messages
                     game.updateRoPEPosition(squareX, squareY)
-//                    Thread { jumpSound.start() }.start()
                 }
             }
         }
 
-    private fun createFaceDetector() = object : RoPEDirectionDetector() {
+    private fun createDirectionDetector() = object : RoPEDirectionDetector() {
         override fun changedFace(direction: Position.Direction) {
-            if(rope.isStopped()){
+            if (rope.isStopped()) {
                 game.ropePosition.direction = direction
+            }
+        }
+    }
+
+    private fun createCoordinateDetector() = object : BlocksAnalyzer {
+        override fun analyze(blocks: List<Block>) {
+            blocks.filterIsInstance<RoPEBlock>().forEach {
+                game.ropePosition.setCoordinate(it.centerX, it.centerY)
             }
         }
     }
