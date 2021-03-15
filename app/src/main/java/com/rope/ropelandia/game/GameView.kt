@@ -26,6 +26,7 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.apply {
+            drawBackground()
             // rotate to image be up for the user
             rotate(180f, centerX, centerY)
             matView.draw(canvas)
@@ -39,6 +40,14 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
             }
             ropeView.draw(canvas)
         }
+    }
+
+    private val backgroundPaint = Paint().apply {
+        color = Color.YELLOW
+    }
+
+    private fun Canvas.drawBackground() {
+        drawRect(Rect(0,0,width,height),backgroundPaint)
     }
 
     private val pathPaint = Paint().apply {
@@ -71,7 +80,7 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     // rounded white rect on right
     private val programmingArea by lazy {
         val margin = width * 0.01f
-        val left = width * 0.65f
+        val left = width * 0.70f + margin
         val top = margin
         val right = right - margin
         val bottom = bottom - margin
