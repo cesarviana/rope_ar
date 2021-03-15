@@ -28,7 +28,8 @@ data class Game(val levels: List<Level>) {
     }
 
     fun nextSquareIs(type: String): Boolean {
-        if (!hasBlocksToExecute()) {
+        val changingSquare = goingForward() || goingBackward()
+        if (!hasBlocksToExecute() || !changingSquare) {
             return false
         }
         return try {
@@ -131,6 +132,10 @@ data class Game(val levels: List<Level>) {
         currentLevel().path,
         currentLevel().collectable
     )
+
+    fun startLine() = currentLevel().startPosition.square.line
+    fun startColumn() = currentLevel().startPosition.square.column
+
 }
 
 data class Square(val column: Int, val line: Int) {

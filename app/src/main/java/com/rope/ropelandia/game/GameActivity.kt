@@ -99,9 +99,7 @@ class GameActivity : AppCompatActivity(),
     override fun executionStarted(rope: RoPE) {
         game.startExecution()
         updateViewForRoPEEvent(rope)
-        if (game.nextSquareIs("apple")) {
-            Thread { biteSound.start() }.start()
-        }
+        reactToRoPEEvent()
     }
 
     override fun actionExecuted(rope: RoPE, action: RoPE.Action) {
@@ -111,10 +109,14 @@ class GameActivity : AppCompatActivity(),
          */
         game.executeAction()
         updateViewForRoPEEvent(rope)
+        reactToRoPEEvent()
+
+    }
+
+    private fun reactToRoPEEvent() {
         if (game.nextSquareIs("apple")) {
             Thread { biteSound.start() }.start()
         }
-
     }
 
     override fun executionEnded(rope: RoPE) {

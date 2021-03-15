@@ -14,6 +14,7 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     private val matView: MatView = MatView(context, null)
     private var programBlocks: List<BlockView> = listOf()
     private val ropeView: RoPEView = RoPEView(context)
+    private val startPointView: StartPointView = StartPointView(context)
 
     private val centerX by lazy { (width shr 1).toFloat() }
     private val centerY by lazy { (height shr 1).toFloat() }
@@ -30,6 +31,7 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
             // rotate to image be up for the user
             rotate(180f, centerX, centerY)
             matView.draw(canvas)
+            startPointView.draw(canvas)
             drawProgrammingArea()
             // rotate back
             rotate(-180f, centerX, centerY)
@@ -125,6 +127,10 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
         }
         ropeView.x = game.ropePosition.x
         ropeView.y = game.ropePosition.y
+
+        startPointView.squareSize = matView.squareSize
+        startPointView.line = game.startLine()
+        startPointView.column = game.startColumn()
 //        val squareX = game.ropePosition.square.column
 //        val squareY = game.ropePosition.square.line
 //        ropeView.bounds = createRect(matView.squareSize, squareY, squareX)
