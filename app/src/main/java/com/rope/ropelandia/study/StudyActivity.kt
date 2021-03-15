@@ -8,11 +8,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.HandlerCompat
 import com.rope.connection.RoPE
 import com.rope.connection.ble.RoPEActionListener
-import com.rope.connection.ble.RoPEExecutionStartedListener
 import com.rope.connection.fake.RoPEFinderFake
 import com.rope.ropelandia.R
 import com.rope.ropelandia.capture.BlocksToProgramConverter
-import com.rope.ropelandia.capture.ProgramFactory
+import com.rope.ropelandia.capture.BlockSequenceFinder
 import com.rope.ropelandia.game.GameView
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.ForwardBlock
@@ -56,7 +55,7 @@ class StudyActivity : AppCompatActivity() {
         event?.let {
             if(it.action == MotionEvent.ACTION_DOWN){
                 val blocks = retrieveBlocks()
-                val blocksSequence = ProgramFactory.findSequence(blocks)
+                val blocksSequence = BlockSequenceFinder.findSequence(blocks)
                 val program = BlocksToProgramConverter.convert(blocksSequence)
                 rope?.execute(program)
             }

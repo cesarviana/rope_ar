@@ -143,7 +143,8 @@ data class Square(val column: Int, val line: Int) {
 class Level(
     val path: Array<Array<String>>,
     val collectable: Array<Array<String>>,
-    val startPosition: Position
+    val startPosition: Position,
+    val expectedCommands: Array<String> = arrayOf()
 )
 
 data class Position(

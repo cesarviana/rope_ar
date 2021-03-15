@@ -1,13 +1,13 @@
 package com.rope.ropelandia
 
-import com.rope.ropelandia.capture.ProgramFactory
+import com.rope.ropelandia.capture.BlockSequenceFinder
 import com.rope.ropelandia.model.ForwardBlock
 import com.rope.ropelandia.model.LeftBlock
 import com.rope.ropelandia.model.StartBlock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
-class SequentialProgramFactoryTest {
+class SequentialBlockSequenceFinderTest {
 
     @Test
     fun testHorizontalProgram() {
@@ -16,9 +16,9 @@ class SequentialProgramFactoryTest {
 
         val blocks = listOf(startBlock, forwardBlock)
 
-        val program = ProgramFactory.createFromBlocks(blocks)
+        val program = BlockSequenceFinder.findSequence(blocks)
 
-        assertThat(program.blocks)
+        assertThat(program)
             .hasSize(1)
             .containsSequence(forwardBlock)
     }
@@ -31,9 +31,9 @@ class SequentialProgramFactoryTest {
 
         val blocks = listOf(startBlock, forwardBlock, leftBlock)
 
-        val program = ProgramFactory.createFromBlocks(blocks)
+        val program = BlockSequenceFinder.findSequence(blocks)
 
-        assertThat(program.blocks)
+        assertThat(program)
             .hasSize(1)
             .doesNotContain(leftBlock)
             .containsSequence(forwardBlock)
@@ -46,9 +46,9 @@ class SequentialProgramFactoryTest {
 
         val blocks = listOf(startBlock, forwardBlock)
 
-        val program = ProgramFactory.createFromBlocks(blocks)
+        val program = BlockSequenceFinder.findSequence(blocks)
 
-        assertThat(program.blocks)
+        assertThat(program)
             .hasSize(1)
             .containsSequence(forwardBlock)
     }
@@ -60,9 +60,9 @@ class SequentialProgramFactoryTest {
 
         val blocks = listOf(startBlock, forwardBlock)
 
-        val program = ProgramFactory.createFromBlocks(blocks)
+        val program = BlockSequenceFinder.findSequence(blocks)
 
-        assertThat(program.blocks)
+        assertThat(program)
             .hasSize(1)
             .containsSequence(forwardBlock)
     }

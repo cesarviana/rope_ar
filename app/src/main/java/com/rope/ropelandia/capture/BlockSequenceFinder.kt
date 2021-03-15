@@ -25,7 +25,7 @@ object BlocksToProgramConverter {
     }
 }
 
-object ProgramFactory {
+object BlockSequenceFinder {
 
     private const val SNAP_DISTANCE = 100
 

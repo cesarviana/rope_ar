@@ -26,6 +26,8 @@ import com.rope.ropelandia.game.blocksanalyser.*
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.RoPEBlock
 import kotlinx.android.synthetic.main.main_activity.*
+import java.net.URI
+import java.util.*
 import java.util.concurrent.Executors
 
 
@@ -36,7 +38,6 @@ class GameActivity : AppCompatActivity(),
     RoPEExecutionStartedListener,
     RoPEExecutionFinishedListener {
 
-    private val jumpSound by lazy { MediaPlayer.create(applicationContext, R.raw.jump_sound) }
     private val biteSound by lazy { MediaPlayer.create(applicationContext, R.raw.bite_sound) }
     private lateinit var bitmapTaker: BitmapTaker
     private val permissionChecker by lazy { PermissionChecker() }
@@ -48,9 +49,13 @@ class GameActivity : AppCompatActivity(),
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
         setupRopeListeners()
-        startCameraOrRequestPermission()
-        loadGame()
-        updateView(game, gameView)
+        loadGame {
+            runOnUiThread {
+                game = it
+                updateView(game, gameView)
+                startCameraOrRequestPermission()
+            }
+        }
     }
 
     override fun onStop() {
@@ -71,9 +76,16 @@ class GameActivity : AppCompatActivity(),
         rope.onExecutionFinished(this)
     }
 
-    private fun loadGame() {
+    private fun loadGame(callback: GameLoaded) {
         val dataUrl = intent.extras?.getString("dataUrl")
-        game = GameLoader.load(dataUrl)
+
+        if (dataUrl == null) {
+            GameLoader.load(dataUrl = null, callback)
+        } else {
+            val uuid = UUID.randomUUID()
+            val uri = URI.create(dataUrl).resolve(uuid.toString())
+            GameLoader.load(uri, callback)
+        }
     }
 
     override fun disconnected(rope: RoPE) {
@@ -226,6 +238,7 @@ class GameActivity : AppCompatActivity(),
             )
 
         bitmapTaker.onStopping {
+            bitmapTakerExecutor.shutdownNow()
             cameraProvider.unbindAll()
         }
 
