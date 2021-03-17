@@ -170,6 +170,9 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
 
             if (errorCode == SCAN_FAILED_ALREADY_STARTED) {
                 bluetoothAdapter?.bluetoothLeScanner?.stopScan(myScanCallback)
+            } else if(errorCode == SCAN_FAILED_APPLICATION_REGISTRATION_FAILED) {
+                bluetoothAdapter?.disable()
+                bluetoothAdapter?.enable()
             }
 
             Listeners.onConnectionFailed.forEach { it(errorCode) }

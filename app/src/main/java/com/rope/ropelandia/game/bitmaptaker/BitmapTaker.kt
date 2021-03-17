@@ -3,7 +3,6 @@ package com.rope.ropelandia.game.bitmaptaker
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
-import android.os.Handler
 import android.util.Log
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.UseCase
@@ -12,7 +11,6 @@ import java.util.concurrent.ExecutorService
 
 abstract class BitmapTaker(
     context: Context,
-    private val handler: Handler,
     protected val executor: ExecutorService,
     private val bitmapTookCallback: BitmapTookCallback
 ) {
@@ -26,14 +24,9 @@ abstract class BitmapTaker(
         imageProxy.image?.let {
             try {
                 val bitmap = toBitmapConverterFactory.getConverter(it).convert(it)
-                imageProxy.close()
-                handler.post {
-                    bitmapTookCallback.onBitmap(bitmap)
-                }
+                bitmapTookCallback.onBitmap(bitmap)
             } catch (e: Exception) {
-                handler.post {
-                    bitmapTookCallback.onError(e)
-                }
+                bitmapTookCallback.onError(e)
             } finally {
                 imageProxy.close()
             }

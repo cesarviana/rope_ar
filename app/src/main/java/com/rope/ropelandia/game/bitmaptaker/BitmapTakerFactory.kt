@@ -12,14 +12,13 @@ class BitmapTakerFactory {
 
     fun createBitmapTaker(
         context: Context,
-        handler: Handler,
         executor: ExecutorService,
         type: Type,
         bitmapTookCallback: BitmapTaker.BitmapTookCallback
     ): BitmapTaker {
         return when (type) {
-            Type.VIDEO -> VideoBitmapTaker(context, handler, executor, bitmapTookCallback)
-            Type.PHOTO -> PhotoBitmapTaker(context, handler, executor, bitmapTookCallback)
+            Type.VIDEO -> VideoBitmapTaker(context, executor, bitmapTookCallback)
+            Type.PHOTO -> PhotoBitmapTaker(context, executor, bitmapTookCallback)
         }
     }
 }

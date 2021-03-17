@@ -3,6 +3,7 @@ package com.rope.ropelandia.capture
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.BlockFactory
 import com.rope.ropelandia.model.PositionBlock
+import kotlin.math.abs
 
 interface BlocksPositioner {
     fun reposition(blocks: List<Block>): List<Block>
@@ -55,7 +56,8 @@ class ProjectorBlocksPositioner(
 
         // resize the perspective rectangle so its bottom becomes equals to the target rectangle
         val resizedPerspectiveRectangle = perspectiveRectangle.resize(proportion)
-        check(resizedPerspectiveRectangle.bottomWidth() == targetRectangle.width()) {
+        val diff = abs(resizedPerspectiveRectangle.bottomWidth() - targetRectangle.width())
+        check(diff < 0.0000001) {
             "Resized perspective rectangle bottom width: ${resizedPerspectiveRectangle.bottomWidth()} is different from" +
                     "target rectangle width: ${targetRectangle.width()}"
         }

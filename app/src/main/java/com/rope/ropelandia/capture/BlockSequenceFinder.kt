@@ -1,5 +1,6 @@
 package com.rope.ropelandia.capture
 
+import android.util.Log
 import com.rope.connection.RoPE
 import com.rope.program.SequentialProgram
 import com.rope.ropelandia.model.*
@@ -20,14 +21,14 @@ object BlocksToProgramConverter {
                 else -> RoPE.Action.NULL
             }
         }.toCollection(ropeActions)
-
+        Log.d("PROGRAM_CONVERTER", "Rope actions: ${ropeActions.size}")
         return SequentialProgram(ropeActions)
     }
 }
 
 object BlockSequenceFinder {
 
-    private const val SNAP_DISTANCE = 100
+    private const val SNAP_DISTANCE = 120
 
     fun findSequence(blocks: List<Block>): List<Block> {
 

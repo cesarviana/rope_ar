@@ -1,7 +1,6 @@
 package com.rope.ropelandia.game.bitmaptaker
 
 import android.content.Context
-import android.os.Handler
 import android.util.Size
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -9,10 +8,9 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.UseCase
 import java.util.concurrent.ExecutorService
 
-class PhotoBitmapTaker(context: Context, handler: Handler, executor: ExecutorService, bitmapTookCallback: BitmapTookCallback) :
+class PhotoBitmapTaker(context: Context, executor: ExecutorService, bitmapTookCallback: BitmapTookCallback) :
     BitmapTaker(
         context,
-        handler,
         executor,
         bitmapTookCallback
     ) {
@@ -30,16 +28,20 @@ class PhotoBitmapTaker(context: Context, handler: Handler, executor: ExecutorSer
         val callback = object : ImageCapture.OnImageCapturedCallback() {
             override fun onCaptureSuccess(image: ImageProxy) {
                 imageTaken(image)
-                imageCapture.takePicture(executor, this)
+                takePictureIfExecutorRunning(this)
             }
 
             override fun onError(exception: ImageCaptureException) {
                 super.onError(exception)
                 this@PhotoBitmapTaker.onError(exception)
-                imageCapture.takePicture(executor, this)
             }
         }
-        imageCapture.takePicture(executor, callback)
+        takePictureIfExecutorRunning(callback)
+    }
+
+    private fun takePictureIfExecutorRunning(callback: ImageCapture.OnImageCapturedCallback) {
+        if (!executor.isShutdown)
+            imageCapture.takePicture(executor, callback)
     }
 
     override fun getUseCase(): UseCase = imageCapture

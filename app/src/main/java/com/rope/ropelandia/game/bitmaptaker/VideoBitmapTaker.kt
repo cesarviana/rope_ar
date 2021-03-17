@@ -9,15 +9,15 @@ import java.util.concurrent.ExecutorService
 
 class VideoBitmapTaker(
     context: Context,
-    handler: Handler,
     executor: ExecutorService,
     bitmapTookCallback: BitmapTookCallback
 ) :
-    BitmapTaker(context, handler, executor, bitmapTookCallback) {
+    BitmapTaker(context, executor, bitmapTookCallback) {
 
     private val myImageAnalyser = ImageAnalysis.Builder()
         .setTargetAspectRatio(AspectRatio.RATIO_16_9)
         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+        .setBackgroundExecutor(executor)
         .build()
         .also {
             it.setAnalyzer(

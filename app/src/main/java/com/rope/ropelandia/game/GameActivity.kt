@@ -2,7 +2,6 @@ package com.rope.ropelandia.game
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
-import android.media.CamcorderProfile
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Looper
@@ -29,6 +28,7 @@ import kotlinx.android.synthetic.main.main_activity.*
 import java.net.URI
 import java.util.*
 import java.util.concurrent.Executors
+import kotlin.concurrent.thread
 
 
 class GameActivity : AppCompatActivity(),
@@ -189,6 +189,8 @@ class GameActivity : AppCompatActivity(),
         )
     }
 
+    private val myExecutor = Executors.newSingleThreadExecutor()
+
     private fun createBitmapTakerCallback() = object : BitmapTaker.BitmapTookCallback {
 
         private val screenSize by lazy {
@@ -203,18 +205,16 @@ class GameActivity : AppCompatActivity(),
             .addBlocksAnalyzer(createDirectionDetector())
             .addBlocksAnalyzer(createCoordinateDetector())
 
-        private val bitmapToBlocksExecutor = Executors.newFixedThreadPool(4)
+
         private val bitmapToBlocksConverter = BitmapToBlocksConverter(screenSize)
 
         override fun onBitmap(bitmap: Bitmap) {
-            bitmapToBlocksExecutor.submit {
-                try {
-                    val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
-                    blocksAnalyser.analyze(blocks)
-                } catch (e: java.lang.Exception) {
-                    e.message?.let { Log.e("GAME_ACTIVITY", it) }
-                }
-            }.get()
+            try {
+                val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
+                blocksAnalyser.analyze(blocks)
+            } catch (e: java.lang.Exception) {
+                e.message?.let { Log.e("GAME_ACTIVITY", it) }
+            }
         }
 
         override fun onError(e: Exception) {
@@ -227,14 +227,12 @@ class GameActivity : AppCompatActivity(),
         cameraProvider: ProcessCameraProvider
     ): BitmapTaker {
         val bitmapTakerType = decideBitmapTakerType()
-        val bitmapTookHandler = HandlerCompat.createAsync(Looper.getMainLooper())
-        val bitmapTakerExecutor = Executors.newFixedThreadPool(2)
+        val bitmapTakerExecutor = Executors.newSingleThreadExecutor()
 
         val bitmapTaker = BitmapTakerFactory()
             .createBitmapTaker(
                 this,
-                bitmapTookHandler,
-                bitmapTakerExecutor,
+                myExecutor,
                 bitmapTakerType,
                 bitmapTookCallback
             )
@@ -248,8 +246,9 @@ class GameActivity : AppCompatActivity(),
     }
 
     private fun decideBitmapTakerType(): BitmapTakerFactory.Type {
-        val profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH)
-        return if (profile.videoFrameHeight > 720) BitmapTakerFactory.Type.VIDEO else BitmapTakerFactory.Type.PHOTO
+        return BitmapTakerFactory.Type.VIDEO
+//        val profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH)
+//        return if (profile.videoFrameHeight > 720) BitmapTakerFactory.Type.VIDEO else BitmapTakerFactory.Type.PHOTO
     }
 
     private fun createProgramDetector() = object : ProgramDetector(app.rope!!) {

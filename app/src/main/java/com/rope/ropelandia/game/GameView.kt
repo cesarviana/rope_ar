@@ -33,14 +33,14 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
             matView.draw(canvas)
             startPointView.draw(canvas)
             drawProgrammingArea()
-            // rotate back
-            rotate(-180f, centerX, centerY)
-            // the blocks must not be rotated
-            drawPath()
             programBlocks.forEach {
                 it.draw(canvas)
             }
             ropeView.draw(canvas)
+            showProgramBlocks()
+            // rotate back
+            rotate(-180f, centerX, centerY)
+
         }
     }
 
@@ -63,7 +63,7 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
         strokeCap = Paint.Cap.ROUND
     }
 
-    private fun Canvas.drawPath() {
+    private fun Canvas.showProgramBlocks() {
         if (programBlocks.isNotEmpty()) {
             programBlocks.forEach {
                 drawCircle(it.centerX().toFloat(), it.centerY().toFloat(), 100f, pathPaint)
@@ -131,18 +131,7 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
         startPointView.squareSize = matView.squareSize
         startPointView.line = game.startLine()
         startPointView.column = game.startColumn()
-//        val squareX = game.ropePosition.square.column
-//        val squareY = game.ropePosition.square.line
-//        ropeView.bounds = createRect(matView.squareSize, squareY, squareX)
         invalidate()
-    }
-
-    private fun createRect(squareSize: Int, matLine: Int, matColumn: Int): Rect {
-        val left = matColumn * squareSize
-        val top = matLine * squareSize
-        val right = left + squareSize
-        val bottom = top + squareSize
-        return Rect(left, top, right, bottom)
     }
 
 }
