@@ -28,24 +28,16 @@ abstract class RoPESquareDetector(private val game: Game, private val screenSize
 
         val squareSize = screenSize.height / numberOfLines
 
-        val numberOfColumns = screenSize.width / squareSize
-
         val margin = 10f
         // x and y must be inside screen size
         val x = between(margin, screenSize.width.toFloat() - margin, it.centerX)
         val y = between(margin, screenSize.height.toFloat() - margin, it.centerY)
 
-        val squareX = x / squareSize
-        val squareY = y / squareSize
+        val squareX = (x / squareSize).toInt()
+        val squareY = (y / squareSize).toInt()
 
-        /**
-         * As the map is showed rotated we need to invert x,y positions.
-         */
-        val squareXCorrected = abs(squareX - numberOfColumns).roundToInt()
-        val squareYCorrected = abs(squareY - numberOfLines).toInt()
-
-        if (positionChanged(squareXCorrected, squareYCorrected)) {
-            notifyChangedSquare(squareXCorrected, squareYCorrected)
+        if (positionChanged(squareX, squareY)) {
+            notifyChangedSquare(squareX, squareY)
         }
     }
 

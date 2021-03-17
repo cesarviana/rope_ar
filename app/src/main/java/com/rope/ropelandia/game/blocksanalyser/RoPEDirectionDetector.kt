@@ -20,8 +20,8 @@ abstract class RoPEDirectionDetector : BlocksAnalyzer {
             var currentDirection = Position.Direction.fromDegrees(angleDegrees)
 
             currentDirection = when (currentDirection) {
-                Position.Direction.EAST -> Position.Direction.WEST
-                Position.Direction.WEST -> Position.Direction.EAST
+                Position.Direction.SOUTH -> Position.Direction.NORTH
+                Position.Direction.NORTH -> Position.Direction.SOUTH
                 else -> currentDirection
             }
 

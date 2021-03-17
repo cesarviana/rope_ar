@@ -63,7 +63,7 @@ class RoPEBlock(centerX: Float, centerY: Float, diameter: Float, angle: Float) :
 
         val cos = cos(anglePointingToyHead)
         val sin = sin(anglePointingToyHead)
-        val correction = 30
+        val correction = 10
         this.centerX = (cos * correction + centerX).toFloat()
         this.centerY = (sin * correction + centerY).toFloat()
     }
