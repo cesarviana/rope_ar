@@ -33,11 +33,11 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
             matView.draw(canvas)
             startPointView.draw(canvas)
             drawProgrammingArea()
+            ropeView.draw(canvas)
+            showProgramBlocks()
             programBlocks.forEach {
                 it.draw(canvas)
             }
-            ropeView.draw(canvas)
-            showProgramBlocks()
             // rotate back
             rotate(-180f, centerX, centerY)
 
