@@ -28,7 +28,7 @@ object BlocksToProgramConverter {
 
 object BlockSequenceFinder {
 
-    private const val SNAP_DISTANCE = 120
+    private const val SNAP_DISTANCE = 90
 
     fun findSequence(blocks: List<Block>): List<Block> {
 
@@ -44,7 +44,6 @@ object BlockSequenceFinder {
         }
 
         removeStartBlock(programBlocks)
-
         return programBlocks
     }
 
