@@ -116,7 +116,7 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     }
 
     fun update(game: Game) {
-        matView.updateMat(game.currentMat())
+        matView.updateMat(game.assets(), game.numberOfLines(), game.numberOfColumns())
         programBlocks = game.programBlocks.map { block ->
             BlockToBlockView.convert(context, block)
         }
@@ -128,9 +128,11 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
         ropeView.x = game.ropePosition.x
         ropeView.y = game.ropePosition.y
 
-        startPointView.squareSize = matView.squareSize
-        startPointView.line = game.startLine()
-        startPointView.column = game.startColumn()
+        if(game.assets().isNotEmpty()) {
+            startPointView.squareSize = game.assets()[0].width
+            startPointView.line = game.startLine()
+            startPointView.column = game.startColumn()
+        }
         invalidate()
     }
 

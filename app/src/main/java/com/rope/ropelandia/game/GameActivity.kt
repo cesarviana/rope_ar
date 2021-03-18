@@ -37,9 +37,9 @@ class GameActivity : AppCompatActivity(),
     RoPEExecutionStartedListener,
     RoPEExecutionFinishedListener {
 
-    private val biteSound by lazy { MediaPlayer.create(applicationContext, R.raw.bite_sound) }
     private val gameEnd by lazy { MediaPlayer.create(applicationContext, R.raw.game_end_sound) }
     private val levelEnd by lazy { MediaPlayer.create(applicationContext, R.raw.level_end_sound) }
+    private val backgroundHappy by lazy { MediaPlayer.create(applicationContext, R.raw.background_happy_sound_1) }
     private lateinit var bitmapTaker: BitmapTaker
     private val permissionChecker by lazy { PermissionChecker() }
     private lateinit var game: Game
@@ -54,13 +54,17 @@ class GameActivity : AppCompatActivity(),
             runOnUiThread {
                 game = it
                 updateView(game, gameView)
+                setupGameListeners(game)
                 startCameraOrRequestPermission()
             }
         }
+        backgroundHappy.isLooping = true
+        playSound(backgroundHappy)
     }
 
     override fun onStop() {
         super.onStop()
+        backgroundHappy.stop()
         bitmapTaker.stop()
         rope.removeDisconnectedListener(this)
         rope.removeStartPressedListener(this)
@@ -77,15 +81,35 @@ class GameActivity : AppCompatActivity(),
         rope.onExecutionFinished(this)
     }
 
+    private fun setupGameListeners(game: Game) {
+        game.onLevelFinished {
+            playSound(levelEnd) {
+                game.goToNextLevel()
+            }
+        }
+//        game.onGameFinished {
+//            playSound(gameEnd)
+//        }
+//        game.onNewLevelStarted {
+//            updateView(game, gameView)
+//        }
+        game.onGoingTo { square: Square ->
+            game.getAssetsAt(square).forEach {
+                it.reactToCollision()
+            }
+            updateView(game, gameView)
+        }
+    }
+
     private fun loadGame(callback: GameLoaded) {
         val dataUrl = intent.extras?.getString("dataUrl")
 
         if (dataUrl == null) {
-            GameLoader.load(dataUrl = null, callback)
+            GameLoader.load(this, dataUrl = null, callback)
         } else {
             val uuid = UUID.randomUUID()
             val uri = URI.create(dataUrl).resolve(uuid.toString())
-            GameLoader.load(uri, callback)
+            GameLoader.load(this, uri, callback)
         }
     }
 
@@ -100,7 +124,6 @@ class GameActivity : AppCompatActivity(),
     override fun executionStarted(rope: RoPE) {
         game.startExecution()
         updateViewForRoPEEvent(rope)
-        reactToRoPEEvent()
     }
 
     override fun actionExecuted(rope: RoPE, action: RoPE.Action) {
@@ -110,30 +133,7 @@ class GameActivity : AppCompatActivity(),
          */
         game.executeAction()
         updateViewForRoPEEvent(rope)
-        reactToRoPEEvent()
 
-    }
-
-    private fun reactToRoPEEvent() {
-        eatApple()
-        if(game.tookAll(AssetType.APPLE)){
-            if(game.hasAnotherLevel()){
-                updateView(game, gameView)
-                playSound(levelEnd) {
-                    game.goToNextLevel()
-                }
-            } else {
-                playSound(gameEnd)
-            }
-        }
-    }
-
-    private fun eatApple() {
-        val gameAsset = game.nextAsset()
-        if (gameAsset.isAn(AssetType.APPLE)) {
-            playSound(biteSound)
-            gameAsset.disappear()
-        }
     }
 
     override fun executionEnded(rope: RoPE) {

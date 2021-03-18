@@ -1,21 +1,25 @@
 package com.rope.ropelandia.game
 
+import com.rope.ropelandia.game.assets.Tile
 import com.rope.ropelandia.model.*
 
 private const val NO_EXECUTION = -2
 private const val PRE_EXECUTION = -1
-private val NULL_ASSET = Asset(-1, -1, listOf(), null)
 
 data class Game(val levels: List<Level>) {
+
+    private var levelFinished: (() -> Unit)? = null
+    private var goingTo: ((square: Square) -> Unit)? = null
 
     val ropePosition = Position(Square(-1, -1), Position.Direction.UNDEFINED)
     var programBlocks = mutableListOf<Block>()
     private var levelIndex = 0
 
+    var executedActionIndex = NO_EXECUTION
+
     val programIsExecuting: Boolean
         get() = executedActionIndex != NO_EXECUTION
 
-    var executedActionIndex = NO_EXECUTION
     val startedActionIndex: Int
         get() = executedActionIndex + 1
 
@@ -26,22 +30,6 @@ data class Game(val levels: List<Level>) {
 
     fun updateRoPEPosition(squareX: Int, squareY: Int) {
         this.ropePosition.square = Square(squareY, squareX)
-    }
-
-    fun nextAsset(): Asset {
-        val changingSquare = goingForward() || goingBackward()
-        if (!hasBlocksToExecute() || !changingSquare) {
-            return NULL_ASSET
-        }
-        return try {
-            val square = nextSquare()
-            val level = currentLevel()
-            val collectable = level.collectable[square.line][square.column]
-            val path = level.path[square.line][square.column]
-            Asset(square.line, square.column, listOf(collectable, path), this)
-        } catch (e: Exception) {
-            NULL_ASSET
-        }
     }
 
     private fun nextSquare(): Square {
@@ -86,6 +74,7 @@ data class Game(val levels: List<Level>) {
 
     fun startExecution() {
         executedActionIndex = PRE_EXECUTION
+        notifyIfSquareWillChange()
     }
 
     fun endExecution() {
@@ -93,9 +82,22 @@ data class Game(val levels: List<Level>) {
     }
 
     fun executeAction() {
+        notifyIfSquareWillChange()
+        updatePosition()
+        executedActionIndex++
+    }
+
+    private fun updatePosition() {
         this.ropePosition.square = this.nextSquare()
         this.ropePosition.direction = this.nextDirection()
-        executedActionIndex++
+    }
+
+    private fun notifyIfSquareWillChange() {
+        val changingSquare = goingForward() || goingBackward()
+        if (hasBlocksToExecute() && changingSquare) {
+            val square = nextSquare()
+            goingTo?.invoke(square)
+        }
     }
 
     private fun nextDirection(): Position.Direction {
@@ -123,23 +125,17 @@ data class Game(val levels: List<Level>) {
         }
     }
 
-    fun numberOfLines(): Int {
-        return currentLevel().collectable.size
-    }
+    fun numberOfLines() = currentLevel().lines
+    fun numberOfColumns() = currentLevel().columns
 
-    fun currentLevel() = levels[levelIndex]
+    fun assets() = currentLevel().tiles
 
-    fun currentMat() = arrayOf(
-        currentLevel().path,
-        currentLevel().collectable
-    )
+    private fun currentLevel() = levels[levelIndex]
 
     fun startLine() = currentLevel().startPosition.square.line
     fun startColumn() = currentLevel().startPosition.square.column
-    fun tookAll(assetType: AssetType) =
-        currentLevel().collectable.flatMap { it.toList() }.none { it.isAn(assetType) }
 
-    fun hasAnotherLevel() = levels.size > (levelIndex + 1)
+    private fun hasAnotherLevel() = levels.size > (levelIndex + 1)
     fun goToNextLevel() {
         require(hasAnotherLevel()) {
             "Do not have more levels to go!"
@@ -147,38 +143,49 @@ data class Game(val levels: List<Level>) {
         levelIndex++
     }
 
-}
-
-data class Asset(val line: Int, val column: Int, val contents: List<String>, val game: Game?) {
-    fun isAn(assetType: AssetType) = contents.any { it.isAn(assetType) }
-    fun disappear() {
-        game?.let {
-            it.currentLevel().collectable[line][column] = ""
-        }
+    fun onLevelFinished(function: () -> Unit) {
+        this.levelFinished = function
     }
-}
 
-enum class AssetType { APPLE }
+    fun onGoingTo(function: (Square) -> Unit) {
+        this.goingTo = function
+    }
+
+    fun getAssetsAt(square: Square) = currentLevel().assetsAt(square)
+
+}
 
 data class Square(val line: Int, val column: Int) {
     fun north() = Square(line - 1, column)
     fun south() = Square(line + 1, column)
     fun west() = Square(line, column - 1)
     fun east() = Square(line, column + 1)
-}
+    override fun equals(other: Any?): Boolean {
+        return if (other is Square) {
+            other.column == this.column && other.line == this.line
+        } else {
+            super.equals(other)
+        }
+    }
 
-typealias TileName = String
-
-fun TileName.isAn(assetType: AssetType): Boolean {
-    return this.toUpperCase() == assetType.name
+    override fun hashCode(): Int {
+        var result = line
+        result = 31 * result + column
+        return result
+    }
 }
 
 class Level(
-    val path: Array<Array<TileName>>,
-    val collectable: Array<Array<TileName>>,
+    val tiles: List<Tile>,
     val startPosition: Position,
-    val expectedCommands: Array<String> = arrayOf()
-)
+    val lines: Int,
+    val columns: Int
+) {
+    fun assetsAt(square: Square): List<Tile> {
+        require(square.column <= columns && square.line <= lines)
+        return tiles.filter { square == it.square }
+    }
+}
 
 data class Position(
     var square: Square,
