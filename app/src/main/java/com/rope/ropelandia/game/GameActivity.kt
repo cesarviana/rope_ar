@@ -28,7 +28,6 @@ import kotlinx.android.synthetic.main.main_activity.*
 import java.net.URI
 import java.util.*
 import java.util.concurrent.Executors
-import kotlin.concurrent.thread
 
 
 class GameActivity : AppCompatActivity(),
@@ -39,6 +38,8 @@ class GameActivity : AppCompatActivity(),
     RoPEExecutionFinishedListener {
 
     private val biteSound by lazy { MediaPlayer.create(applicationContext, R.raw.bite_sound) }
+    private val gameEnd by lazy { MediaPlayer.create(applicationContext, R.raw.game_end_sound) }
+    private val levelEnd by lazy { MediaPlayer.create(applicationContext, R.raw.level_end_sound) }
     private lateinit var bitmapTaker: BitmapTaker
     private val permissionChecker by lazy { PermissionChecker() }
     private lateinit var game: Game
@@ -114,8 +115,24 @@ class GameActivity : AppCompatActivity(),
     }
 
     private fun reactToRoPEEvent() {
-        if (game.nextSquareIs("apple")) {
-            Thread { biteSound.start() }.start()
+        eatApple()
+        if(game.tookAll(AssetType.APPLE)){
+            if(game.hasAnotherLevel()){
+                updateView(game, gameView)
+                playSound(levelEnd) {
+                    game.goToNextLevel()
+                }
+            } else {
+                playSound(gameEnd)
+            }
+        }
+    }
+
+    private fun eatApple() {
+        val gameAsset = game.nextAsset()
+        if (gameAsset.isAn(AssetType.APPLE)) {
+            playSound(biteSound)
+            gameAsset.disappear()
         }
     }
 
@@ -291,6 +308,16 @@ class GameActivity : AppCompatActivity(),
 
     private fun updateView(game: Game, gameView: GameView) {
         gameView.update(game)
+    }
+
+
+    private fun playSound(sound: MediaPlayer, onCompletionListener: MediaPlayer.OnCompletionListener? = null) {
+        Thread {
+            sound.start()
+            onCompletionListener?.let {
+                sound.setOnCompletionListener(onCompletionListener)
+            }
+        }.start()
     }
 
     companion object {

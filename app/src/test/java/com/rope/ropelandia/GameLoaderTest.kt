@@ -14,8 +14,8 @@ class GameLoaderTest {
         val urlString =
             "https://api.ctplatform.playerweb.com.br/test-applications/public/data/e9a5634e-4f98-4c65-b1b8-bee0a086b8f3/$uuid"
         val url = URI.create(urlString)
-        GameLoader.load(url).let {
-            assertThat(it.levels.size).isEqualTo(2)
+        GameLoader.load(url){ game ->
+            assertThat(game.levels.size).isEqualTo(2)
         }
     }
 

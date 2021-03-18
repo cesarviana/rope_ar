@@ -32,7 +32,25 @@ object GameLoader {
     }
 
     private fun loadDefaultGame(callback: GameLoaded) {
-        val level = Level(
+        val level1 = Level(
+            path = arrayOf(
+                arrayOf("null", "null", "null", "null", "null"),
+                arrayOf("null", "path", "path", "null", "null"),
+                arrayOf("null", "path", "null", "null", "null"),
+                arrayOf("null", "path", "null", "null", "null")
+            ),
+            collectable = arrayOf(
+                arrayOf("null", "null", "null", "null", "null"),
+                arrayOf("null", "null", "null", "null", "null"),
+                arrayOf("null", "apple", "null", "null", "null"),
+                arrayOf("null", "null", "null", "null", "null")
+            ),
+            startPosition = Position(
+                Square(3, 1),
+                direction = Position.Direction.NORTH
+            )
+        )
+        val level2 = Level(
             path = arrayOf(
                 arrayOf("null", "null", "null", "null", "null"),
                 arrayOf("null", "path", "path", "null", "null"),
@@ -46,11 +64,11 @@ object GameLoader {
                 arrayOf("null", "null", "null", "null", "null")
             ),
             startPosition = Position(
-                Square(1, 3),
+                Square(3, 1),
                 direction = Position.Direction.NORTH
             )
         )
-        val game = Game(listOf(level))
+        val game = Game(listOf(level1, level2))
         callback.invoke(game)
     }
 }
