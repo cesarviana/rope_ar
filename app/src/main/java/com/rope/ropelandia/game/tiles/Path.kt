@@ -1,4 +1,4 @@
-package com.rope.ropelandia.game.assets
+package com.rope.ropelandia.game.tiles
 
 import android.annotation.SuppressLint
 import android.content.Context

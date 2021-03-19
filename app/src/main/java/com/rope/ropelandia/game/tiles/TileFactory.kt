@@ -1,4 +1,4 @@
-package com.rope.ropelandia.game.assets
+package com.rope.ropelandia.game.tiles
 
 import android.content.Context
 import com.rope.ropelandia.game.Square

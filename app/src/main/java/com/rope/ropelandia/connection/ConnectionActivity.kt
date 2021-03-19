@@ -22,7 +22,8 @@ class ConnectionActivity : AppCompatActivity() {
     private var dataUrl: String? = null
     private lateinit var binding: ActivityConnectionBinding
 
-    private val connectedSound by lazy { MediaPlayer.create(this, R.raw.audio_rope_conectado) }
+    private val connectedSound by lazy { MediaPlayer.create(this, R.raw.toy_connected_sound) }
+    private val connectionFailed by lazy { MediaPlayer.create(applicationContext, R.raw.connection_fail_sound) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +43,7 @@ class ConnectionActivity : AppCompatActivity() {
             app.ropeFinder?.activity = this
         } else {
             val handler = HandlerCompat.createAsync(Looper.getMainLooper())
-            app.ropeFinder = RoPEFinderFake(this, handler)
+            app.ropeFinder = RoPEFinderBle(this, handler)
             addRoPEFinderListeners()
         }
     }
@@ -62,6 +63,7 @@ class ConnectionActivity : AppCompatActivity() {
             activityResultLauncher.launch(request.intent)
         }
         app.ropeFinder?.onConnectionFailed {
+            connectionFailed.start()
             show("Falha ao conectar")
         }
         app.ropeFinder?.onRoPEFound {

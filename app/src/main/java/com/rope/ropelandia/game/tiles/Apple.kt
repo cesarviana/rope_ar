@@ -1,4 +1,4 @@
-package com.rope.ropelandia.game.assets
+package com.rope.ropelandia.game.tiles
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -10,7 +10,8 @@ import com.rope.ropelandia.game.Square
 import kotlin.concurrent.thread
 
 @SuppressLint("ViewConstructor")
-class Apple(context: Context, square: Square, height: Int, width: Int) : Tile(square, height, width, context) {
+class Apple(context: Context, square: Square, height: Int, width: Int) :
+    Tile(square, height, width, context) {
 
     private val biteSound by lazy {
         MediaPlayer.create(context, R.raw.bite_sound)
@@ -20,9 +21,9 @@ class Apple(context: Context, square: Square, height: Int, width: Int) : Tile(sq
     }
 
     override fun reactToCollision() {
-        if(this.isVisible) {
-            this.visibility = INVISIBLE
-            thread { biteSound.start() }.start()
+        if (isVisible) {
+            visibility = INVISIBLE
+            thread(start = true) { biteSound.start() }
         }
     }
 

@@ -1,4 +1,4 @@
-package com.rope.ropelandia.game.assets
+package com.rope.ropelandia.game.tiles
 
 import android.content.Context
 import android.graphics.Canvas
@@ -13,6 +13,8 @@ import com.rope.ropelandia.game.Square
 abstract class Tile(val square: Square, height: Int, width: Int, context: Context) : View(context) {
     abstract fun reactToCollision()
     abstract fun getDrawable(): Drawable
+
+    val squareSize = height
 
     private val rect by lazy {
         val left = square.column * height

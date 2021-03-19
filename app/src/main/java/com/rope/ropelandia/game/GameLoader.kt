@@ -3,8 +3,9 @@ package com.rope.ropelandia.game
 import android.content.Context
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.rope.ropelandia.game.assets.Tile
-import com.rope.ropelandia.game.assets.TileFactory
+import com.rope.ropelandia.game.tiles.Tile
+import com.rope.ropelandia.game.tiles.TileFactory
+import java.lang.Exception
 import java.net.URI
 
 typealias GameLoaded = (game: Game) -> Unit
@@ -21,7 +22,11 @@ object GameLoader {
         if (dataUrl == null) {
             loadDefaultGame(context, callback)
         } else {
-            loadGameFrom(context, dataUrl, callback)
+            try {
+                loadGameFrom(context, dataUrl, callback)
+            } catch (e: Exception) {
+                loadDefaultGame(context, callback)
+            }
         }
     }
 

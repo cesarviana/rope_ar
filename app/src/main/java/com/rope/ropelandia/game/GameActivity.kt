@@ -27,7 +27,7 @@ import com.rope.ropelandia.model.RoPEBlock
 import kotlinx.android.synthetic.main.main_activity.*
 import java.net.URI
 import java.util.*
-import java.util.concurrent.Executors
+import java.util.concurrent.*
 
 
 class GameActivity : AppCompatActivity(),
@@ -39,7 +39,18 @@ class GameActivity : AppCompatActivity(),
 
     private val gameEnd by lazy { MediaPlayer.create(applicationContext, R.raw.game_end_sound) }
     private val levelEnd by lazy { MediaPlayer.create(applicationContext, R.raw.level_end_sound) }
-    private val backgroundHappy by lazy { MediaPlayer.create(applicationContext, R.raw.background_happy_sound_1) }
+    private val connectionFailed by lazy {
+        MediaPlayer.create(
+            applicationContext,
+            R.raw.connection_fail_sound
+        )
+    }
+    private val backgroundHappy by lazy {
+        MediaPlayer.create(
+            applicationContext,
+            R.raw.background_happy_sound_1
+        )
+    }
     private lateinit var bitmapTaker: BitmapTaker
     private val permissionChecker by lazy { PermissionChecker() }
     private lateinit var game: Game
@@ -82,22 +93,26 @@ class GameActivity : AppCompatActivity(),
     }
 
     private fun setupGameListeners(game: Game) {
+        val handler = HandlerCompat.createAsync(Looper.getMainLooper())
         game.onLevelFinished {
+            decreaseBackgroundVolume()
             playSound(levelEnd) {
                 game.goToNextLevel()
+                resetBackgroundVolume()
             }
         }
-//        game.onGameFinished {
-//            playSound(gameEnd)
-//        }
-//        game.onNewLevelStarted {
-//            updateView(game, gameView)
-//        }
-        game.onGoingTo { square: Square ->
-            game.getAssetsAt(square).forEach {
-                it.reactToCollision()
+        game.onGameFinished {
+            decreaseBackgroundVolume()
+            playSound(gameEnd) {
+                resetBackgroundVolume()
             }
-            updateView(game, gameView)
+        }
+        game.onGoingTo { square: Square ->
+            decreaseBackgroundVolume()
+            game.getTilesAt(square).forEach {
+                handler.postAtFrontOfQueue { it.reactToCollision() }
+                resetBackgroundVolume()
+            }
         }
     }
 
@@ -114,7 +129,17 @@ class GameActivity : AppCompatActivity(),
     }
 
     override fun disconnected(rope: RoPE) {
-        returnToPreviousActivity()
+        decreaseBackgroundVolume()
+        playSound(connectionFailed) {
+            returnToPreviousActivity()
+        }
+    }
+
+    private fun decreaseBackgroundVolume() {
+        backgroundHappy.setVolume(0.2f, 0.2f)
+    }
+    private fun resetBackgroundVolume() {
+        backgroundHappy.setVolume(1f, 1f)
     }
 
     override fun startPressed(rope: RoPE) {
@@ -206,7 +231,15 @@ class GameActivity : AppCompatActivity(),
         )
     }
 
-    private val myExecutor = Executors.newSingleThreadExecutor()
+    private val myExecutor by lazy {
+        val executor = ThreadPoolExecutor(
+            1, 1, 0L,
+            TimeUnit.MILLISECONDS, LinkedBlockingQueue()
+        )
+        executor.rejectedExecutionHandler =
+            RejectedExecutionHandler { _, _ -> Log.d("GAME_ACTIVITY", "Fail on executor") }
+        executor
+    }
 
     private fun createBitmapTakerCallback() = object : BitmapTaker.BitmapTookCallback {
 
@@ -244,7 +277,6 @@ class GameActivity : AppCompatActivity(),
         cameraProvider: ProcessCameraProvider
     ): BitmapTaker {
         val bitmapTakerType = decideBitmapTakerType()
-        val bitmapTakerExecutor = Executors.newSingleThreadExecutor()
 
         val bitmapTaker = BitmapTakerFactory()
             .createBitmapTaker(
@@ -255,7 +287,7 @@ class GameActivity : AppCompatActivity(),
             )
 
         bitmapTaker.onStopping {
-            bitmapTakerExecutor.shutdownNow()
+            myExecutor.shutdownNow()
             cameraProvider.unbindAll()
         }
 
@@ -311,7 +343,10 @@ class GameActivity : AppCompatActivity(),
     }
 
 
-    private fun playSound(sound: MediaPlayer, onCompletionListener: MediaPlayer.OnCompletionListener? = null) {
+    private fun playSound(
+        sound: MediaPlayer,
+        onCompletionListener: MediaPlayer.OnCompletionListener? = null
+    ) {
         Thread {
             sound.start()
             onCompletionListener?.let {

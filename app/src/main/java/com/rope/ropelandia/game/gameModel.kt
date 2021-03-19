@@ -1,6 +1,8 @@
 package com.rope.ropelandia.game
 
-import com.rope.ropelandia.game.assets.Tile
+import androidx.core.view.isVisible
+import com.rope.ropelandia.game.tiles.Apple
+import com.rope.ropelandia.game.tiles.Tile
 import com.rope.ropelandia.model.*
 
 private const val NO_EXECUTION = -2
@@ -9,6 +11,7 @@ private const val PRE_EXECUTION = -1
 data class Game(val levels: List<Level>) {
 
     private var levelFinished: (() -> Unit)? = null
+    private var gameFinished: (() -> Unit)? = null
     private var goingTo: ((square: Square) -> Unit)? = null
 
     val ropePosition = Position(Square(-1, -1), Position.Direction.UNDEFINED)
@@ -83,9 +86,21 @@ data class Game(val levels: List<Level>) {
 
     fun executeAction() {
         notifyIfSquareWillChange()
+        notifyLevelOrGameFinished()
         updatePosition()
         executedActionIndex++
     }
+
+    private fun notifyLevelOrGameFinished() {
+        if (ateAllApples()) {
+            if (hasAnotherLevel())
+                levelFinished?.invoke()
+            else
+                gameFinished?.invoke()
+        }
+    }
+
+    private fun ateAllApples() = tiles().filterIsInstance<Apple>().none { it.isVisible }
 
     private fun updatePosition() {
         this.ropePosition.square = this.nextSquare()
@@ -93,12 +108,13 @@ data class Game(val levels: List<Level>) {
     }
 
     private fun notifyIfSquareWillChange() {
-        val changingSquare = goingForward() || goingBackward()
-        if (hasBlocksToExecute() && changingSquare) {
+        if (hasBlocksToExecute() && changingSquare()) {
             val square = nextSquare()
             goingTo?.invoke(square)
         }
     }
+
+    private fun changingSquare() = goingForward() || goingBackward()
 
     private fun nextDirection(): Position.Direction {
         val direction = this.ropePosition.direction
@@ -128,7 +144,7 @@ data class Game(val levels: List<Level>) {
     fun numberOfLines() = currentLevel().lines
     fun numberOfColumns() = currentLevel().columns
 
-    fun assets() = currentLevel().tiles
+    fun tiles() = currentLevel().tiles
 
     private fun currentLevel() = levels[levelIndex]
 
@@ -151,7 +167,11 @@ data class Game(val levels: List<Level>) {
         this.goingTo = function
     }
 
-    fun getAssetsAt(square: Square) = currentLevel().assetsAt(square)
+    fun onGameFinished(function: () -> Unit) {
+        this.gameFinished = function
+    }
+
+    fun getTilesAt(square: Square) = currentLevel().tilesAt(square)
 
 }
 
@@ -181,7 +201,7 @@ class Level(
     val lines: Int,
     val columns: Int
 ) {
-    fun assetsAt(square: Square): List<Tile> {
+    fun tilesAt(square: Square): List<Tile> {
         require(square.column <= columns && square.line <= lines)
         return tiles.filter { square == it.square }
     }
