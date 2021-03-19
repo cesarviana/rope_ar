@@ -28,6 +28,7 @@ import java.net.URI
 import java.util.*
 import java.util.concurrent.*
 
+private const val BACKGROUND_VOLUME = 0.4f
 
 class GameActivity : AppCompatActivity(),
     RoPEDisconnectedListener,
@@ -37,8 +38,16 @@ class GameActivity : AppCompatActivity(),
     RoPEExecutionFinishedListener {
 
     private var requiredStart = false
-    private val gameEnd by lazy { MediaPlayer.create(applicationContext, R.raw.game_end_sound) }
-    private val levelEnd by lazy { MediaPlayer.create(applicationContext, R.raw.level_end_sound) }
+    private val gameEnd by lazy {
+        MediaPlayer.create(applicationContext, R.raw.game_end_sound).apply {
+            setVolume(1f, 1f)
+        }
+    }
+    private val levelEnd by lazy {
+        MediaPlayer.create(applicationContext, R.raw.level_end_sound).apply {
+            setVolume(1f, 1f)
+        }
+    }
     private val connectionFailed by lazy {
         MediaPlayer.create(
             applicationContext,
@@ -46,10 +55,13 @@ class GameActivity : AppCompatActivity(),
         )
     }
     private val backgroundHappy by lazy {
+        val even = (Math.random() * 10).toInt() % 2 == 0
+        val id = if (even) R.raw.background_happy_sound_1 else R.raw.background_happy_sound_2
         MediaPlayer.create(
-            applicationContext,
-            R.raw.background_happy_sound_1
-        )
+            applicationContext, id
+        ).apply {
+            setVolume(BACKGROUND_VOLUME, BACKGROUND_VOLUME)
+        }
     }
     private lateinit var bitmapTaker: BitmapTaker
     private val permissionChecker by lazy { PermissionChecker() }
@@ -137,8 +149,9 @@ class GameActivity : AppCompatActivity(),
     private fun decreaseBackgroundVolume() {
         backgroundHappy.setVolume(0.2f, 0.2f)
     }
+
     private fun resetBackgroundVolume() {
-        backgroundHappy.setVolume(1f, 1f)
+        backgroundHappy.setVolume(BACKGROUND_VOLUME, BACKGROUND_VOLUME)
     }
 
     override fun startPressed(rope: RoPE) {
@@ -302,10 +315,10 @@ class GameActivity : AppCompatActivity(),
 
         override fun onFoundProgramBlocks(blocks: List<Block>, program: RoPE.Program) {
             blocksFoundHandler.post {
-                if (rope.isStopped()){
+                if (rope.isStopped()) {
                     game.updateProgramBlocks(blocks)
                     updateView(game, gameView)
-                    if(requiredStart) {
+                    if (requiredStart) {
                         requiredStart = false
                         ropeExecute(program)
                     }
