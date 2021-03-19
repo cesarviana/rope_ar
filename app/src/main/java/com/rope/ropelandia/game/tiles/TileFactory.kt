@@ -15,7 +15,7 @@ object TileFactory {
         return when (assetName) {
             "apple" -> Apple(context, Square(line, column), height, width)
             "path" -> Path(context, Square(line, column), height, width)
-            else -> NullTile(context)
+            else -> EmptyTile(context, Square(line, column), height, width)
         }
     }
 }

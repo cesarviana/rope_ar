@@ -116,7 +116,7 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     }
 
     fun update(game: Game) {
-        matView.updateMat(game.tiles(), game.numberOfLines(), game.numberOfColumns())
+        matView.updateMat(game.tiles())
         programBlocks = game.programBlocks.map { block ->
             BlockToBlockView.convert(context, block)
         }
