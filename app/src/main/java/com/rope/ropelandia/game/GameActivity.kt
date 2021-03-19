@@ -15,7 +15,6 @@ import androidx.core.os.HandlerCompat
 import com.rope.connection.RoPE
 import com.rope.connection.ble.*
 import com.rope.droideasy.PermissionChecker
-import com.rope.program.SequentialProgram
 import com.rope.ropelandia.R
 import com.rope.ropelandia.app
 import com.rope.ropelandia.capture.BitmapToBlocksConverter
@@ -37,6 +36,7 @@ class GameActivity : AppCompatActivity(),
     RoPEExecutionStartedListener,
     RoPEExecutionFinishedListener {
 
+    private var requiredStart = false
     private val gameEnd by lazy { MediaPlayer.create(applicationContext, R.raw.game_end_sound) }
     private val levelEnd by lazy { MediaPlayer.create(applicationContext, R.raw.level_end_sound) }
     private val connectionFailed by lazy {
@@ -54,7 +54,6 @@ class GameActivity : AppCompatActivity(),
     private lateinit var bitmapTaker: BitmapTaker
     private val permissionChecker by lazy { PermissionChecker() }
     private lateinit var game: Game
-    private var program: RoPE.Program = SequentialProgram(listOf())
     private val rope by lazy { app.rope!! }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -107,7 +106,7 @@ class GameActivity : AppCompatActivity(),
                 resetBackgroundVolume()
             }
         }
-        game.onGoingTo { square: Square ->
+        game.onArrivedAtSquare { square: Square ->
             decreaseBackgroundVolume()
             game.getTilesAt(square).forEach {
                 handler.postAtFrontOfQueue { it.reactToCollision() }
@@ -143,7 +142,7 @@ class GameActivity : AppCompatActivity(),
     }
 
     override fun startPressed(rope: RoPE) {
-        ropeExecute(program)
+        requiredStart = true
     }
 
     override fun executionStarted(rope: RoPE) {
@@ -296,8 +295,6 @@ class GameActivity : AppCompatActivity(),
 
     private fun decideBitmapTakerType(): BitmapTakerFactory.Type {
         return BitmapTakerFactory.Type.VIDEO
-//        val profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH)
-//        return if (profile.videoFrameHeight > 720) BitmapTakerFactory.Type.VIDEO else BitmapTakerFactory.Type.PHOTO
     }
 
     private fun createProgramDetector() = object : ProgramDetector(app.rope!!) {
@@ -305,10 +302,14 @@ class GameActivity : AppCompatActivity(),
 
         override fun onFoundProgramBlocks(blocks: List<Block>, program: RoPE.Program) {
             blocksFoundHandler.post {
-                this@GameActivity.program = program
-                game.updateProgramBlocks(blocks)
-                if (rope.isStopped())
+                if (rope.isStopped()){
+                    game.updateProgramBlocks(blocks)
                     updateView(game, gameView)
+                    if(requiredStart) {
+                        requiredStart = false
+                        ropeExecute(program)
+                    }
+                }
             }
         }
     }
@@ -316,24 +317,20 @@ class GameActivity : AppCompatActivity(),
     private fun createMovementsDetector(screenSize: Size) =
         object : RoPESquareDetector(game, screenSize) {
             override fun changedSquare(squareX: Int, squareY: Int) {
-                if (rope.isStopped()) { // if running, update squares from rope messages
-                    game.updateRoPEPosition(squareX, squareY)
-                }
+                game.updateRoPEPosition(squareX, squareY)
             }
         }
 
     private fun createDirectionDetector() = object : RoPEDirectionDetector() {
         override fun changedFace(direction: Position.Direction) {
-            if (rope.isStopped()) {
-                game.ropePosition.direction = direction
-            }
+            game.ropePosition.direction = direction
         }
     }
 
     private fun createCoordinateDetector() = object : BlocksAnalyzer {
         override fun analyze(blocks: List<Block>) {
             blocks.filterIsInstance<RoPEBlock>().forEach {
-                game.ropePosition.setCoordinate(it.centerX, it.centerY)
+                game.updateCoordinate(it.centerX, it.centerY)
             }
         }
     }

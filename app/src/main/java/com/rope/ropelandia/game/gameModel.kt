@@ -12,7 +12,7 @@ data class Game(val levels: List<Level>) {
 
     private var levelFinished: (() -> Unit)? = null
     private var gameFinished: (() -> Unit)? = null
-    private var goingTo: ((square: Square) -> Unit)? = null
+    private var atSquare: ((square: Square) -> Unit)? = null
 
     val ropePosition = Position(Square(-1, -1), Position.Direction.UNDEFINED)
     var programBlocks = mutableListOf<Block>()
@@ -32,52 +32,16 @@ data class Game(val levels: List<Level>) {
     }
 
     fun updateRoPEPosition(squareX: Int, squareY: Int) {
-        this.ropePosition.square = Square(squareY, squareX)
-    }
-
-    private fun nextSquare(): Square {
-        val square = ropePosition.square
-
-        return when {
-            goingForward() -> {
-                when (ropePosition.direction) {
-                    Position.Direction.NORTH -> square.north()
-                    Position.Direction.SOUTH -> square.south()
-                    Position.Direction.WEST -> square.west()
-                    Position.Direction.EAST -> square.east()
-                    else -> throw IllegalStateException("The toy face is undefined")
-                }
-            }
-            goingBackward() -> {
-                when (ropePosition.direction) {
-                    Position.Direction.NORTH -> square.south()
-                    Position.Direction.SOUTH -> square.north()
-                    Position.Direction.WEST -> square.east()
-                    Position.Direction.EAST -> square.west()
-                    else -> throw IllegalStateException("The toy face is undefined")
-                }
-            }
-            else -> {
-                square
-            }
+        val square = Square(squareY, squareX)
+        if (this.ropePosition.square != square) {
+            this.ropePosition.square = square
+            atSquare?.invoke(square)
+            notifyLevelOrGameFinished()
         }
     }
 
-    private fun goingForward() = nextBlockToExecute() is ForwardBlock
-    private fun goingBackward() = nextBlockToExecute() is BackwardBlock
-    private fun turningLeft() = nextBlockToExecute() is LeftBlock
-    private fun turningRight() = nextBlockToExecute() is RightBlock
-
-    private fun nextBlockToExecute(): Block {
-        val nextIndex = executedActionIndex + 1
-        return if (hasBlocksToExecute()) programBlocks[nextIndex] else NULL_BLOCK
-    }
-
-    private fun hasBlocksToExecute() = executedActionIndex + 1 < programBlocks.size
-
     fun startExecution() {
         executedActionIndex = PRE_EXECUTION
-        notifyIfSquareWillChange()
     }
 
     fun endExecution() {
@@ -85,9 +49,7 @@ data class Game(val levels: List<Level>) {
     }
 
     fun executeAction() {
-        notifyIfSquareWillChange()
         notifyLevelOrGameFinished()
-        updatePosition()
         executedActionIndex++
     }
 
@@ -102,47 +64,7 @@ data class Game(val levels: List<Level>) {
 
     private fun ateAllApples() = tiles().filterIsInstance<Apple>().none { it.isVisible }
 
-    private fun updatePosition() {
-        this.ropePosition.square = this.nextSquare()
-        this.ropePosition.direction = this.nextDirection()
-    }
-
-    private fun notifyIfSquareWillChange() {
-        if (hasBlocksToExecute() && changingSquare()) {
-            val square = nextSquare()
-            goingTo?.invoke(square)
-        }
-    }
-
-    private fun changingSquare() = goingForward() || goingBackward()
-
-    private fun nextDirection(): Position.Direction {
-        val direction = this.ropePosition.direction
-        return when {
-            turningLeft() -> {
-                when (direction) {
-                    Position.Direction.NORTH -> Position.Direction.WEST
-                    Position.Direction.WEST -> Position.Direction.SOUTH
-                    Position.Direction.SOUTH -> Position.Direction.EAST
-                    Position.Direction.EAST -> Position.Direction.NORTH
-                    else -> throw IllegalStateException("The toy face is undefined")
-                }
-            }
-            turningRight() -> {
-                when (direction) {
-                    Position.Direction.NORTH -> Position.Direction.EAST
-                    Position.Direction.WEST -> Position.Direction.NORTH
-                    Position.Direction.SOUTH -> Position.Direction.WEST
-                    Position.Direction.EAST -> Position.Direction.SOUTH
-                    else -> throw IllegalStateException("The toy face is undefined")
-                }
-            }
-            else -> direction
-        }
-    }
-
     fun numberOfLines() = currentLevel().lines
-    fun numberOfColumns() = currentLevel().columns
 
     fun tiles() = currentLevel().tiles
 
@@ -163,8 +85,8 @@ data class Game(val levels: List<Level>) {
         this.levelFinished = function
     }
 
-    fun onGoingTo(function: (Square) -> Unit) {
-        this.goingTo = function
+    fun onArrivedAtSquare(function: (Square) -> Unit) {
+        this.atSquare = function
     }
 
     fun onGameFinished(function: () -> Unit) {
@@ -173,27 +95,11 @@ data class Game(val levels: List<Level>) {
 
     fun getTilesAt(square: Square) = currentLevel().tilesAt(square)
 
+    fun updateCoordinate(x: Float, y: Float) = this.ropePosition.setCoordinate(x, y)
+
 }
 
-data class Square(val line: Int, val column: Int) {
-    fun north() = Square(line - 1, column)
-    fun south() = Square(line + 1, column)
-    fun west() = Square(line, column - 1)
-    fun east() = Square(line, column + 1)
-    override fun equals(other: Any?): Boolean {
-        return if (other is Square) {
-            other.column == this.column && other.line == this.line
-        } else {
-            super.equals(other)
-        }
-    }
-
-    override fun hashCode(): Int {
-        var result = line
-        result = 31 * result + column
-        return result
-    }
-}
+data class Square(val line: Int, val column: Int)
 
 class Level(
     val tiles: List<Tile>,
