@@ -2,7 +2,6 @@ package com.rope.ropelandia.game
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
@@ -18,17 +17,19 @@ import com.rope.droideasy.PermissionChecker
 import com.rope.ropelandia.R
 import com.rope.ropelandia.app
 import com.rope.ropelandia.capture.BitmapToBlocksConverter
+import com.rope.ropelandia.ctpuzzle.*
 import com.rope.ropelandia.game.bitmaptaker.BitmapTaker
 import com.rope.ropelandia.game.bitmaptaker.BitmapTakerFactory
 import com.rope.ropelandia.game.blocksanalyser.*
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.RoPEBlock
 import kotlinx.android.synthetic.main.main_activity.*
-import java.net.URI
-import java.util.*
-import java.util.concurrent.*
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.RejectedExecutionHandler
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
-private const val BACKGROUND_VOLUME = 0.4f
+private const val TAG = "GAME_ACTIVITY"
 
 class GameActivity : AppCompatActivity(),
     RoPEDisconnectedListener,
@@ -37,56 +38,65 @@ class GameActivity : AppCompatActivity(),
     RoPEExecutionStartedListener,
     RoPEExecutionFinishedListener {
 
-    private var requiredStart = false
-    private val gameEnd by lazy {
-        MediaPlayer.create(applicationContext, R.raw.game_end_sound).apply {
-            setVolume(1f, 1f)
-        }
-    }
-    private val levelEnd by lazy {
-        MediaPlayer.create(applicationContext, R.raw.level_end_sound).apply {
-            setVolume(1f, 1f)
-        }
-    }
-    private val connectionFailed by lazy {
-        MediaPlayer.create(
-            applicationContext,
-            R.raw.connection_fail_sound
-        )
-    }
-    private val backgroundHappy by lazy {
-        val even = (Math.random() * 10).toInt() % 2 == 0
-        val id = if (even) R.raw.background_happy_sound_1 else R.raw.background_happy_sound_2
-        MediaPlayer.create(
-            applicationContext, id
-        ).apply {
-            setVolume(BACKGROUND_VOLUME, BACKGROUND_VOLUME)
-        }
-    }
-    private lateinit var bitmapTaker: BitmapTaker
-    private val permissionChecker by lazy { PermissionChecker() }
-    private lateinit var game: Game
     private val rope by lazy { app.rope!! }
+    private var requiredStart = false
+
+    private val myExecutor by lazy {
+        val executor = ThreadPoolExecutor(
+            1, 1, 0L,
+            TimeUnit.MILLISECONDS, LinkedBlockingQueue()
+        )
+        executor.rejectedExecutionHandler = RejectedExecutionHandler { _, _ ->
+            Log.d(TAG, "Fail on executor")
+        }
+        executor
+    }
+    private val permissionChecker by lazy { PermissionChecker() }
+    private lateinit var bitmapTaker: BitmapTaker
+    private lateinit var game: Game
+    private lateinit var participation: Participation
+    private val attempts = mutableListOf<Attempt>()
+    private var initialTime: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
+        rope.apply {
+            stop()
+            sendActions(
+                listOf(
+                    RoPE.Action.INACTIVE_DIRECTIONAL_BUTTONS,
+                    RoPE.Action.ACTIVE_CONNECTION,
+                    RoPE.Action.SOUND_OFF
+                )
+            )
+        }
         setupRopeListeners()
-        loadGame {
+        CtPuzzleApi.initialize(this)
+        Sounds.initialize(this)
+        loadGame { game, participation ->
+            registerStartedLevel(game, participation)
+            this.game = game
+            this.participation = participation
+            initialTime = currentTimeInSeconds()
             runOnUiThread {
-                game = it
                 updateView(game, gameView)
                 setupGameListeners(game)
                 startCameraOrRequestPermission()
             }
         }
-        backgroundHappy.isLooping = true
-        playSound(backgroundHappy)
+        Sounds.play(Sounds.backgroundHappy, looping = true)
     }
 
     override fun onStop() {
         super.onStop()
-        backgroundHappy.stop()
+        Sounds.stop(Sounds.backgroundHappy)
+        rope.sendActions(
+            listOf(
+                RoPE.Action.ACTIVE_DIRECTIONAL_BUTTONS,
+                RoPE.Action.INACTIVE_CONNECTION
+            )
+        )
         bitmapTaker.stop()
         rope.removeDisconnectedListener(this)
         rope.removeStartPressedListener(this)
@@ -106,52 +116,48 @@ class GameActivity : AppCompatActivity(),
     private fun setupGameListeners(game: Game) {
         val handler = HandlerCompat.createAsync(Looper.getMainLooper())
         game.onLevelFinished {
-            decreaseBackgroundVolume()
-            playSound(levelEnd) {
-                game.goToNextLevel()
-                resetBackgroundVolume()
-            }
-        }
-        game.onGameFinished {
-            decreaseBackgroundVolume()
-            playSound(gameEnd) {
-                resetBackgroundVolume()
+            registerResponse(game, participation)
+            Sounds.decreaseBackgroundVolume()
+            Sounds.play(Sounds.levelEnd) {
+                if (game.hasAnotherLevel()) {
+                    game.goToNextLevel()
+                    registerStartedLevel(game, participation)
+                    Sounds.resetBackgroundVolume()
+                } else {
+                    Sounds.play(Sounds.gameEnd) {
+                        Sounds.resetBackgroundVolume()
+                    }
+                }
             }
         }
         game.onArrivedAtSquare { square: Square ->
-            decreaseBackgroundVolume()
+            Sounds.decreaseBackgroundVolume()
             game.getTilesAt(square).forEach {
                 handler.postAtFrontOfQueue { it.reactToCollision() }
-                resetBackgroundVolume()
+                Sounds.resetBackgroundVolume()
             }
+            game.checkLevelFinished()
         }
     }
 
-    private fun loadGame(callback: GameLoaded) {
-        val dataUrl = intent.extras?.getString("dataUrl")
+    private fun loadGame(callback: (game: Game, participation: Participation) -> Unit) {
+        val dataUrl = intent.extras?.getString("dataUrl") ?: DEFAULT_CTPUZZLE_DATA_URL
 
-        if (dataUrl == null) {
-            GameLoader.load(this, dataUrl = null, callback)
-        } else {
-            val uuid = UUID.randomUUID()
-            val uri = URI.create(dataUrl).resolve(uuid.toString())
-            GameLoader.load(this, uri, callback)
+        try {
+            CtPuzzleApi.newParticipation(dataUrl) {
+                val game = ParticipationToGameConverter.convert(this, it)
+                callback.invoke(game, it)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error when loading game: ${e.message}")
         }
     }
 
     override fun disconnected(rope: RoPE) {
-        decreaseBackgroundVolume()
-        playSound(connectionFailed) {
+        Sounds.decreaseBackgroundVolume()
+        Sounds.play(Sounds.connectionFailed) {
             returnToPreviousActivity()
         }
-    }
-
-    private fun decreaseBackgroundVolume() {
-        backgroundHappy.setVolume(0.2f, 0.2f)
-    }
-
-    private fun resetBackgroundVolume() {
-        backgroundHappy.setVolume(BACKGROUND_VOLUME, BACKGROUND_VOLUME)
     }
 
     override fun startPressed(rope: RoPE) {
@@ -170,7 +176,6 @@ class GameActivity : AppCompatActivity(),
          */
         game.executeAction()
         updateViewForRoPEEvent(rope)
-
     }
 
     override fun executionEnded(rope: RoPE) {
@@ -178,11 +183,10 @@ class GameActivity : AppCompatActivity(),
         updateViewForRoPEEvent(rope)
     }
 
-    private fun updateViewForRoPEEvent(rope: RoPE) {
+    private fun updateViewForRoPEEvent(rope: RoPE) =
         rope.handler.postAtFrontOfQueue {
             updateView(game, gameView)
         }
-    }
 
     private fun startCameraOrRequestPermission() {
         permissionChecker.executeOrRequestPermission(
@@ -196,7 +200,14 @@ class GameActivity : AppCompatActivity(),
 
     private fun ropeExecute(program: RoPE.Program) {
         rope.execute(program)
+        val commands = program.actionList.map { it.name }
+        val seconds = currentTimeInSeconds() - initialTime
+        attempts.add(Attempt(commands, timeInSeconds = seconds))
+//        val commands = program.actionList.map { it.stringSequence }
+//        GameLoader.registerAttempt(game)
     }
+
+    private fun currentTimeInSeconds() = System.currentTimeMillis() / 1000
 
     private fun returnToPreviousActivity() {
         this.finish()
@@ -243,16 +254,6 @@ class GameActivity : AppCompatActivity(),
         )
     }
 
-    private val myExecutor by lazy {
-        val executor = ThreadPoolExecutor(
-            1, 1, 0L,
-            TimeUnit.MILLISECONDS, LinkedBlockingQueue()
-        )
-        executor.rejectedExecutionHandler =
-            RejectedExecutionHandler { _, _ -> Log.d("GAME_ACTIVITY", "Fail on executor") }
-        executor
-    }
-
     private fun createBitmapTakerCallback() = object : BitmapTaker.BitmapTookCallback {
 
         private val screenSize by lazy {
@@ -275,12 +276,12 @@ class GameActivity : AppCompatActivity(),
                 val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
                 blocksAnalyser.analyze(blocks)
             } catch (e: java.lang.Exception) {
-                e.message?.let { Log.e("GAME_ACTIVITY", it) }
+                e.message?.let { Log.e(TAG, it) }
             }
         }
 
         override fun onError(e: Exception) {
-            Log.e(javaClass.simpleName, "Error when getting bitmap")
+            Log.e(TAG, "Error when getting bitmap")
         }
     }
 
@@ -352,17 +353,28 @@ class GameActivity : AppCompatActivity(),
         gameView.update(game)
     }
 
+    private fun registerStartedLevel(game: Game, participation: Participation) {
+        val item = participation.getTestItem(game.levelIndex)
+        tryApiCall {
+            CtPuzzleApi.registerProgress(participation, item)
+        }
+    }
 
-    private fun playSound(
-        sound: MediaPlayer,
-        onCompletionListener: MediaPlayer.OnCompletionListener? = null
-    ) {
-        Thread {
-            sound.start()
-            onCompletionListener?.let {
-                sound.setOnCompletionListener(onCompletionListener)
-            }
-        }.start()
+    private fun registerResponse(game: Game, participation: Participation) {
+        val response = ResponseForItem(attempts)
+        val item = participation.getTestItem(game.levelIndex)
+        tryApiCall {
+            CtPuzzleApi.registerResponse(participation, item, response)
+        }
+        attempts.clear()
+    }
+
+    private fun tryApiCall(apiCall: () -> Unit) {
+        try {
+            apiCall.invoke()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error on API call: ${e.message}")
+        }
     }
 
     companion object {

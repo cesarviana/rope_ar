@@ -11,12 +11,11 @@ private const val PRE_EXECUTION = -1
 data class Game(val levels: List<Level>) {
 
     private var levelFinished: (() -> Unit)? = null
-    private var gameFinished: (() -> Unit)? = null
     private var atSquare: ((square: Square) -> Unit)? = null
 
     val ropePosition = Position(Square(-1, -1), Position.Direction.UNDEFINED)
     var programBlocks = mutableListOf<Block>()
-    private var levelIndex = 0
+    var levelIndex = 0
 
     var executedActionIndex = NO_EXECUTION
 
@@ -36,7 +35,7 @@ data class Game(val levels: List<Level>) {
         if (this.ropePosition.square != square) {
             this.ropePosition.square = square
             atSquare?.invoke(square)
-            notifyLevelOrGameFinished()
+            notifyIfLevelFinished()
         }
     }
 
@@ -49,17 +48,12 @@ data class Game(val levels: List<Level>) {
     }
 
     fun executeAction() {
-        notifyLevelOrGameFinished()
         executedActionIndex++
     }
 
-    private fun notifyLevelOrGameFinished() {
-        if (ateAllApples()) {
-            if (hasAnotherLevel())
-                levelFinished?.invoke()
-            else
-                gameFinished?.invoke()
-        }
+    private fun notifyIfLevelFinished() {
+        if (ateAllApples())
+            levelFinished?.invoke()
     }
 
     private fun ateAllApples() = tiles().filterIsInstance<Apple>().none { it.isVisible }
@@ -73,7 +67,7 @@ data class Game(val levels: List<Level>) {
     fun startLine() = currentLevel().startPosition.square.line
     fun startColumn() = currentLevel().startPosition.square.column
 
-    private fun hasAnotherLevel() = levels.size > (levelIndex + 1)
+    fun hasAnotherLevel() = levels.size > (levelIndex + 1)
     fun goToNextLevel() {
         require(hasAnotherLevel()) {
             "Do not have more levels to go!"
@@ -89,13 +83,11 @@ data class Game(val levels: List<Level>) {
         this.atSquare = function
     }
 
-    fun onGameFinished(function: () -> Unit) {
-        this.gameFinished = function
-    }
-
     fun getTilesAt(square: Square) = currentLevel().tilesAt(square)
 
     fun updateCoordinate(x: Float, y: Float) = this.ropePosition.setCoordinate(x, y)
+
+    fun checkLevelFinished() = notifyIfLevelFinished()
 
 }
 

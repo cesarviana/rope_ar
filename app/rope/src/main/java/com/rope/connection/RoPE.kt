@@ -25,6 +25,7 @@ abstract class RoPE(val handler: Handler) {
     abstract fun isConnected(): Boolean
     abstract fun isConnecting(): Boolean
     abstract fun isStopped(): Boolean
+    fun isExecuting() = !isStopped()
 
     abstract fun send(command: String)
 
@@ -55,7 +56,7 @@ abstract class RoPE(val handler: Handler) {
     fun nextActionIs(action: Action): Boolean {
         val nextActionIndex = actionIndex + 1
         val hasNextAction = program.actionList.size > nextActionIndex
-        if(hasNextAction){
+        if (hasNextAction) {
             val nextAction = program.actionList[nextActionIndex]
             return nextAction == action
         }
@@ -74,36 +75,42 @@ abstract class RoPE(val handler: Handler) {
         }
     }
 
-    fun isExecuting() = !isStopped()
-
     enum class Action {
         BACKWARD {
-            override val stringSequence: String
-                get() = "b"
+            override val stringSequence = "b"
         },
         FORWARD {
-            override val stringSequence: String
-                get() = "f"
+            override val stringSequence = "f"
         },
         LEFT {
-            override val stringSequence: String
-                get() = "l"
+            override val stringSequence = "l"
         },
         RIGHT {
-            override val stringSequence: String
-                get() = "r"
+            override val stringSequence = "r"
         },
         EXECUTE {
-            override val stringSequence: String
-                get() = "e"
+            override val stringSequence = "e"
         },
         SOUND_OFF {
-            override val stringSequence: String
-                get() = "s"
+            override val stringSequence = "s"
         },
         NULL {
-            override val stringSequence: String
-                get() = ""
+            override val stringSequence = ""
+        },
+        ACTIVE_CONNECTION {
+            override val stringSequence = "A"
+        },
+        INACTIVE_CONNECTION {
+            override val stringSequence = "a"
+        },
+        ACTIVE_DIRECTIONAL_BUTTONS {
+            override val stringSequence = "X"
+        },
+        INACTIVE_DIRECTIONAL_BUTTONS {
+            override val stringSequence = "x"
+        },
+        CLEAR_COMMANDS {
+            override val stringSequence = "c"
         };
 
         abstract val stringSequence: String
@@ -113,4 +120,5 @@ abstract class RoPE(val handler: Handler) {
         val actionList: List<Action>
     }
 
+    abstract fun sendActions(actionList: List<Action>)
 }

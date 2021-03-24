@@ -32,12 +32,13 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice,
             d("ROPE", "Message $it")
         }
         this.onMessage { message ->
-            if (message.contains("memory is")) { // TODO update firmware to send something like <required:start> message
+            if (message.contains("<start_required>")) {
+                this.state = State.STOPPED
                 Listeners.onStartPressed.forEach { it.startPressed(this) }
             }
         }
         this.onMessage { message ->
-            val isStartMessage = message.contains("start")
+            val isStartMessage = message.contains("<program:started>")
             val canStart = isStartMessage && isStopped()
             if (canStart) {
                 state = State.EXECUTING
@@ -105,6 +106,13 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice,
         Listeners.onActionExecution.add(ropeActionListener)
     }
 
+    override fun sendActions(actionList: List<Action>)
+    {
+        val actions = actionList.joinToString("") { it.stringSequence }
+        val command = "$commandsPrefix$actions"
+        send(command)
+    }
+
     override fun execute(program: Program) {
         if (isStopped()) {
             this.program = program
@@ -150,7 +158,7 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice,
     }
 
     override fun stop() {
-        // TODO implement stop. RoPE firmware must listen
+        this.state = State.STOPPED
     }
 
     private inner class MyGattCallback : BluetoothGattCallback() {
