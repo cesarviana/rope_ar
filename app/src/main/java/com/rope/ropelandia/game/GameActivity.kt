@@ -52,7 +52,7 @@ class GameActivity : AppCompatActivity(),
         executor
     }
     private val permissionChecker by lazy { PermissionChecker() }
-    private lateinit var bitmapTaker: BitmapTaker
+    private var bitmapTaker: BitmapTaker? = null
     private lateinit var game: Game
     private lateinit var participation: Participation
     private val attempts = mutableListOf<Attempt>()
@@ -97,7 +97,8 @@ class GameActivity : AppCompatActivity(),
                 RoPE.Action.INACTIVE_CONNECTION
             )
         )
-        bitmapTaker.stop()
+        Sounds.stop(Sounds.backgroundHappy)
+        bitmapTaker?.stop()
         rope.removeDisconnectedListener(this)
         rope.removeStartPressedListener(this)
         rope.removeActionListener(this)
@@ -239,13 +240,14 @@ class GameActivity : AppCompatActivity(),
             bitmapTaker = createBitmapTaker(bitmapTookCallback, cameraProvider)
 
             cameraProvider.unbindAll()
-
-            cameraProvider.bindToLifecycle(
-                this,
-                CameraSelector.DEFAULT_BACK_CAMERA,
-                bitmapTaker.getUseCase()
-            )
-            bitmapTaker.startTakingImages()
+            if (!isDestroyed) {
+                cameraProvider.bindToLifecycle(
+                    this,
+                    CameraSelector.DEFAULT_BACK_CAMERA,
+                    bitmapTaker?.getUseCase()
+                )
+                bitmapTaker?.startTakingImages()
+            }
         }
 
         cameraProviderFuture.addListener(

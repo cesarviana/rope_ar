@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="105.98446mm"
+   height="105.98446mm"
+   viewBox="0 0 105.98446 105.98446"
+   version="1.1"
+   id="svg1946"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
+   sodipodi:docname="loup.svg">
+  <defs
+     id="defs1940" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.35"
+     inkscape:cx="401.71415"
+     inkscape:cy="431.71417"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="1920"
+     inkscape:window-height="1016"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata1943">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(152.02199,-157.07325)">
+    <g
+       id="g1811"
+       transform="matrix(0.20700099,0,0,0.20700099,-152.02204,157.0732)">
+      <rect
+         id="rect1738"
+         height="69.333"
+         width="53.333"
+         style="fill:#344a5e"
+         transform="matrix(-0.7071,-0.7071,0.7071,-0.7071,331.3891,797.9132)"
+         y="295.65701"
+         x="304.28101" />
+      <circle
+         id="circle1740"
+         r="165.33299"
+         cy="186.66701"
+         cx="186.66701"
+         style="fill:#8ad7f8" />
+      <path
+         id="path1742"
+         d="m 318.933,318.933 c -72.533,72.533 -192,72.533 -264.533,0 -72.533,-72.533 -72.533,-192 0,-264.533 72.533,-72.533 192,-72.533 264.533,0 72.533,72.533 73.6,192 0,264.533 z m -233.6,-233.6 c -56.533,56.533 -56.533,147.2 0,203.733 56.533,56.533 147.2,56.533 203.733,0 56.533,-56.533 56.533,-147.2 0,-203.733 C 232.533,28.8 140.8,28.8 85.333,85.333 Z"
+         style="fill:#415a6b"
+         inkscape:connector-curvature="0" />
+      <path
+         id="path1744"
+         d="m 380.8,315.733 c 56.533,39.467 99.2,70.4 112,84.267 25.6,25.6 25.6,67.2 0,92.8 -25.6,25.6 -67.2,25.6 -92.8,0 -12.8,-12.8 -44.8,-55.467 -84.267,-112 z"
+         style="fill:#f3705a"
+         inkscape:connector-curvature="0" />
+      <path
+         id="path1746"
+         d="m 337.067,410.667 c -6.4,-9.6 -13.867,-19.2 -20.267,-28.8 L 381.867,316.8 c 10.667,7.467 20.267,13.867 28.8,20.267 z"
+         style="fill:#f05540"
+         inkscape:connector-curvature="0" />
+      <path
+         id="path1748"
+         d="m 327.467,392.533 65.067,-65.067 c 6.4,-6.4 6.4,-17.067 0,-23.467 -6.4,-6.4 -17.067,-6.4 -23.467,0 L 304,369.067 c -6.4,6.4 -6.4,17.067 0,23.467 6.4,7.466 17.067,7.466 23.467,-10e-4 z"
+         style="fill:#f3705a"
+         inkscape:connector-curvature="0" />
+      <ellipse
+         id="ellipse1750"
+         ry="23.466999"
+         rx="50.132999"
+         cy="100.267"
+         cx="186.66701"
+         style="fill:#ffffff" />
+      <g
+         id="g1752" />
+      <g
+         id="g1754" />
+      <g
+         id="g1756" />
+      <g
+         id="g1758" />
+      <g
+         id="g1760" />
+      <g
+         id="g1762" />
+      <g
+         id="g1764" />
+      <g
+         id="g1766" />
+      <g
+         id="g1768" />
+      <g
+         id="g1770" />
+      <g
+         id="g1772" />
+      <g
+         id="g1774" />
+      <g
+         id="g1776" />
+      <g
+         id="g1778" />
+      <g
+         id="g1780" />
+    </g>
+  </g>
+</svg>

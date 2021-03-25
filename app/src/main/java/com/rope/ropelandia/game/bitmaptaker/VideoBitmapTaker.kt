@@ -1,7 +1,6 @@
 package com.rope.ropelandia.game.bitmaptaker
 
 import android.content.Context
-import android.os.Handler
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.UseCase

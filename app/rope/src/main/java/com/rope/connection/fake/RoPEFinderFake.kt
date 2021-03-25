@@ -5,6 +5,9 @@ import android.os.Handler
 import com.rope.connection.RoPE
 import com.rope.connection.RoPEFinder
 import com.rope.connection.ble.RoPEFinderBle
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 class RoPEFinderFake(override var activity: Activity, handler: Handler) : RoPEFinder {
 
@@ -13,7 +16,10 @@ class RoPEFinderFake(override var activity: Activity, handler: Handler) : RoPEFi
     private val rope = RoPEFake(handler,)
 
     override fun findRoPE() {
-        onRoPEFoundListener(rope)
+        val search = thread(start = false) {
+            onRoPEFoundListener(rope)
+        }
+        Executors.newSingleThreadScheduledExecutor().schedule(search, 10, TimeUnit.SECONDS)
     }
 
     override fun onRequestEnableConnection(onRequestEnableConnection: (RoPEFinderBle.EnableBluetoothRequest) -> Unit) {

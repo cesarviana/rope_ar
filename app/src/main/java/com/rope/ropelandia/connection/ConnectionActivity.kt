@@ -6,30 +6,43 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
+import android.view.animation.TranslateAnimation
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.HandlerCompat
-import com.rope.connection.ble.RoPEFinderBle
+import com.rope.connection.fake.RoPEFinderFake
 import com.rope.ropelandia.R
 import com.rope.ropelandia.app
-import com.rope.ropelandia.databinding.ActivityConnectionBinding
 import com.rope.ropelandia.game.GameActivity
+import kotlinx.android.synthetic.main.activity_connection.*
+import kotlin.concurrent.thread
 
 class ConnectionActivity : AppCompatActivity() {
 
     private var dataUrl: String? = null
-    private lateinit var binding: ActivityConnectionBinding
 
+    private val connectingSound by lazy { MediaPlayer.create(this, R.raw.toy_connecting_sound) }
     private val connectedSound by lazy { MediaPlayer.create(this, R.raw.toy_connected_sound) }
-    private val connectionFailed by lazy { MediaPlayer.create(applicationContext, R.raw.connection_fail_sound) }
+    private val connectionFailed by lazy {
+        MediaPlayer.create(
+            applicationContext,
+            R.raw.connection_fail_sound
+        )
+    }
+
+    private val animation by lazy {
+        TranslateAnimation(-50f, 50f, 0f, 0f)
+            .apply {
+                duration = 2000
+                fillAfter = true
+                repeatCount = 10
+            }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityConnectionBinding.inflate(layoutInflater)
-        val connectionViewModel = ConnectionViewModel(app)
-        binding.connectionStateTextView.text = connectionViewModel.getConnectionState()
-        setContentView(binding.root)
+        setContentView(R.layout.activity_connection)
 
         setupRopeFinder()
         setupActivityListeners()
@@ -42,7 +55,7 @@ class ConnectionActivity : AppCompatActivity() {
             app.ropeFinder?.activity = this
         } else {
             val handler = HandlerCompat.createAsync(Looper.getMainLooper())
-            app.ropeFinder = RoPEFinderBle(this, handler)
+            app.ropeFinder = RoPEFinderFake(this, handler)
             addRoPEFinderListeners()
         }
     }
@@ -51,7 +64,7 @@ class ConnectionActivity : AppCompatActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) { activityResult ->
         val connectionAllowed = activityResult.resultCode == Activity.RESULT_OK
-        if(connectionAllowed)
+        if (connectionAllowed)
             app.ropeFinder?.handleConnectionAllowed(connectionAllowed)
         else
             show("Falha ao ativar conexão")
@@ -66,18 +79,21 @@ class ConnectionActivity : AppCompatActivity() {
             show("Falha ao conectar")
         }
         app.ropeFinder?.onRoPEFound {
-            if(app.rope == null){
-                app.rope = it
-                setupRoPEListeners()
-            }
-            if(app.rope?.isConnected() == false){
-                app.rope?.connect()
+            runOnUiThread {
+                showLoader(false)
+                if (app.rope == null) {
+                    app.rope = it
+                    setupRoPEListeners()
+                }
+                if (app.rope?.isConnected() == false) {
+                    app.rope?.connect()
+                }
             }
         }
     }
 
     private fun setupActivityListeners() {
-        binding.connectButton.setOnClickListener {
+        loup.setOnClickListener {
             findAndConnectRoPE()
         }
     }
@@ -86,8 +102,18 @@ class ConnectionActivity : AppCompatActivity() {
         if (ropeFound()) {
             goToGameActivity()
         } else {
+            thread(start = true) { connectingSound.start() }
+            showLoader(true)
             app.rope?.disconnect()
             app.ropeFinder?.findRoPE()
+        }
+    }
+
+    private fun showLoader(searchingRoPE: Boolean) {
+        if (searchingRoPE) {
+            loup.startAnimation(animation)
+        } else {
+            loup.animation.cancel()
         }
     }
 

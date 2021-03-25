@@ -2,20 +2,31 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
-    android:gravity="center">
-    
-    <Button
-        android:id="@+id/connectButton"
+    android:background="@color/background"
+    android:gravity="center"
+    android:orientation="horizontal">
+
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="30sp"
-        android:text="@string/connect_button" />
+        android:gravity="center"
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/connectionStateTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-    </TextView>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/rope_description"
+            android:padding="20dp"
+            android:src="@drawable/ic_rope" />
+
+        <ImageView
+            android:paddingHorizontal="70dp"
+            android:id="@+id/loup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/magnifier_description"
+            android:src="@drawable/ic_loup" />
+
+    </LinearLayout>
 
 </LinearLayout>
