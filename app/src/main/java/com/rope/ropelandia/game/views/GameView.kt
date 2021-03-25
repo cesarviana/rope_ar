@@ -1,12 +1,12 @@
-package com.rope.ropelandia.game
+package com.rope.ropelandia.game.views
 
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import com.rope.ropelandia.game.views.BlockView
-import com.rope.ropelandia.game.views.RoPEView
+import com.rope.ropelandia.game.converters.BlockToBlockViewConverter
+import com.rope.ropelandia.game.Game
 
 class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs),
     SurfaceHolder.Callback {
@@ -118,7 +118,7 @@ class GameView(context: Context, attrs: AttributeSet?) : SurfaceView(context, at
     fun update(game: Game) {
         matView.updateMat(game.tiles())
         programBlocks = game.programBlocks.map { block ->
-            BlockToBlockView.convert(context, block)
+            BlockToBlockViewConverter.convert(context, block)
         }
         if(game.programIsExecuting){
             highlight(game.startedActionIndex)

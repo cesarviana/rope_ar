@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     tools:context=".study.StudyActivity">
 
-    <com.rope.ropelandia.game.GameView
+    <com.rope.ropelandia.game.views.GameView
         android:id="@+id/gameView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

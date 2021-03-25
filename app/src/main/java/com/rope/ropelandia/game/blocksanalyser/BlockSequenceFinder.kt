@@ -1,8 +1,10 @@
-package com.rope.ropelandia.capture
+package com.rope.ropelandia.game.blocksanalyser
 
 import android.util.Log
 import com.rope.connection.RoPE
 import com.rope.program.SequentialProgram
+import com.rope.ropelandia.capture.Circle
+import com.rope.ropelandia.capture.Point
 import com.rope.ropelandia.model.*
 import kotlin.math.cos
 import kotlin.math.sin

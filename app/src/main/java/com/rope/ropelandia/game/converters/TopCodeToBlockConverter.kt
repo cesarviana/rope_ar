@@ -1,9 +1,9 @@
-package com.rope.ropelandia.capture
+package com.rope.ropelandia.game.converters
 
 import com.rope.ropelandia.model.*
 import java.lang.IllegalArgumentException
 
-object TopCodeToClassMapper {
+object TopCodeToBlockConverter {
 
     private const val FORWARD = 327
     private const val POSITION_BLOCK = 31

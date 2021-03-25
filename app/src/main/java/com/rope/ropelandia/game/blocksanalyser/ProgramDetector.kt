@@ -1,8 +1,6 @@
 package com.rope.ropelandia.game.blocksanalyser
 
 import com.rope.connection.RoPE
-import com.rope.ropelandia.capture.BlockSequenceFinder
-import com.rope.ropelandia.capture.BlocksToProgramConverter
 import com.rope.ropelandia.model.Block
 
 abstract class ProgramDetector(val rope: RoPE) : BlocksAnalyzer {

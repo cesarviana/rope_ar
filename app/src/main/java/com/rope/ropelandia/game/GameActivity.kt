@@ -16,11 +16,13 @@ import com.rope.connection.ble.*
 import com.rope.droideasy.PermissionChecker
 import com.rope.ropelandia.R
 import com.rope.ropelandia.app
-import com.rope.ropelandia.capture.BitmapToBlocksConverter
 import com.rope.ropelandia.ctpuzzle.*
 import com.rope.ropelandia.game.bitmaptaker.BitmapTaker
 import com.rope.ropelandia.game.bitmaptaker.BitmapTakerFactory
 import com.rope.ropelandia.game.blocksanalyser.*
+import com.rope.ropelandia.game.converters.BitmapToBlocksConverter
+import com.rope.ropelandia.game.converters.ParticipationToGameConverter
+import com.rope.ropelandia.game.views.GameView
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.RoPEBlock
 import kotlinx.android.synthetic.main.main_activity.*

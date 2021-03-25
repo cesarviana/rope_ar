@@ -1,8 +1,10 @@
-package com.rope.ropelandia.game
+package com.rope.ropelandia.game.converters
 
 import android.content.Context
 import com.rope.ropelandia.ctpuzzle.Item
 import com.rope.ropelandia.ctpuzzle.Participation
+import com.rope.ropelandia.game.Game
+import com.rope.ropelandia.game.Level
 import com.rope.ropelandia.game.tiles.Tile
 import com.rope.ropelandia.game.tiles.TileFactory
 

@@ -1,6 +1,6 @@
 package com.rope.ropelandia
 
-import com.rope.ropelandia.capture.BlockSequenceFinder
+import com.rope.ropelandia.game.blocksanalyser.BlockSequenceFinder
 import com.rope.ropelandia.model.ForwardBlock
 import com.rope.ropelandia.model.LeftBlock
 import com.rope.ropelandia.model.StartBlock

@@ -10,9 +10,9 @@ import com.rope.connection.RoPE
 import com.rope.connection.ble.RoPEActionListener
 import com.rope.connection.fake.RoPEFinderFake
 import com.rope.ropelandia.R
-import com.rope.ropelandia.capture.BlocksToProgramConverter
-import com.rope.ropelandia.capture.BlockSequenceFinder
-import com.rope.ropelandia.game.GameView
+import com.rope.ropelandia.game.blocksanalyser.BlocksToProgramConverter
+import com.rope.ropelandia.game.blocksanalyser.BlockSequenceFinder
+import com.rope.ropelandia.game.views.GameView
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.ForwardBlock
 import kotlinx.android.synthetic.main.activity_study.*

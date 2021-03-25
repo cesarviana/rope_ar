@@ -1,7 +1,9 @@
-package com.rope.ropelandia.capture
+package com.rope.ropelandia.game.converters
 
 import android.graphics.Bitmap
 import android.util.Size
+import com.rope.ropelandia.capture.ProjectorBlocksPositioner
+import com.rope.ropelandia.game.converters.TopCodeToBlockConverter
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.BlockFactory
 import topcodes.TopCode
@@ -69,7 +71,7 @@ class BitmapToBlocksConverter(screenSize: Size) {
     private fun scanTopCodes(it: Bitmap) = topCodesScanner.searchTopCodes(it)
 
     private fun convertToBlocks(topCodes: List<TopCode>) = topCodes.map {
-        val blockClass = TopCodeToClassMapper.map(it.code)
+        val blockClass = TopCodeToBlockConverter.map(it.code)
         BlockFactory.createBlock(
             blockClass, it.centerX, it.centerY, it.diameter, it.angleInRadians
         )
