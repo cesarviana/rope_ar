@@ -2,6 +2,7 @@ package com.rope.ropelandia
 
 import com.rope.ropelandia.capture.*
 import com.rope.ropelandia.model.PositionBlock
+import com.rope.ropelandia.usecases.perspectiverectangle.domain.entities.PerspectiveRectangle
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions
 import org.assertj.core.data.Offset
@@ -64,6 +65,8 @@ class HomographyMatrixCalculatorTest {
 
     @Test
     fun testMapToScreenWidth() {
+        // setup
+
         val positionBlocks = listOf(
             PositionBlock(774f, 181f, 0f, 0f),
             PositionBlock(2510f, 115f, 0f, 0f),
@@ -74,25 +77,42 @@ class HomographyMatrixCalculatorTest {
         val targetScreenHeight = 720
         val targetScreenWidth = 1280
 
-        val blocksPositioner = ProjectorBlocksPositioner(targetScreenHeight, targetScreenWidth)
+        val targetRectangle =
+            Rectangle(0.0, 0.0, targetScreenWidth.toDouble(), targetScreenHeight.toDouble())
+
+        val points = positionBlocks.map { Point(it.centerX.toDouble(), it.centerY.toDouble()) }
+
+        val perspectiveRectangle = PerspectiveRectangle.createFromPoints(points)
+
+        val blocksPositioner = ProjectorBlocksPositioner()
+
+        blocksPositioner.homographyMatrix = HomographyMatrixCalculator.calculate(
+            perspectiveRectangle,
+            targetRectangle
+        )
+
+        // execute
+
         val resultBlocks = blocksPositioner.reposition(positionBlocks)
 
-        val resultRectangle = resultBlocks.map { Point(it.centerX.toDouble(), it.centerY.toDouble()) }.let {
-            PerspectiveRectangle.createFromPoints(it)
-        }
+        val resultRectangle =
+            resultBlocks.map { Point(it.centerX.toDouble(), it.centerY.toDouble()) }.let {
+                PerspectiveRectangle.createFromPoints(it)
+            }
 
         // assert error relative (width)
         val expectedTopLeftX = 0.0
         val error = resultRectangle.topLeft.x - expectedTopLeftX
         val errorRelativeToWidth = error / targetScreenWidth
 
-        assertThat(errorRelativeToWidth).isLessThan(0.01).withFailMessage("To much difference")
+        val softAssertions = SoftAssertions()
 
+        softAssertions.assertThat(errorRelativeToWidth).isLessThan(0.01)
+            .withFailMessage("To much difference")
 
         // assert error in pixels
         val closeness = Offset.offset(7.0)
 
-        val softAssertions = SoftAssertions()
         softAssertions.assertThat(resultRectangle.topLeft.x).isCloseTo(0.0, closeness)
         softAssertions.assertThat(resultRectangle.topLeft.y).isCloseTo(0.0, closeness)
         softAssertions.assertAll()

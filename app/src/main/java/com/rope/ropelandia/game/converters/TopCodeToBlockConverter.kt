@@ -8,11 +8,11 @@ object TopCodeToBlockConverter {
     private const val FORWARD = 327
     private const val POSITION_BLOCK = 31
     private const val RIGHT = 157
-    private const val BACKWARD = 279000
+    private const val BACKWARD = 279
     private const val LEFT = 205
     private const val START = 227
 
-    private const val ROPE = 279//103
+    private const val ROPE = 103
 
     fun map(topCodeCode: Int): Class<out Block> {
         return when (topCodeCode) {

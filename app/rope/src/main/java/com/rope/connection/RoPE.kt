@@ -94,6 +94,9 @@ abstract class RoPE(val handler: Handler) {
         SOUND_OFF {
             override val stringSequence = "s"
         },
+        SOUND_ON {
+            override val stringSequence = "S"
+        },
         NULL {
             override val stringSequence = ""
         },

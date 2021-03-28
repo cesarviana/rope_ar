@@ -12,10 +12,12 @@ import android.content.Intent
 import android.os.Build
 import android.os.Handler
 import android.os.ParcelUuid
+import android.util.Log
 import com.rope.connection.RoPE
 import com.rope.connection.RoPEFinder
 import java.util.*
 
+private const val TAG = "ROPE_FINDER_BLE"
 /**
  * Object to be used by other projects. It will find a instance of RoPE.
  * This implementation uses Bluetooth connection, but the interface don't exposes
@@ -28,6 +30,7 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
     }
 
     var rope: RoPEBle? = null
+    private var scanning = false
 
     private object BlePermissions {
         const val requestCode = 11
@@ -65,6 +68,10 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
     private val myScanCallback = MyScanCallback()
 
     override fun findRoPE() {
+        if(scanning) {
+            Log.w(TAG, "RoPE scanning already started")
+            return
+        }
         requestEnableBluetoothOrStartScan()
     }
 
@@ -99,6 +106,7 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
             ) {
                 val filter = createScanFilter()
                 val settings = createScanSettings()
+                scanning = true
                 bluetoothAdapter.bluetoothLeScanner.startScan(filter, settings, scanCallback)
             }
         }
@@ -151,6 +159,7 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
 
     private inner class MyScanCallback : ScanCallback() {
         override fun onScanResult(callbackType: Int, scanResult: ScanResult?) {
+            scanning = false
 
             bluetoothAdapter?.bluetoothLeScanner?.stopScan(myScanCallback)
 
@@ -166,7 +175,7 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
         }
 
         override fun onScanFailed(errorCode: Int) {
-            super.onScanFailed(errorCode)
+            scanning = false
 
             if (errorCode == SCAN_FAILED_ALREADY_STARTED) {
                 bluetoothAdapter?.bluetoothLeScanner?.stopScan(myScanCallback)

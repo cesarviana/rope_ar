@@ -1,8 +1,8 @@
 package com.rope.ropelandia
 
 import com.rope.ropelandia.capture.Circle
-import com.rope.ropelandia.capture.PerspectiveRectangle
 import com.rope.ropelandia.capture.Point
+import com.rope.ropelandia.usecases.perspectiverectangle.domain.entities.PerspectiveRectangle
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions
 import org.junit.Test

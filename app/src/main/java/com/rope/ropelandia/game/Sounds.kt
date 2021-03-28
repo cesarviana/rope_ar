@@ -8,12 +8,18 @@ private const val BACKGROUND_VOLUME = 0.4f
 
 object Sounds {
 
-    lateinit var gameEnd: MediaPlayer
-    lateinit var levelEnd: MediaPlayer
-    lateinit var connectionFailed: MediaPlayer
-    lateinit var backgroundHappy: MediaPlayer
+    private var lastSound: MediaPlayer? = null
+    var gameEnd: MediaPlayer? = null
+    var levelEnd: MediaPlayer? = null
+    var connectionFailed: MediaPlayer? = null
+    var backgroundHappy: MediaPlayer? = null
+    var connectingSound: MediaPlayer? = null
+    var connectedSound: MediaPlayer? = null
 
     fun initialize(context: Context) {
+        val initialized = gameEnd != null
+        if (initialized)
+            return
         gameEnd = MediaPlayer.create(context, R.raw.game_end_sound).apply {
             setVolume(1f, 1f)
         }
@@ -27,6 +33,9 @@ object Sounds {
             R.raw.connection_fail_sound
         )
 
+        connectingSound = MediaPlayer.create(context, R.raw.toy_connecting_sound)
+        connectedSound = MediaPlayer.create(context, R.raw.toy_connected_sound)
+
         val even = (Math.random() * 10).toInt() % 2 == 0
         val id = if (even) R.raw.background_happy_sound_1 else R.raw.background_happy_sound_2
         backgroundHappy = MediaPlayer.create(
@@ -37,29 +46,27 @@ object Sounds {
     }
 
     fun play(
-        sound: MediaPlayer,
+        sound: MediaPlayer?,
         looping: Boolean = false,
         onCompletionListener: MediaPlayer.OnCompletionListener? = null
     ) {
         Thread {
-            sound.isLooping = looping
-            sound.start()
+            sound?.isLooping = looping
+            sound?.start()
             onCompletionListener?.let {
-                sound.setOnCompletionListener(onCompletionListener)
+                sound?.setOnCompletionListener(onCompletionListener)
             }
         }.start()
     }
 
     fun decreaseBackgroundVolume() {
-        backgroundHappy.setVolume(0.2f, 0.2f)
+        backgroundHappy?.setVolume(0.2f, 0.2f)
     }
 
     fun resetBackgroundVolume() {
-        backgroundHappy.setVolume(BACKGROUND_VOLUME, BACKGROUND_VOLUME)
+        backgroundHappy?.setVolume(BACKGROUND_VOLUME, BACKGROUND_VOLUME)
     }
 
-    fun stop(sound: MediaPlayer) {
-        sound.stop()
-    }
+    fun stop(sound: MediaPlayer?) = sound?.stop()
 
 }

@@ -2,7 +2,6 @@ package com.rope.ropelandia.connection
 
 import android.app.Activity
 import android.content.Intent
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
@@ -11,25 +10,16 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.HandlerCompat
-import com.rope.connection.fake.RoPEFinderFake
+import com.rope.connection.ble.RoPEFinderBle
 import com.rope.ropelandia.R
 import com.rope.ropelandia.app
 import com.rope.ropelandia.game.GameActivity
+import com.rope.ropelandia.game.Sounds
 import kotlinx.android.synthetic.main.activity_connection.*
-import kotlin.concurrent.thread
 
 class ConnectionActivity : AppCompatActivity() {
 
     private var dataUrl: String? = null
-
-    private val connectingSound by lazy { MediaPlayer.create(this, R.raw.toy_connecting_sound) }
-    private val connectedSound by lazy { MediaPlayer.create(this, R.raw.toy_connected_sound) }
-    private val connectionFailed by lazy {
-        MediaPlayer.create(
-            applicationContext,
-            R.raw.connection_fail_sound
-        )
-    }
 
     private val animation by lazy {
         TranslateAnimation(-50f, 50f, 0f, 0f)
@@ -43,11 +33,15 @@ class ConnectionActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_connection)
-
         setupRopeFinder()
         setupActivityListeners()
         findAndConnectRoPE()
         getDataFromDeepLink()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Sounds.initialize(this)
     }
 
     private fun setupRopeFinder() {
@@ -55,7 +49,7 @@ class ConnectionActivity : AppCompatActivity() {
             app.ropeFinder?.activity = this
         } else {
             val handler = HandlerCompat.createAsync(Looper.getMainLooper())
-            app.ropeFinder = RoPEFinderFake(this, handler)
+            app.ropeFinder = RoPEFinderBle(this, handler)
             addRoPEFinderListeners()
         }
     }
@@ -75,7 +69,7 @@ class ConnectionActivity : AppCompatActivity() {
             activityResultLauncher.launch(request.intent)
         }
         app.ropeFinder?.onConnectionFailed {
-            connectionFailed.start()
+            Sounds.play(Sounds.connectionFailed)
             show("Falha ao conectar")
         }
         app.ropeFinder?.onRoPEFound {
@@ -102,7 +96,7 @@ class ConnectionActivity : AppCompatActivity() {
         if (ropeFound()) {
             goToGameActivity()
         } else {
-            thread(start = true) { connectingSound.start() }
+            Sounds.play(Sounds.connectingSound)
             showLoader(true)
             app.rope?.disconnect()
             app.ropeFinder?.findRoPE()
@@ -143,8 +137,7 @@ class ConnectionActivity : AppCompatActivity() {
     }
 
     private fun playConnectedSound(onPlayed: () -> Unit) {
-        connectedSound.start()
-        connectedSound.setOnCompletionListener {
+        Sounds.play(Sounds.connectedSound) {
             onPlayed()
         }
     }

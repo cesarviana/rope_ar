@@ -1,9 +1,10 @@
 package com.rope.ropelandia.game
 
+import android.util.Log
 import androidx.core.view.isVisible
 import com.rope.ropelandia.game.tiles.Apple
 import com.rope.ropelandia.game.tiles.Tile
-import com.rope.ropelandia.model.*
+import com.rope.ropelandia.model.Block
 
 private const val NO_EXECUTION = -2
 private const val PRE_EXECUTION = -1
@@ -35,7 +36,6 @@ data class Game(val levels: List<Level>) {
         if (this.ropePosition.square != square) {
             this.ropePosition.square = square
             atSquare?.invoke(square)
-            notifyIfLevelFinished()
         }
     }
 
@@ -100,7 +100,11 @@ class Level(
     val columns: Int
 ) {
     fun tilesAt(square: Square): List<Tile> {
-        require(square.column <= columns && square.line <= lines)
+        val outsideArea = square.column > columns || square.line > lines
+        if (outsideArea) {
+            Log.w("LEVEL", "The square $square must be inside (columns: $columns, lines: $lines)")
+            return listOf()
+        }
         return tiles.filter { square == it.square }
     }
 }

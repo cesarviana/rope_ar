@@ -1,6 +1,7 @@
 package com.rope.ropelandia.game
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Looper
@@ -25,6 +26,9 @@ import com.rope.ropelandia.game.converters.ParticipationToGameConverter
 import com.rope.ropelandia.game.views.GameView
 import com.rope.ropelandia.model.Block
 import com.rope.ropelandia.model.RoPEBlock
+import com.rope.ropelandia.usecases.perspectiverectangle.data.repositories.PerspectiveRectangleRepositoryImpl
+import com.rope.ropelandia.usecases.perspectiverectangle.domain.usecases.GetPerspectiveRectangle
+import com.rope.ropelandia.usecases.perspectiverectangle.domain.usecases.StorePerspectiveRectangle
 import kotlinx.android.synthetic.main.main_activity.*
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.RejectedExecutionHandler
@@ -66,10 +70,10 @@ class GameActivity : AppCompatActivity(),
         rope.apply {
             stop()
             sendActions(
-                listOf(
+                actionList = listOf(
+                    RoPE.Action.SOUND_ON,
                     RoPE.Action.INACTIVE_DIRECTIONAL_BUTTONS,
-                    RoPE.Action.ACTIVE_CONNECTION,
-                    RoPE.Action.SOUND_OFF
+                    RoPE.Action.ACTIVE_CONNECTION
                 )
             )
         }
@@ -90,16 +94,25 @@ class GameActivity : AppCompatActivity(),
         Sounds.play(Sounds.backgroundHappy, looping = true)
     }
 
+    override fun onResume() {
+        super.onResume()
+        Sounds.initialize(this)
+        Sounds.play(Sounds.backgroundHappy, looping = true)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Sounds.stop(Sounds.backgroundHappy)
+    }
+
     override fun onStop() {
         super.onStop()
-        Sounds.stop(Sounds.backgroundHappy)
         rope.sendActions(
             listOf(
                 RoPE.Action.ACTIVE_DIRECTIONAL_BUTTONS,
                 RoPE.Action.INACTIVE_CONNECTION
             )
         )
-        Sounds.stop(Sounds.backgroundHappy)
         bitmapTaker?.stop()
         rope.removeDisconnectedListener(this)
         rope.removeStartPressedListener(this)
@@ -134,12 +147,14 @@ class GameActivity : AppCompatActivity(),
             }
         }
         game.onArrivedAtSquare { square: Square ->
-            Sounds.decreaseBackgroundVolume()
-            game.getTilesAt(square).forEach {
-                handler.postAtFrontOfQueue { it.reactToCollision() }
+            handler.post {
+                Sounds.decreaseBackgroundVolume()
+                game.getTilesAt(square).forEach {
+                    it.reactToCollision()
+                }
                 Sounds.resetBackgroundVolume()
+                game.checkLevelFinished()
             }
-            game.checkLevelFinished()
         }
     }
 
@@ -206,8 +221,6 @@ class GameActivity : AppCompatActivity(),
         val commands = program.actionList.map { it.name }
         val seconds = currentTimeInSeconds() - initialTime
         attempts.add(Attempt(commands, timeInSeconds = seconds))
-//        val commands = program.actionList.map { it.stringSequence }
-//        GameLoader.registerAttempt(game)
     }
 
     private fun currentTimeInSeconds() = System.currentTimeMillis() / 1000
@@ -271,9 +284,16 @@ class GameActivity : AppCompatActivity(),
             .addBlocksAnalyzer(createMovementsDetector(screenSize))
             .addBlocksAnalyzer(createDirectionDetector())
             .addBlocksAnalyzer(createCoordinateDetector())
+            .addBlocksAnalyzer(createSnailDetector())
 
-
-        private val bitmapToBlocksConverter = BitmapToBlocksConverter(screenSize)
+        private val bitmapToBlocksConverter by lazy {
+            val sharedPreferences =
+                applicationContext.getSharedPreferences("ROPE_AR", Context.MODE_PRIVATE)
+            val repository = PerspectiveRectangleRepositoryImpl(sharedPreferences)
+            val getPerspectiveRectangle = GetPerspectiveRectangle(repository)
+            val storePerspectiveRectangle = StorePerspectiveRectangle(repository)
+            BitmapToBlocksConverter(screenSize, getPerspectiveRectangle, storePerspectiveRectangle)
+        }
 
         override fun onBitmap(bitmap: Bitmap) {
             try {
@@ -349,6 +369,19 @@ class GameActivity : AppCompatActivity(),
         override fun analyze(blocks: List<Block>) {
             blocks.filterIsInstance<RoPEBlock>().forEach {
                 game.updateCoordinate(it.centerX, it.centerY)
+            }
+        }
+    }
+
+    private fun createSnailDetector() = object : SnailDetector() {
+        override fun snailArrivedNearBlocks() {
+            if (game.programIsExecuting) {
+                rope.stop()
+                // highglight next action
+                // light next button
+                // enable button x
+                // <pressed:x>
+                // <cmds:xe>
             }
         }
     }
