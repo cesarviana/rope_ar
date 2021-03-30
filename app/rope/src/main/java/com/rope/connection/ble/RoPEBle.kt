@@ -11,6 +11,7 @@ import java.util.*
 
 class RoPEBle(private val context: Context, private val device: BluetoothDevice, handler: Handler) : RoPE(handler) {
 
+    private var connectionState: Int = -1
     private val callback = MyGattCallback()
 
     private lateinit var bluetoothGatt: BluetoothGatt
@@ -77,7 +78,7 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice,
             device.connectGatt(context, false, callback)
     }
 
-    override fun isConnected() = device.bondState == BluetoothDevice.BOND_BONDED
+    override fun isConnected() = connectionState == ConnectionState.CONNECTED
     override fun isConnecting() = device.bondState == BluetoothDevice.BOND_BONDING
 
     override fun send(command: String) {
@@ -166,6 +167,7 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice,
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
             when (newState) {
                 ConnectionState.DISCONNECTED -> Listeners.onDisconnected.forEach {
+                    this@RoPEBle.connectionState = ConnectionState.DISCONNECTED
                     it.disconnected(
                         this@RoPEBle
                     )
@@ -187,7 +189,8 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice,
                 gatt?.getService(IDs.serviceUUID)?.let {
                     characteristic = it.getCharacteristic(IDs.characteristicUUID)
                     try {
-                        Listeners.onConnected?.let { it() }
+                        this@RoPEBle.connectionState = ConnectionState.CONNECTED
+                        Listeners.onConnected?.invoke()
                     } catch (e: Exception) {
                         d("RoPE", e.message!!)
                     }
@@ -215,7 +218,6 @@ class RoPEBle(private val context: Context, private val device: BluetoothDevice,
 
     private object ConnectionState {
         const val CONNECTED = 2
-        const val CONNECTING = 1
         const val DISCONNECTED = 0
     }
 

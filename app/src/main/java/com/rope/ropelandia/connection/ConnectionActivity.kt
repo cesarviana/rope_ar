@@ -35,7 +35,6 @@ class ConnectionActivity : AppCompatActivity() {
         setContentView(R.layout.activity_connection)
         setupRopeFinder()
         setupActivityListeners()
-        findAndConnectRoPE()
         getDataFromDeepLink()
     }
 
@@ -45,9 +44,7 @@ class ConnectionActivity : AppCompatActivity() {
     }
 
     private fun setupRopeFinder() {
-        if (app.ropeFinder != null) {
-            app.ropeFinder?.activity = this
-        } else {
+        if (app.ropeFinder == null) {
             val handler = HandlerCompat.createAsync(Looper.getMainLooper())
             app.ropeFinder = RoPEFinderBle(this, handler)
             addRoPEFinderListeners()
@@ -71,6 +68,7 @@ class ConnectionActivity : AppCompatActivity() {
         app.ropeFinder?.onConnectionFailed {
             Sounds.play(Sounds.connectionFailed)
             show("Falha ao conectar")
+            showLoader(false)
         }
         app.ropeFinder?.onRoPEFound {
             runOnUiThread {
@@ -96,22 +94,29 @@ class ConnectionActivity : AppCompatActivity() {
         if (ropeFound()) {
             goToGameActivity()
         } else {
+            startSearchingIfNotSearching()
+        }
+    }
+
+    private fun startSearchingIfNotSearching() {
+        if (!app.ropeFinder!!.isSearching()) {
             Sounds.play(Sounds.connectingSound)
             showLoader(true)
-            app.rope?.disconnect()
             app.ropeFinder?.findRoPE()
         }
     }
 
+    private fun ropeFound() = app.rope != null && app.rope?.isConnected() == true
+
     private fun showLoader(searchingRoPE: Boolean) {
-        if (searchingRoPE) {
-            loup.startAnimation(animation)
-        } else {
-            loup.animation.cancel()
+        runOnUiThread {
+            if (searchingRoPE) {
+                loup.startAnimation(animation)
+            } else {
+                loup.animation.cancel()
+            }
         }
     }
-
-    private fun ropeFound() = app.rope != null && app.rope?.isConnected() == true
 
     private fun show(message: String) {
         Toast
@@ -137,6 +142,7 @@ class ConnectionActivity : AppCompatActivity() {
     }
 
     private fun playConnectedSound(onPlayed: () -> Unit) {
+        Sounds.stop(Sounds.connectingSound)
         Sounds.play(Sounds.connectedSound) {
             onPlayed()
         }

@@ -42,13 +42,17 @@ object CtPuzzleApi {
 
     fun newParticipation(dataUrl: String, callback: (participation: Participation) -> Unit) {
         thread(start = true) {
-            UUID.randomUUID().let {
-                URI.create(dataUrl).resolve(it.toString())
-            }.let {
-                val type = object : TypeReference<Participation>() {}
-                jackson.readValue(it.toURL(), type)
-            }.let {
-                callback.invoke(it)
+            try {
+                val userId = UUID.randomUUID()
+                URI.create("$dataUrl/$userId").let {
+                    val type = object : TypeReference<Participation>() {}
+                    val url = it.toURL()
+                    jackson.readValue(url, type)
+                }.let {
+                    callback.invoke(it)
+                }
+            } catch (e: Exception) {
+                Log.d(TAG, "Error when getting participation: ${e.message}")
             }
         }
     }
@@ -79,7 +83,7 @@ object CtPuzzleApi {
         item: ItemWithId,
         responseForItem: ResponseForItem
     ) {
-        require(item.id > 0){
+        require(item.id > 0) {
             "Throw invalid item id"
         }
         val url = participation.urlToSendResponses.url.replace("<item_id>", item.id.toString())

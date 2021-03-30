@@ -34,7 +34,7 @@ class BitmapToBlocksConverter(
         Rectangle(0.0, 0.0, right, bottom)
     }
 
-    fun convertBitmapToBlocks(bitmap: Bitmap): List<Block> {
+    fun convertBitmapToBlocks(bitmap: Bitmap, forceCallback: Boolean, callback: (List<Block>) -> Unit) {
         val blocks = bitmap.let {
             scanTopCodes(increaseSize(it))
         }.let {
@@ -46,15 +46,17 @@ class BitmapToBlocksConverter(
             reposition(it)
         }
 
-        if (toMuchVariationInBlocksNumber(blocks, lastNumberOfBlocks)) {
+        val maybeWrongDetection = toMuchVariationInBlocksNumber(blocks, lastNumberOfBlocks)
+
+        if (maybeWrongDetection) {
             lastNumberOfBlocks = blocks.size
-            return lastBlocks
-        }
-        if (blocksMoved(blocks, lastBlocks)) {
-            lastBlocks = blocks
+            return
         }
 
-        return lastBlocks
+        if(blocksMoved(blocks, lastBlocks) || forceCallback) {
+            lastBlocks = blocks
+            callback(blocks)
+        }
     }
 
     private fun increaseSize(it: Bitmap): Bitmap {
@@ -64,9 +66,10 @@ class BitmapToBlocksConverter(
         return Bitmap.createScaledBitmap(it, w, h, true)
     }
 
-    private fun toMuchVariationInBlocksNumber(blocks: List<Block>, lastNumberOfBlocks: Int): Boolean {
-        return (abs(lastNumberOfBlocks - blocks.size) > 2)
-    }
+    private fun toMuchVariationInBlocksNumber(
+        blocks: List<Block>,
+        lastNumberOfBlocks: Int
+    ) = abs(lastNumberOfBlocks - blocks.size) > 2
 
     private fun blocksMoved(blocks: List<Block>, lastBlocks: List<Block>): Boolean {
         if (blocks.size != lastBlocks.size) {

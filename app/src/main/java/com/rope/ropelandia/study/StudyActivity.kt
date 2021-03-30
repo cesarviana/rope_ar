@@ -40,7 +40,7 @@ class StudyActivity : AppCompatActivity() {
 //        val game = GameLoader.load(this)
 //        gameView.setMat(game.currentMat())
 
-        val ropeFinder = RoPEFinderFake(this, handler)
+        val ropeFinder = RoPEFinderFake(handler)
         val ropeSensors = RoPESensors()
 
         ropeFinder.onRoPEFound {

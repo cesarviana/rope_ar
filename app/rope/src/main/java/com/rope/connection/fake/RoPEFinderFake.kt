@@ -1,28 +1,28 @@
 package com.rope.connection.fake
 
-import android.app.Activity
 import android.os.Handler
 import com.rope.connection.RoPE
 import com.rope.connection.RoPEFinder
-import com.rope.connection.ble.RoPEFinderBle
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
-class RoPEFinderFake(override var activity: Activity, handler: Handler) : RoPEFinder {
+class RoPEFinderFake(handler: Handler) : RoPEFinder {
 
     private lateinit var onConnectionFailedListener: (errorCode: Int) -> Unit
     private lateinit var onRoPEFoundListener: (rope: RoPE) -> Unit
     private val rope = RoPEFake(handler,)
-
+    private var scanning = false
     override fun findRoPE() {
+        scanning = true
         val search = thread(start = false) {
+            scanning = false
             onRoPEFoundListener(rope)
         }
         Executors.newSingleThreadScheduledExecutor().schedule(search, 10, TimeUnit.SECONDS)
     }
 
-    override fun onRequestEnableConnection(onRequestEnableConnection: (RoPEFinderBle.EnableBluetoothRequest) -> Unit) {
+    override fun onRequestEnableConnection(onRequestEnableConnection: (RoPEFinder.EnableConnectionRequest) -> Unit) {
     }
 
     override fun handleConnectionAllowed(connectionAllowed: Boolean) {
@@ -38,4 +38,7 @@ class RoPEFinderFake(override var activity: Activity, handler: Handler) : RoPEFi
     override fun onConnectionFailed(function: (errorCode: Int) -> Unit) {
         this.onConnectionFailedListener = function
     }
+
+    override fun isSearching() = scanning
+
 }

@@ -44,8 +44,8 @@ class GameActivity : AppCompatActivity(),
     RoPEExecutionStartedListener,
     RoPEExecutionFinishedListener {
 
+    private var startRequired = false
     private val rope by lazy { app.rope!! }
-    private var requiredStart = false
 
     private val myExecutor by lazy {
         val executor = ThreadPoolExecutor(
@@ -81,10 +81,10 @@ class GameActivity : AppCompatActivity(),
         CtPuzzleApi.initialize(this)
         Sounds.initialize(this)
         loadGame { game, participation ->
+            initialTime = currentTimeInSeconds()
             registerStartedLevel(game, participation)
             this.game = game
             this.participation = participation
-            initialTime = currentTimeInSeconds()
             runOnUiThread {
                 updateView(game, gameView)
                 setupGameListeners(game)
@@ -100,13 +100,9 @@ class GameActivity : AppCompatActivity(),
         Sounds.play(Sounds.backgroundHappy, looping = true)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        Sounds.stop(Sounds.backgroundHappy)
-    }
-
     override fun onStop() {
         super.onStop()
+        Sounds.stop(Sounds.backgroundHappy)
         rope.sendActions(
             listOf(
                 RoPE.Action.ACTIVE_DIRECTIONAL_BUTTONS,
@@ -161,13 +157,9 @@ class GameActivity : AppCompatActivity(),
     private fun loadGame(callback: (game: Game, participation: Participation) -> Unit) {
         val dataUrl = intent.extras?.getString("dataUrl") ?: DEFAULT_CTPUZZLE_DATA_URL
 
-        try {
-            CtPuzzleApi.newParticipation(dataUrl) {
-                val game = ParticipationToGameConverter.convert(this, it)
-                callback.invoke(game, it)
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error when loading game: ${e.message}")
+        CtPuzzleApi.newParticipation(dataUrl) {
+            val game = ParticipationToGameConverter.convert(this, it)
+            callback.invoke(game, it)
         }
     }
 
@@ -179,7 +171,7 @@ class GameActivity : AppCompatActivity(),
     }
 
     override fun startPressed(rope: RoPE) {
-        requiredStart = true
+        this.startRequired = true
     }
 
     override fun executionStarted(rope: RoPE) {
@@ -282,9 +274,7 @@ class GameActivity : AppCompatActivity(),
         private val blocksAnalyser = BlocksAnalyzerComposite()
             .addBlocksAnalyzer(createProgramDetector())
             .addBlocksAnalyzer(createMovementsDetector(screenSize))
-            .addBlocksAnalyzer(createDirectionDetector())
             .addBlocksAnalyzer(createCoordinateDetector())
-            .addBlocksAnalyzer(createSnailDetector())
 
         private val bitmapToBlocksConverter by lazy {
             val sharedPreferences =
@@ -297,8 +287,12 @@ class GameActivity : AppCompatActivity(),
 
         override fun onBitmap(bitmap: Bitmap) {
             try {
-                val blocks = bitmapToBlocksConverter.convertBitmapToBlocks(bitmap)
-                blocksAnalyser.analyze(blocks)
+                bitmapToBlocksConverter.convertBitmapToBlocks(
+                    bitmap,
+                    forceCallback = startRequired
+                ) { blocks ->
+                    blocksAnalyser.analyze(blocks)
+                }
             } catch (e: java.lang.Exception) {
                 e.message?.let { Log.e(TAG, it) }
             }
@@ -336,18 +330,12 @@ class GameActivity : AppCompatActivity(),
     }
 
     private fun createProgramDetector() = object : ProgramDetector(app.rope!!) {
-        private val blocksFoundHandler = HandlerCompat.createAsync(Looper.getMainLooper())
-
         override fun onFoundProgramBlocks(blocks: List<Block>, program: RoPE.Program) {
-            blocksFoundHandler.post {
-                if (rope.isStopped()) {
-                    game.updateProgramBlocks(blocks)
-                    updateView(game, gameView)
-                    if (requiredStart) {
-                        requiredStart = false
-                        ropeExecute(program)
-                    }
-                }
+            game.updateProgramBlocks(blocks)
+            runOnUiThread { updateView(game, gameView) }
+            if (startRequired) {
+                startRequired = false
+                ropeExecute(program)
             }
         }
     }
@@ -359,29 +347,10 @@ class GameActivity : AppCompatActivity(),
             }
         }
 
-    private fun createDirectionDetector() = object : RoPEDirectionDetector() {
-        override fun changedFace(direction: Position.Direction) {
-            game.ropePosition.direction = direction
-        }
-    }
-
     private fun createCoordinateDetector() = object : BlocksAnalyzer {
         override fun analyze(blocks: List<Block>) {
             blocks.filterIsInstance<RoPEBlock>().forEach {
                 game.updateCoordinate(it.centerX, it.centerY)
-            }
-        }
-    }
-
-    private fun createSnailDetector() = object : SnailDetector() {
-        override fun snailArrivedNearBlocks() {
-            if (game.programIsExecuting) {
-                rope.stop()
-                // highglight next action
-                // light next button
-                // enable button x
-                // <pressed:x>
-                // <cmds:xe>
             }
         }
     }

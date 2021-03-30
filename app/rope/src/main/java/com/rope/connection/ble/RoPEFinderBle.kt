@@ -18,24 +18,25 @@ import com.rope.connection.RoPEFinder
 import java.util.*
 
 private const val TAG = "ROPE_FINDER_BLE"
+
 /**
  * Object to be used by other projects. It will find a instance of RoPE.
  * This implementation uses Bluetooth connection, but the interface don't exposes
  * Bluetooth.
  */
-class RoPEFinderBle(override var activity: Activity, private val handler: Handler) : RoPEFinder {
+class RoPEFinderBle(var activity: Activity, private val handler: Handler) : RoPEFinder {
 
     init {
         Listeners.clear()
     }
 
     var rope: RoPEBle? = null
-    private var scanning = false
 
     private object BlePermissions {
         const val requestCode = 11
         val list = arrayOf(
             android.Manifest.permission.ACCESS_COARSE_LOCATION,
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
             android.Manifest.permission.BLUETOOTH,
             android.Manifest.permission.BLUETOOTH_ADMIN
         )
@@ -54,7 +55,8 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
         }
 
         val onRoPEFound = mutableListOf<(rope: RoPEBle) -> Unit>()
-        val onRequestEnableConnection = mutableListOf<(EnableBluetoothRequest) -> Unit>()
+        val onRequestEnableConnection =
+            mutableListOf<(RoPEFinder.EnableConnectionRequest) -> Unit>()
         val onConnectionFailed = mutableListOf<(errorCode: Int) -> Unit>()
     }
 
@@ -68,12 +70,14 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
     private val myScanCallback = MyScanCallback()
 
     override fun findRoPE() {
-        if(scanning) {
+        if (isSearching()) {
             Log.w(TAG, "RoPE scanning already started")
             return
         }
         requestEnableBluetoothOrStartScan()
     }
+
+    override fun isSearching() = bluetoothAdapter.isDiscovering
 
     private fun requestEnableBluetoothOrStartScan() {
         bluetoothAdapter?.let {
@@ -89,7 +93,7 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
         val action = BluetoothAdapter.ACTION_REQUEST_ENABLE
         val intent = Intent(action)
         val code = BleEnabling.requestCode
-        val enableBleRequest = EnableBluetoothRequest(intent, code)
+        val enableBleRequest = RoPEFinder.EnableConnectionRequest(intent, code)
         Listeners.onRequestEnableConnection.forEach { it(enableBleRequest) }
     }
 
@@ -106,7 +110,6 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
             ) {
                 val filter = createScanFilter()
                 val settings = createScanSettings()
-                scanning = true
                 bluetoothAdapter.bluetoothLeScanner.startScan(filter, settings, scanCallback)
             }
         }
@@ -127,7 +130,7 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
         return mutableListOf(scanFilter)
     }
 
-    override fun onRequestEnableConnection(onRequestEnableConnection: (EnableBluetoothRequest) -> Unit) {
+    override fun onRequestEnableConnection(onRequestEnableConnection: (RoPEFinder.EnableConnectionRequest) -> Unit) {
         Listeners.onRequestEnableConnection.add(onRequestEnableConnection)
     }
 
@@ -159,8 +162,6 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
 
     private inner class MyScanCallback : ScanCallback() {
         override fun onScanResult(callbackType: Int, scanResult: ScanResult?) {
-            scanning = false
-
             bluetoothAdapter?.bluetoothLeScanner?.stopScan(myScanCallback)
 
             if (rope != null) {
@@ -175,18 +176,10 @@ class RoPEFinderBle(override var activity: Activity, private val handler: Handle
         }
 
         override fun onScanFailed(errorCode: Int) {
-            scanning = false
-
             if (errorCode == SCAN_FAILED_ALREADY_STARTED) {
                 bluetoothAdapter?.bluetoothLeScanner?.stopScan(myScanCallback)
-            } else if(errorCode == SCAN_FAILED_APPLICATION_REGISTRATION_FAILED) {
-                bluetoothAdapter?.disable()
-                bluetoothAdapter?.enable()
             }
-
             Listeners.onConnectionFailed.forEach { it(errorCode) }
         }
     }
-
-    data class EnableBluetoothRequest(val intent: Intent, val code: Int)
 }

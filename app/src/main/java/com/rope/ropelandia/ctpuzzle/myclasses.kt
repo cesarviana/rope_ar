@@ -14,4 +14,4 @@ data class Item(
 )
 
 const val DEFAULT_CTPUZZLE_DATA_URL =
-    "https://api.ctplatform.playerweb.com.br/test-applications/public/data/1b18f885-ecc6-4751-be79-fda1c1be819d/test"
+    "https://api.ctplatform.playerweb.com.br/test-applications/public/data/328e5336-2536-4da7-b941-e6fa03577f3c"

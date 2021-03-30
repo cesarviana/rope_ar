@@ -11,10 +11,15 @@ class BlockView(context: Context) : View(context) {
 
     enum class BlockState {
         EXECUTING {
-            private val paint: Paint = Paint().apply {
+            private val paint = Paint().apply {
                 this.color = Color.YELLOW
                 this.style = Paint.Style.STROKE
                 this.strokeWidth = 30f
+            }
+            private val paintExternal = Paint().apply {
+                this.color = Color.BLUE
+                this.style = Paint.Style.STROKE
+                this.strokeWidth = 40f
             }
 
             override fun draw(block: BlockView, canvas: Canvas) {
@@ -23,6 +28,7 @@ class BlockView(context: Context) : View(context) {
                 val angle = Math.toDegrees(block.angle.toDouble()).toFloat()
                 canvas.apply {
                     rotate(angle, centerX, centerY)
+                    drawCircle(centerX, centerY, 100f, paintExternal)
                     drawCircle(centerX, centerY, 85f, paint)
                     rotate(-angle, centerX, centerY)
                 }

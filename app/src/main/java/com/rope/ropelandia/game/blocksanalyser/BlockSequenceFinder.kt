@@ -30,7 +30,7 @@ object BlocksToProgramConverter {
 
 object BlockSequenceFinder {
 
-    private const val SNAP_DISTANCE = 90
+    private const val SNAP_DISTANCE = 100
 
     fun findSequence(blocks: List<Block>): List<Block> {
 
